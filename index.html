@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>C Messenger</title>
     <style>
         :root {
@@ -30,9 +30,11 @@
             background-color: var(--bg-color);
             color: var(--text-primary);
             height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .screen {
@@ -159,12 +161,15 @@
         }
 
         .chat-header {
-            padding: 16px 20px;
-            background: var(--surface-color);
+            padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px;
+            background: color-mix(in srgb, var(--surface-color) 92%, transparent);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .chat-header-info {
@@ -224,11 +229,13 @@
 
         .messages-list {
             flex: 1;
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .message {
@@ -302,12 +309,15 @@
         }
 
         .chat-input-panel {
-            padding: 12px 20px 16px;
-            background: var(--surface-color);
+            padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+            background: color-mix(in srgb, var(--surface-color) 92%, transparent);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border-top: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .input-row {
@@ -339,6 +349,7 @@
             height: 44px;
             border-radius: 8px;
             background: var(--accent);
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -385,16 +396,19 @@
             background: var(--bg-color);
             border: 1px solid var(--border-color);
             color: var(--text-secondary);
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            font-size: 18px;
-            transition: all 0.2s;
+            transition: all 0.15s;
             flex-shrink: 0;
+        }
+
+        .file-btn:active, .send-btn:active {
+            transform: scale(0.9);
         }
 
         .file-btn:hover {
@@ -405,22 +419,27 @@
         .chat-input-panel input[type="text"] {
             flex: 1;
             border-radius: 20px;
-            padding: 10px 16px;
+            padding: 11px 16px;
+            font-size: 16px;
         }
 
         .send-btn {
             background: var(--accent);
             color: white;
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: background 0.2s;
+            transition: background 0.15s, transform 0.15s;
             flex-shrink: 0;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
         }
 
         .send-btn:hover {
@@ -429,6 +448,8 @@
 
         .mic-btn.recording {
             background: var(--danger);
+            border-color: var(--danger);
+            color: #fff;
             animation: pulse 1.5s infinite;
         }
 
@@ -440,6 +461,48 @@
 
         #file-input {
             display: none;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+            transform: translateX(-50%) translateY(10px);
+            background: #26262b;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            max-width: 85%;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 1000;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.toast-error {
+            background: var(--danger);
+        }
+
+        .file-protocol-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: calc(8px + env(safe-area-inset-top, 0px)) 14px 8px;
+            background: #b45309;
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.4;
+            text-align: center;
+            z-index: 2000;
         }
     </style>
 </head>
@@ -498,13 +561,19 @@
                     <button id="remove-attachment-btn" class="remove-attachment" title="Убрать вложение">✕</button>
                 </div>
                 <div class="input-row">
-                    <label for="file-input" class="file-btn" title="Отправить картинку">📷</label>
+                    <label for="file-input" class="file-btn" title="Отправить картинку">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2l1.4-2h6.8l1.4 2H20a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="14" r="3.4"/></svg>
+                    </label>
                     <input type="file" id="file-input" accept="image/*">
 
-                    <button id="mic-btn" class="file-btn mic-btn" title="Записать голосовое">🎤</button>
+                    <button id="mic-btn" class="file-btn mic-btn" title="Записать голосовое">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><line x1="12" y1="17.5" x2="12" y2="21"/><line x1="8.5" y1="21" x2="15.5" y2="21"/></svg>
+                    </button>
 
                     <input type="text" id="message-input" placeholder="Введите сообщение...">
-                    <button id="send-btn" class="send-btn">➔</button>
+                    <button id="send-btn" class="send-btn">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+                    </button>
                 </div>
             </div>
         </div>
@@ -533,9 +602,33 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        setPersistence(auth, browserLocalPersistence).catch((error) => {
+        function showToast(message, isError = true) {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                toast.className = 'toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.className = 'toast show' + (isError ? ' toast-error' : '');
+            clearTimeout(toast._hideTimer);
+            toast._hideTimer = setTimeout(() => toast.classList.remove('show'), 4500);
+        }
+
+        if (location.protocol === 'file:') {
+            const banner = document.createElement('div');
+            banner.className = 'file-protocol-banner';
+            banner.textContent = '⚠️ Приложение открыто как локальный файл — вход в аккаунт и отправка фото/аудио могут не работать. Разместите файл на хостинге (например, Firebase Hosting) и открывайте по ссылке https://…';
+            document.body.prepend(banner);
+        }
+
+        try {
+            await setPersistence(auth, browserLocalPersistence);
+        } catch (error) {
             console.error("Ошибка сохранения сессии:", error);
-        });
+            showToast('Не удалось включить сохранение сессии: ' + error.message);
+        }
 
         let isSignUp = false;
         let currentUser = null;
@@ -600,6 +693,7 @@
             } catch (error) {
                 authError.textContent = error.message;
                 authError.style.display = 'block';
+                showToast(error.message);
             }
         });
 
@@ -672,7 +766,7 @@
             clearAttachment();
             pendingAudioBlob = blob;
             pendingAudioUrl = URL.createObjectURL(blob);
-            attachmentThumb.innerHTML = `<div class="audio-icon">🎤</div>`;
+            attachmentThumb.innerHTML = `<div class="audio-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><line x1="12" y1="17.5" x2="12" y2="21"/><line x1="8.5" y1="21" x2="15.5" y2="21"/></svg></div>`;
             attachmentInfo.innerHTML = `<span>Голосовое сообщение</span><audio controls src="${pendingAudioUrl}"></audio>`;
             attachmentPreview.classList.remove('hidden');
         }
@@ -705,7 +799,15 @@
                 clearAttachment();
             } catch (err) {
                 console.error('Ошибка отправки:', err);
-                alert('Не удалось отправить: ' + err.message);
+                let hint = err.message || 'неизвестная ошибка';
+                if (err.code === 'storage/unauthorized') {
+                    hint = 'нет доступа к Storage — проверьте правила безопасности Storage в Firebase Console';
+                } else if (err.code === 'permission-denied') {
+                    hint = 'нет доступа к Firestore — проверьте правила безопасности Firestore';
+                } else if (location.protocol === 'file:') {
+                    hint += ' (возможно из-за того, что файл открыт локально — разместите его на хостинге)';
+                }
+                showToast('Не удалось отправить: ' + hint);
             } finally {
                 sendBtn.disabled = false;
             }
@@ -779,7 +881,7 @@
             if (!file) return;
 
             if (file.size > 10 * 1024 * 1024) {
-                alert('Файл слишком большой (максимум 10 МБ)');
+                showToast('Файл слишком большой (максимум 10 МБ)');
                 fileInput.value = '';
                 return;
             }
@@ -809,7 +911,7 @@
                     micBtn.classList.add('recording');
                     micBtn.title = 'Остановить и отправить';
                 } catch (err) {
-                    alert('Нет доступа к микрофону!');
+                    showToast('Нет доступа к микрофону — разрешите доступ в настройках браузера');
                 }
             } else {
                 mediaRecorder.stop();
