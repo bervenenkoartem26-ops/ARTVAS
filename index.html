@@ -302,12 +302,83 @@
         }
 
         .chat-input-panel {
-            padding: 16px 20px;
+            padding: 12px 20px 16px;
             background: var(--surface-color);
             border-top: 1px solid var(--border-color);
             display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-row {
+            display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .attachment-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 10px;
+        }
+
+        .attachment-thumb img {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .attachment-thumb .audio-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .attachment-info {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .attachment-info span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .attachment-info audio {
+            height: 28px;
+            max-width: 160px;
+        }
+
+        .remove-attachment {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+            flex-shrink: 0;
+        }
+
+        .remove-attachment:hover {
+            color: var(--danger);
         }
 
         .file-btn {
@@ -421,13 +492,20 @@
             <div id="typing-indicator" class="typing-indicator-box"></div>
 
             <div class="chat-input-panel">
-                <label for="file-input" class="file-btn" title="Отправить картинку">📷</label>
-                <input type="file" id="file-input" accept="image/*">
-                
-                <button id="mic-btn" class="file-btn mic-btn" title="Записать голосовое">🎤</button>
-                
-                <input type="text" id="message-input" placeholder="Введите сообщение...">
-                <button id="send-btn" class="send-btn">➔</button>
+                <div id="attachment-preview" class="attachment-preview hidden">
+                    <div id="attachment-thumb" class="attachment-thumb"></div>
+                    <div id="attachment-info" class="attachment-info"></div>
+                    <button id="remove-attachment-btn" class="remove-attachment" title="Убрать вложение">✕</button>
+                </div>
+                <div class="input-row">
+                    <label for="file-input" class="file-btn" title="Отправить картинку">📷</label>
+                    <input type="file" id="file-input" accept="image/*">
+
+                    <button id="mic-btn" class="file-btn mic-btn" title="Записать голосовое">🎤</button>
+
+                    <input type="text" id="message-input" placeholder="Введите сообщение...">
+                    <button id="send-btn" class="send-btn">➔</button>
+                </div>
             </div>
         </div>
     </div>
@@ -464,6 +542,9 @@
         let mediaRecorder = null;
         let audioChunks = [];
         let typingTimeout = null;
+        let pendingImageFile = null;
+        let pendingAudioBlob = null;
+        let pendingAudioUrl = null;
 
         const authScreen = document.getElementById('auth-screen');
         const chatScreen = document.getElementById('chat-screen');
@@ -483,6 +564,10 @@
         const fileInput = document.getElementById('file-input');
         const micBtn = document.getElementById('mic-btn');
         const typingIndicator = document.getElementById('typing-indicator');
+        const attachmentPreview = document.getElementById('attachment-preview');
+        const attachmentThumb = document.getElementById('attachment-thumb');
+        const attachmentInfo = document.getElementById('attachment-info');
+        const removeAttachmentBtn = document.getElementById('remove-attachment-btn');
 
         switchAuth.addEventListener('click', () => {
             isSignUp = !isSignUp;
@@ -552,15 +637,79 @@
                 stopTyping();
             } catch (e) {
                 console.error("Ошибка отправки: ", e);
-                alert('Не удалось отправить сообщение: ' + e.message);
+                throw e;
             }
         }
 
-        sendBtn.addEventListener('click', () => sendMessage(messageInput.value));
+        sendBtn.addEventListener('click', handleSend);
         messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage(messageInput.value);
+            if (e.key === 'Enter') handleSend();
             handleTypingSignal();
         });
+
+        function clearAttachment() {
+            pendingImageFile = null;
+            pendingAudioBlob = null;
+            if (pendingAudioUrl) {
+                URL.revokeObjectURL(pendingAudioUrl);
+                pendingAudioUrl = null;
+            }
+            attachmentPreview.classList.add('hidden');
+            attachmentThumb.innerHTML = '';
+            attachmentInfo.innerHTML = '';
+        }
+
+        function showImagePreview(file) {
+            clearAttachment();
+            pendingImageFile = file;
+            const url = URL.createObjectURL(file);
+            attachmentThumb.innerHTML = `<img src="${url}" alt="превью">`;
+            attachmentInfo.innerHTML = `<span>${escapeHtml(file.name)}</span>`;
+            attachmentPreview.classList.remove('hidden');
+        }
+
+        function showAudioPreview(blob) {
+            clearAttachment();
+            pendingAudioBlob = blob;
+            pendingAudioUrl = URL.createObjectURL(blob);
+            attachmentThumb.innerHTML = `<div class="audio-icon">🎤</div>`;
+            attachmentInfo.innerHTML = `<span>Голосовое сообщение</span><audio controls src="${pendingAudioUrl}"></audio>`;
+            attachmentPreview.classList.remove('hidden');
+        }
+
+        removeAttachmentBtn.addEventListener('click', clearAttachment);
+
+        async function handleSend() {
+            const text = messageInput.value.trim();
+            if (!text && !pendingImageFile && !pendingAudioBlob) return;
+
+            sendBtn.disabled = true;
+            try {
+                if (pendingImageFile) {
+                    const file = pendingImageFile;
+                    const path = `images/${currentUser.uid}/${Date.now()}_${file.name}`;
+                    const storageRef = ref(storage, path);
+                    await uploadBytes(storageRef, file);
+                    const url = await getDownloadURL(storageRef);
+                    await sendMessage(text, url, null);
+                } else if (pendingAudioBlob) {
+                    const blob = pendingAudioBlob;
+                    const path = `audio/${currentUser.uid}/${Date.now()}.webm`;
+                    const storageRef = ref(storage, path);
+                    await uploadBytes(storageRef, blob);
+                    const url = await getDownloadURL(storageRef);
+                    await sendMessage(text, null, url);
+                } else {
+                    await sendMessage(text);
+                }
+                clearAttachment();
+            } catch (err) {
+                console.error('Ошибка отправки:', err);
+                alert('Не удалось отправить: ' + err.message);
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
 
         function handleTypingSignal() {
             if (!currentUser) return;
@@ -625,7 +774,7 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        fileInput.addEventListener('change', async (e) => {
+        fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
@@ -635,16 +784,7 @@
                 return;
             }
 
-            try {
-                const path = `images/${currentUser.uid}/${Date.now()}_${file.name}`;
-                const storageRef = ref(storage, path);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-                await sendMessage('', url, null);
-            } catch (err) {
-                console.error('Ошибка загрузки изображения:', err);
-                alert('Не удалось отправить изображение: ' + err.message);
-            }
+            showImagePreview(file);
             fileInput.value = '';
         });
 
@@ -659,18 +799,9 @@
                         audioChunks.push(event.data);
                     };
 
-                    mediaRecorder.onstop = async () => {
+                    mediaRecorder.onstop = () => {
                         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        try {
-                            const path = `audio/${currentUser.uid}/${Date.now()}.webm`;
-                            const storageRef = ref(storage, path);
-                            await uploadBytes(storageRef, audioBlob);
-                            const url = await getDownloadURL(storageRef);
-                            await sendMessage('', null, url);
-                        } catch (err) {
-                            console.error('Ошибка загрузки аудио:', err);
-                            alert('Не удалось отправить голосовое сообщение: ' + err.message);
-                        }
+                        showAudioPreview(audioBlob);
                         stream.getTracks().forEach(track => track.stop());
                     };
 
