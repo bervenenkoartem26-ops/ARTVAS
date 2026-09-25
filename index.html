@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C Messenger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 h-screen flex flex-col justify-between overflow-hidden">
+
+    <div id="app" class="flex-1 flex flex-col max-w-2xl w-full mx-auto h-full border-x border-zinc-900">
+        
+        <header class="h-14 border-b border-zinc-900 flex items-center justify-between px-6 bg-zinc-950/80 backdrop-blur">
+            <div class="flex items-center space-x-3">
+                <span class="w-8 h-8 rounded-lg bg-white text-zinc-950 font-bold flex items-center justify-center text-lg">C</span>
+                <h1 class="font-medium tracking-wide text-sm">Messenger</h1>
+            </div>
+            <div id="user-info" class="hidden flex items-center space-x-4 text-sm">
+                <span id="user-email" class="text-zinc-400 text-xs"></span>
+                <button onclick="logout()" class="text-xs text-zinc-400 hover:text-white transition">Выйти</button>
+            </div>
+        </header>
+
+        <div id="auth-screen" class="flex-1 flex flex-col items-center justify-center p-6">
+            <div class="w-full max-w-sm space-y-6">
+                <div class="text-center space-y-2">
+                    <h2 class="text-2xl font-semibold tracking-tight">Добро пожаловать</h2>
+                    <p class="text-xs text-zinc-500">Введите данные для входа или быстрой регистрации</p>
+                </div>
+                <div class="space-y-3">
+                    <input type="email" id="auth-email" placeholder="Email" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 transition">
+                    <input type="password" id="auth-password" placeholder="Пароль" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 transition">
+                    <div class="flex space-x-2 pt-2">
+                        <button onclick="login()" class="flex-1 bg-white text-zinc-950 font-medium py-3 rounded-lg text-sm hover:bg-zinc-200 transition">Войти</button>
+                        <button onclick="register()" class="flex-1 bg-zinc-900 text-zinc-300 font-medium py-3 rounded-lg text-sm hover:bg-zinc-800 border border-zinc-800 transition">Создать</button>
+                    </div>
+                </div>
+                <p id="auth-error" class="text-red-400 text-xs text-center h-4"></p>
+            </div>
+        </div>
+
+        <div id="chat-screen" class="flex-1 flex flex-col hidden overflow-hidden">
+            <div id="messages-container" class="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col"></div>
+            <div class="p-4 border-t border-zinc-900 bg-zinc-950">
+                <form id="message-form" onsubmit="sendMessage(event)" class="flex space-x-2">
+                    <input type="text" id="message-input" placeholder="Сообщение..." autocomplete="off" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 transition">
+                    <button type="submit" class="bg-white text-zinc-950 px-5 rounded-lg font-medium text-sm hover:bg-zinc-200 transition">Отправить</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDN0ATyXH66a91B5f5xyCIIjLp1nN1vugg",
+            authDomain: "artvas-722f6.firebaseapp.com",
+            databaseURL: "https://artvas-722f6-default-rtdb.firebaseio.com",
+            projectId: "artvas-722f6",
+            storageBucket: "artvas-722f6.firebasestorage.app",
+            messagingSenderId: "395618635567",
+            appId: "1:395618635567:web:0e11091c3d766d56ce5bda",
+            measurementId: "G-02MBC79J6E"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        window.register = async () => {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+            } catch (error) {
+                document.getElementById('auth-error').innerText = error.message;
+            }
+        };
+
+        window.login = async () => {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (error) {
+                document.getElementById('auth-error').innerText = error.message;
+            }
+        };
+
+        window.logout = () => signOut(auth);
+
+        window.sendMessage = async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text || !currentUser) return;
+
+            try {
+                await addDoc(collection(db, "messages"), {
+                    text: text,
+                    uid: currentUser.uid,
+                    email: currentUser.email,
+                    createdAt: serverTimestamp()
+                });
+                input.value = '';
+            } catch (error) {
+                console.error("Ошибка отправки:", error);
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const authScreen = document.getElementById('auth-screen');
+            const chatScreen = document.getElementById('chat-screen');
+            const userInfo = document.getElementById('user-info');
+            const userEmail = document.getElementById('user-email');
+
+            if (user) {
+                authScreen.classList.add('hidden');
+                chatScreen.classList.remove('hidden');
+                userInfo.classList.remove('hidden');
+                userEmail.innerText = user.email;
+                loadMessages();
+            } else {
+                authScreen.classList.remove('hidden');
+                chatScreen.classList.add('hidden');
+                userInfo.classList.add('hidden');
+            }
+        });
+
+        function loadMessages() {
+            const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
+            onSnapshot(q, (snapshot) => {
+                const container = document.getElementById('messages-container');
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const isMe = currentUser && data.uid === currentUser.uid;
+                    
+                    const div = document.createElement('div');
+                    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+                    
+                    div.innerHTML = `
+                        <div class="max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-white text-zinc-950 rounded-br-sm' : 'bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-bl-sm'}">
+                            <p class="text-[10px] opacity-60 mb-0.5">${data.email || 'Аноним'}</p>
+                            <p class="break-words">${escapeHtml(data.text)}</p>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                container.scrollTop = container.scrollHeight;
+            });
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+</body>
+</html>
