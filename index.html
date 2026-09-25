@@ -4,168 +4,678 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>C Messenger</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        :root {
+            --bg-color: #0f0f11;
+            --surface-color: #18181b;
+            --surface-hover: #27272a;
+            --border-color: #27272a;
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --danger: #ef4444;
+            --bubble-me: #6366f1;
+            --bubble-other: #27272a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .auth-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .logo-c {
+            font-size: 64px;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 8px;
+            letter-spacing: -2px;
+        }
+
+        .auth-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .switch-auth {
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .switch-auth span {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .error-msg {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .chat-container {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            max-width: 800px;
+            height: 100%;
+            margin: 0 auto;
+            background: var(--surface-color);
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .chat-container.active {
+            display: flex;
+        }
+
+        .chat-header {
+            padding: 16px 20px;
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        .user-status-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .current-user-email {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .online-status {
+            font-size: 11px;
+            color: #22c55e;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .online-status::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .messages-list {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-break: break-word;
+            position: relative;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.me {
+            background: var(--bubble-me);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.other {
+            background: var(--bubble-other);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .msg-author {
+            font-size: 10px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .message.other .msg-author {
+            color: var(--accent);
+        }
+
+        .msg-time {
+            font-size: 9px;
+            text-align: right;
+            margin-top: 4px;
+            opacity: 0.7;
+        }
+
+        .message img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .message audio {
+            max-width: 100%;
+            margin-top: 4px;
+            height: 35px;
+        }
+
+        .typing-indicator-box {
+            padding: 0 20px 8px 20px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            height: 20px;
+            font-style: italic;
+        }
+
+        .chat-input-panel {
+            padding: 16px 20px;
+            background: var(--surface-color);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .file-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .chat-input-panel input[type="text"] {
+            flex: 1;
+            border-radius: 20px;
+            padding: 10px 16px;
+        }
+
+        .send-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .mic-btn.recording {
+            background: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        #file-input {
+            display: none;
+        }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 h-screen flex flex-col justify-between overflow-hidden">
+<body>
 
-    <div id="app" class="flex-1 flex flex-col max-w-2xl w-full mx-auto h-full border-x border-zinc-900">
-        
-        <header class="h-14 border-b border-zinc-900 flex items-center justify-between px-6 bg-zinc-950/80 backdrop-blur">
-            <div class="flex items-center space-x-3">
-                <span class="w-8 h-8 rounded-lg bg-white text-zinc-950 font-bold flex items-center justify-center text-lg">C</span>
-                <h1 class="font-medium tracking-wide text-sm">Messenger</h1>
+    <!-- Экран авторизации -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-card">
+            <div class="logo-c">C</div>
+            <div id="auth-title" class="auth-title">Вход в C Messenger</div>
+            
+            <div class="input-group" id="nickname-group" style="display: none;">
+                <label>Ваш никнейм</label>
+                <input type="text" id="nickname-input" placeholder="Как вас называть?">
             </div>
-            <div id="user-info" class="hidden flex items-center space-x-4 text-sm">
-                <span id="user-email" class="text-zinc-400 text-xs"></span>
-                <button onclick="logout()" class="text-xs text-zinc-400 hover:text-white transition">Выйти</button>
-            </div>
-        </header>
 
-        <div id="auth-screen" class="flex-1 flex flex-col items-center justify-center p-6">
-            <div class="w-full max-w-sm space-y-6">
-                <div class="text-center space-y-2">
-                    <h2 class="text-2xl font-semibold tracking-tight">Добро пожаловать</h2>
-                    <p class="text-xs text-zinc-500">Введите данные для входа или быстрой регистрации</p>
-                </div>
-                <div class="space-y-3">
-                    <input type="email" id="auth-email" placeholder="Email" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 transition">
-                    <input type="password" id="auth-password" placeholder="Пароль" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 transition">
-                    <div class="flex space-x-2 pt-2">
-                        <button onclick="login()" class="flex-1 bg-white text-zinc-950 font-medium py-3 rounded-lg text-sm hover:bg-zinc-200 transition">Войти</button>
-                        <button onclick="register()" class="flex-1 bg-zinc-900 text-zinc-300 font-medium py-3 rounded-lg text-sm hover:bg-zinc-800 border border-zinc-800 transition">Создать</button>
-                    </div>
-                </div>
-                <p id="auth-error" class="text-red-400 text-xs text-center h-4"></p>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="email-input" placeholder="name@example.com">
             </div>
+            
+            <div class="input-group">
+                <label>Пароль</label>
+                <input type="password" id="password-input" placeholder="••••••••">
+            </div>
+
+            <button id="auth-btn" class="btn">Войти</button>
+            <div id="auth-error" class="error-msg"></div>
+            
+            <div id="switch-auth" class="switch-auth">Нет аккаунта? <span>Зарегистрироваться</span></div>
         </div>
-
-        <div id="chat-screen" class="flex-1 flex flex-col hidden overflow-hidden">
-            <div id="messages-container" class="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col"></div>
-            <div class="p-4 border-t border-zinc-900 bg-zinc-950">
-                <form id="message-form" onsubmit="sendMessage(event)" class="flex space-x-2">
-                    <input type="text" id="message-input" placeholder="Сообщение..." autocomplete="off" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 transition">
-                    <button type="submit" class="bg-white text-zinc-950 px-5 rounded-lg font-medium text-sm hover:bg-zinc-200 transition">Отправить</button>
-                </form>
-            </div>
-        </div>
-
     </div>
 
+    <!-- Экран чата -->
+    <div id="chat-screen" class="screen">
+        <div class="chat-container active">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="header-logo">C</div>
+                    <div class="user-status-box">
+                        <div id="current-user-name" class="current-user-email">User</div>
+                        <div class="online-status">В сети</div>
+                    </div>
+                </div>
+                <button id="logout-btn" class="logout-btn">Выйти</button>
+            </div>
+
+            <div id="messages-list" class="messages-list"></div>
+            
+            <div id="typing-indicator" class="typing-indicator-box"></div>
+
+            <div class="chat-input-panel">
+                <label for="file-input" class="file-btn" title="Отправить картинку">📷</label>
+                <input type="file" id="file-input" accept="image/*">
+                
+                <button id="mic-btn" class="file-btn mic-btn" title="Записать голосовое">🎤</button>
+                
+                <input type="text" id="message-input" placeholder="Введите сообщение...">
+                <button id="send-btn" class="send-btn">➔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // Вставьте вашу конфигурацию Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyDN0ATyXH66a91B5f5xyCIIjLp1nN1vugg",
-            authDomain: "artvas-722f6.firebaseapp.com",
-            databaseURL: "https://artvas-722f6-default-rtdb.firebaseio.com",
-            projectId: "artvas-722f6",
-            storageBucket: "artvas-722f6.firebasestorage.app",
-            messagingSenderId: "395618635567",
-            appId: "1:395618635567:web:0e11091c3d766d56ce5bda",
-            measurementId: "G-02MBC79J6E"
+            apiKey: "ВАШ_API_KEY",
+            authDomain: "ВАШ_AUTH_DOMAIN",
+            projectId: "ВАШ_PROJECT_ID",
+            storageBucket: "ВАШ_STORAGE_BUCKET",
+            messagingSenderId: "ВАШ_MESSAGING_SENDER_ID",
+            appId: "ВАШ_APP_ID"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Включаем сохранение аккаунта на устройстве
+        setPersistence(auth, browserLocalPersistence).catch((error) => {
+            console.error("Ошибка сохранения сессии:", error);
+        });
+
+        let isSignUp = false;
         let currentUser = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let typingTimeout = null;
 
-        window.register = async () => {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-password').value;
-            try {
-                await createUserWithEmailAndPassword(auth, email, pass);
-            } catch (error) {
-                document.getElementById('auth-error').innerText = error.message;
+        // DOM элементы
+        const authScreen = document.getElementById('auth-screen');
+        const chatScreen = document.getElementById('chat-screen');
+        const authTitle = document.getElementById('auth-title');
+        const authBtn = document.getElementById('auth-btn');
+        const switchAuth = document.getElementById('switch-auth');
+        const nicknameGroup = document.getElementById('nickname-group');
+        const nicknameInput = document.getElementById('nickname-input');
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const authError = document.getElementById('auth-error');
+        const logoutBtn = document.getElementById('logout-btn');
+        const currentUserName = document.getElementById('current-user-name');
+        const messagesList = document.getElementById('messages-list');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const fileInput = document.getElementById('file-input');
+        const micBtn = document.getElementById('mic-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        // Переключение режимов входа/регистрации
+        switchAuth.addEventListener('click', () => {
+            isSignUp = !isSignUp;
+            authTitle.textContent = isSignUp ? 'Регистрация в C Messenger' : 'Вход в C Messenger';
+            authBtn.textContent = isSignUp ? 'Зарегистрироваться' : 'Войти';
+            nicknameGroup.style.display = isSignUp ? 'block' : 'none';
+            switchAuth.innerHTML = isSignUp ? 'Уже есть аккаунт? <span>Войти</span>' : 'Нет аккаунта? <span>Зарегистрироваться</span>';
+            authError.style.display = 'none';
+        });
+
+        // Авторизация
+        authBtn.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            const nickname = nicknameInput.value.trim();
+            authError.style.display = 'none';
+
+            if (!email || !password || (isSignUp && !nickname)) {
+                authError.textContent = 'Заполните все поля';
+                authError.style.display = 'block';
+                return;
             }
-        };
-
-        window.login = async () => {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-password').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (error) {
-                document.getElementById('auth-error').innerText = error.message;
-            }
-        };
-
-        window.logout = () => signOut(auth);
-
-        window.sendMessage = async (e) => {
-            e.preventDefault();
-            const input = document.getElementById('message-input');
-            const text = input.value.trim();
-            if (!text || !currentUser) return;
 
             try {
-                await addDoc(collection(db, "messages"), {
-                    text: text,
-                    uid: currentUser.uid,
-                    email: currentUser.email,
-                    createdAt: serverTimestamp()
-                });
-                input.value = '';
+                if (isSignUp) {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await updateProfile(userCredential.user, { displayName: nickname });
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
             } catch (error) {
-                console.error("Ошибка отправки:", error);
-            }
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            const authScreen = document.getElementById('auth-screen');
-            const chatScreen = document.getElementById('chat-screen');
-            const userInfo = document.getElementById('user-info');
-            const userEmail = document.getElementById('user-email');
-
-            if (user) {
-                authScreen.classList.add('hidden');
-                chatScreen.classList.remove('hidden');
-                userInfo.classList.remove('hidden');
-                userEmail.innerText = user.email;
-                loadMessages();
-            } else {
-                authScreen.classList.remove('hidden');
-                chatScreen.classList.add('hidden');
-                userInfo.classList.add('hidden');
+                authError.textContent = error.message;
+                authError.style.display = 'block';
             }
         });
 
+        // Выход
+        logoutBtn.addEventListener('click', () => signOut(auth));
+
+        // Отслеживание сессии
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                authScreen.classList.remove('active');
+                chatScreen.classList.add('active');
+                currentUserName.textContent = user.displayName || user.email.split('@')[0];
+                loadMessages();
+            } else {
+                chatScreen.classList.remove('active');
+                authScreen.classList.add('active');
+                emailInput.value = '';
+                passwordInput.value = '';
+                nicknameInput.value = '';
+            }
+        });
+
+        // Отправка текстового сообщения
+        async function sendMessage(text = '', imageUrl = null, audioUrl = null) {
+            if (!text && !imageUrl && !audioUrl) return;
+
+            try {
+                await addDoc(collection(db, 'messages'), {
+                    text: text,
+                    imageUrl: imageUrl,
+                    audioUrl: audioUrl,
+                    senderName: currentUser.displayName || currentUser.email.split('@')[0],
+                    sender: currentUser.email,
+                    createdAt: serverTimestamp()
+                });
+                messageInput.value = '';
+                stopTyping();
+            } catch (e) {
+                console.error("Ошибка отправки: ", e);
+            }
+        }
+
+        sendBtn.addEventListener('click', () => sendMessage(messageInput.value));
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage(messageInput.value);
+            handleTypingSignal();
+        });
+
+        // Индикатор набора текста
+        function handleTypingSignal() {
+            if (!currentUser) return;
+            const name = currentUser.displayName || currentUser.email.split('@')[0];
+            const typingRef = doc(db, 'typing', currentUser.uid);
+            setDoc(typingRef, { name: name, time: serverTimestamp() });
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(async () => {
+                await deleteDoc(typingRef).catch(() => {});
+            }, 2000);
+        }
+
+        async function stopTyping() {
+            if (!currentUser) return;
+            await deleteDoc(doc(db, 'typing', currentUser.uid)).catch(() => {});
+        }
+
+        onSnapshot(collection(db, 'typing'), (snapshot) => {
+            let typingNames = [];
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (data.name && docSnap.id !== currentUser?.uid) {
+                    typingNames.push(data.name);
+                }
+            });
+
+            if (typingNames.length > 0) {
+                typingIndicator.textContent = `${typingNames.join(', ')} печатает...`;
+            } else {
+                typingIndicator.textContent = '';
+            }
+        });
+
+        // Загрузка сообщений
         function loadMessages() {
-            const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
+            const q = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
             onSnapshot(q, (snapshot) => {
-                const container = document.getElementById('messages-container');
-                container.innerHTML = '';
+                messagesList.innerHTML = '';
                 snapshot.forEach((doc) => {
                     const data = doc.data();
-                    const isMe = currentUser && data.uid === currentUser.uid;
-                    
-                    const div = document.createElement('div');
-                    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
-                    
-                    div.innerHTML = `
-                        <div class="max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-white text-zinc-950 rounded-br-sm' : 'bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-bl-sm'}">
-                            <p class="text-[10px] opacity-60 mb-0.5">${data.email || 'Аноним'}</p>
-                            <p class="break-words">${escapeHtml(data.text)}</p>
-                        </div>
-                    `;
-                    container.appendChild(div);
+                    const isMe = data.sender === currentUser.email;
+
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `message ${isMe ? 'me' : 'other'}`;
+
+                    let contentHtml = `<div class="msg-author">${data.senderName || data.sender}</div>`;
+                    if (data.text) contentHtml += `<div>${escapeHtml(data.text)}</div>`;
+                    if (data.imageUrl) contentHtml += `<img src="${data.imageUrl}" alt="img">`;
+                    if (data.audioUrl) contentHtml += `<audio controls src="${data.audioUrl}"></audio>`;
+
+                    const timeStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                    contentHtml += `<div class="msg-time">${timeStr}</div>`;
+
+                    msgDiv.innerHTML = contentHtml;
+                    messagesList.appendChild(msgDiv);
                 });
-                container.scrollTop = container.scrollHeight;
+                messagesList.scrollTop = messagesList.scrollHeight;
             });
         }
 
         function escapeHtml(text) {
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                sendMessage('', uploadEvent.target.result, null);
+            };
+            reader.readAsDataURL(file);
+            fileInput.value = '';
+        });
+
+        micBtn.addEventListener('click', async () => {
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            sendMessage('', null, e.target.result);
+                        };
+                        reader.readAsDataURL(audioBlob);
+                        
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    micBtn.classList.add('recording');
+                    micBtn.title = 'Остановить и отправить';
+                } catch (err) {
+                    alert('Нет доступа к микрофону!');
+                }
+            } else {
+                mediaRecorder.stop();
+                micBtn.classList.remove('recording');
+                micBtn.title = 'Записать голосовое';
+            }
+        });
     </script>
 </body>
 </html>
