@@ -438,7 +438,6 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Конфигурация Firebase встроена автоматически
         const firebaseConfig = {
             apiKey: "AIzaSyDN0AtYXH66a91B5f5xyCIlJp1nN1vugg",
             authDomain: "artvas-722f6.firebaseapp.com",
@@ -452,7 +451,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Включаем сохранение аккаунта на устройстве
         setPersistence(auth, browserLocalPersistence).catch((error) => {
             console.error("Ошибка сохранения сессии:", error);
         });
@@ -463,7 +461,6 @@
         let audioChunks = [];
         let typingTimeout = null;
 
-        // DOM элементы
         const authScreen = document.getElementById('auth-screen');
         const chatScreen = document.getElementById('chat-screen');
         const authTitle = document.getElementById('auth-title');
@@ -483,7 +480,6 @@
         const micBtn = document.getElementById('mic-btn');
         const typingIndicator = document.getElementById('typing-indicator');
 
-        // Переключение режимов входа/регистрации
         switchAuth.addEventListener('click', () => {
             isSignUp = !isSignUp;
             authTitle.textContent = isSignUp ? 'Регистрация в C Messenger' : 'Вход в C Messenger';
@@ -493,7 +489,6 @@
             authError.style.display = 'none';
         });
 
-        // Авторизация
         authBtn.addEventListener('click', async () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
@@ -519,10 +514,8 @@
             }
         });
 
-        // Выход
         logoutBtn.addEventListener('click', () => signOut(auth));
 
-        // Отслеживание сессии
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             if (user) {
@@ -539,7 +532,6 @@
             }
         });
 
-        // Отправка текстового сообщения
         async function sendMessage(text = '', imageUrl = null, audioUrl = null) {
             if (!text && !imageUrl && !audioUrl) return;
 
@@ -565,7 +557,6 @@
             handleTypingSignal();
         });
 
-        // Индикатор набора текста
         function handleTypingSignal() {
             if (!currentUser) return;
             const name = currentUser.displayName || currentUser.email.split('@')[0];
@@ -599,7 +590,6 @@
             }
         });
 
-        // Загрузка сообщений
         function loadMessages() {
             const q = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
             onSnapshot(q, (snapshot) => {
