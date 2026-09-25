@@ -437,19 +437,23 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyDN0AtYXH66a91B5f5xyCIlJp1nN1vugg",
+            apiKey: "AIzaSyDN0ATyXH66a91B5f5xyCIIjLp1nN1vugg",
             authDomain: "artvas-722f6.firebaseapp.com",
+            databaseURL: "https://artvas-722f6-default-rtdb.firebaseio.com",
             projectId: "artvas-722f6",
-            storageBucket: "artvas-722f6.appspot.com",
+            storageBucket: "artvas-722f6.firebasestorage.app",
             messagingSenderId: "395618635567",
-            appId: "1:395618635567:web:0e11091c3d766d56ce5bda"
+            appId: "1:395618635567:web:0e11091c3d766d56ce5bda",
+            measurementId: "G-02MBC79J6E"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         setPersistence(auth, browserLocalPersistence).catch((error) => {
             console.error("Ошибка сохранения сессии:", error);
@@ -548,6 +552,7 @@
                 stopTyping();
             } catch (e) {
                 console.error("Ошибка отправки: ", e);
+                alert('Не удалось отправить сообщение: ' + e.message);
             }
         }
 
@@ -620,15 +625,26 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        fileInput.addEventListener('change', (e) => {
+        fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(uploadEvent) {
-                sendMessage('', uploadEvent.target.result, null);
-            };
-            reader.readAsDataURL(file);
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Файл слишком большой (максимум 10 МБ)');
+                fileInput.value = '';
+                return;
+            }
+
+            try {
+                const path = `images/${currentUser.uid}/${Date.now()}_${file.name}`;
+                const storageRef = ref(storage, path);
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
+                await sendMessage('', url, null);
+            } catch (err) {
+                console.error('Ошибка загрузки изображения:', err);
+                alert('Не удалось отправить изображение: ' + err.message);
+            }
             fileInput.value = '';
         });
 
@@ -645,12 +661,16 @@
 
                     mediaRecorder.onstop = async () => {
                         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            sendMessage('', null, e.target.result);
-                        };
-                        reader.readAsDataURL(audioBlob);
-                        
+                        try {
+                            const path = `audio/${currentUser.uid}/${Date.now()}.webm`;
+                            const storageRef = ref(storage, path);
+                            await uploadBytes(storageRef, audioBlob);
+                            const url = await getDownloadURL(storageRef);
+                            await sendMessage('', null, url);
+                        } catch (err) {
+                            console.error('Ошибка загрузки аудио:', err);
+                            alert('Не удалось отправить голосовое сообщение: ' + err.message);
+                        }
                         stream.getTracks().forEach(track => track.stop());
                     };
 
