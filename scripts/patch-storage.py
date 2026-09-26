@@ -1,0 +1,63 @@
+from pathlib import Path
+
+p = Path('index.html')
+text = p.read_text(encoding='utf-8')
+start = text.find('        async function uploadToSupabase(')
+end = text.find('        const firebaseConfig =', start)
+if start < 0 or end < 0:
+    raise SystemExit('uploadToSupabase block not found')
+
+replacement = '''        // ===== Supabase Storage (фото и голосовые) =====
+        const SUPABASE_PROJECT_REF = 'kbtqxdhgliksoucyvaq';
+        const SUPABASE_URL = `https://${SUPABASE_PROJECT_REF}.supabase.co`;
+        const SUPABASE_STORAGE_URL = `https://${SUPABASE_PROJECT_REF}.storage.supabase.co`;
+        const SUPABASE_ANON_KEY = 'sb_publishable_xugWMEBuzsnT6d7YPBKOMQ_XWHmdBWk';
+        const SUPABASE_BUCKET = 'chat-media';
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function uploadToSupabase(fileOrBlob, filename, folder) {
+            if (!SUPABASE_ANON_KEY) throw new Error('Supabase не настроен');
+            if (!currentUser?.uid) throw new Error('Нужно войти в аккаунт перед загрузкой файла');
+
+            const safeName = String(filename || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+            const uniqueId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+            const safeFolder = String(folder || 'files').replace(/[^a-zA-Z0-9._-]/g, '_');
+            const path = `${safeFolder}/${currentUser.uid}/${Date.now()}_${uniqueId}_${safeName}`;
+            const encodedPath = encodeURIComponent(path).replace(/%2F/g, '/');
+            const uploadUrl = `${SUPABASE_STORAGE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${encodedPath}`;
+
+            try {
+                const response = await fetch(uploadUrl, {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                        apikey: SUPABASE_ANON_KEY,
+                        'Content-Type': fileOrBlob.type || 'application/octet-stream',
+                        'x-upsert': 'false',
+                        'cache-control': '3600'
+                    },
+                    body: fileOrBlob
+                });
+
+                const responseText = await response.text();
+                if (!response.ok) {
+                    let message = responseText;
+                    try {
+                        const json = JSON.parse(responseText);
+                        message = json.message || json.error || json.error_description || responseText;
+                    } catch (_) {}
+                    throw new Error(message || `Storage upload failed (${response.status})`);
+                }
+
+                return `${SUPABASE_STORAGE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${encodedPath}`;
+            } catch (error) {
+                console.error('Supabase direct storage upload error:', error);
+                throw new Error(error?.message || 'Не удалось загрузить файл в Supabase Storage');
+            }
+        }
+
+'''
+
+p.write_text(text[:start] + replacement + text[end:], encoding='utf-8')
+print('Patched index.html')
