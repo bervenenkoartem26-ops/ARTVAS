@@ -207,26 +207,6 @@
             flex-shrink: 0;
         }
 
-        .icon-btn.circle-outline { border: 1.5px solid var(--border-color); }
-
-        .bottom-bar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
-            background: color-mix(in srgb, var(--surface-color) 92%, transparent);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border-top: 1px solid var(--border-color);
-            flex-shrink: 0;
-        }
-        .bottom-bar input[type="text"] {
-            flex: 1;
-            border-radius: 20px;
-            padding: 10px 16px;
-            font-size: 15px;
-        }
-
         .chats-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .chat-item {
             display: flex;
@@ -430,21 +410,11 @@
             <div class="top-bar">
                 <div class="top-bar-title">Чаты</div>
                 <div class="top-bar-actions">
-                    <button id="new-chat-btn" class="icon-btn circle-outline" title="Добавить контакт">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    </button>
+                    <button id="new-chat-btn" class="icon-btn" title="Новый чат">➕</button>
+                    <button id="settings-btn" class="icon-btn" title="Настройки">⚙️</button>
                 </div>
             </div>
             <div id="chats-list" class="chats-list"></div>
-            <div class="bottom-bar">
-                <button id="profile-btn" class="icon-btn" title="Профиль">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20c1.5-4 4.2-6 7.5-6s6 2 7.5 6"/></svg>
-                </button>
-                <input type="text" id="chats-search-input" placeholder="Поиск по чатам">
-                <button id="settings-btn" class="icon-btn" title="Настройки">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="18" r="2"/></svg>
-                </button>
-            </div>
         </div>
 
         <div id="chat-screen" class="screen">
@@ -664,8 +634,6 @@
         const chatScreen = document.getElementById('chat-screen');
         const settingsScreen = document.getElementById('settings-screen');
         const chatsList = document.getElementById('chats-list');
-        const chatsSearchInput = document.getElementById('chats-search-input');
-        const profileBtn = document.getElementById('profile-btn');
         const messagesList = document.getElementById('messages-list');
         const chatTitle = document.getElementById('chat-title');
         const chatAvatar = document.getElementById('chat-avatar');
@@ -713,6 +681,7 @@
         function formatChatTime(timestamp) {
             if (!timestamp) return '';
             const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            if (isNaN(d.getTime())) return '';
             const now = new Date();
             if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
@@ -785,7 +754,7 @@
                     text: text || '',
                     imageUrl,
                     audioUrl,
-                    chatId: currentChatId, // <--- Добавлено обязательное поле chatId
+                    chatId: currentChatId,
                     createdAt: serverTimestamp()
                 };
                 if (replyingTo?.id) {
@@ -857,8 +826,9 @@
                         [currentUser.uid]: normalizeName(currentUser),
                         [otherUid]: otherName || 'Пользователь'
                     },
-                    lastMessage: '',
-                    lastMessageAt: serverTimestamp()
+                    lastMessage: 'Чат создан',
+                    lastMessageAt: serverTimestamp(),
+                    createdAt: serverTimestamp()
                 });
             }
             openChat(chatId, otherUid, otherName || 'Пользователь');
@@ -881,6 +851,13 @@
             } catch (e) {}
         }
 
+        function getTimestamp(field) {
+            if (!field) return Date.now();
+            if (typeof field.toMillis === 'function') return field.toMillis();
+            if (field.seconds) return field.seconds * 1000;
+            return new Date(field).getTime() || Date.now();
+        }
+
         function subscribeChats() {
             if (chatsUnsub) chatsUnsub();
             const q = query(collection(db, 'chats'), where('members', 'array-contains', currentUser.uid));
@@ -890,9 +867,9 @@
                     const data = snap.data();
                     allChatsCache.push({ id: snap.id, ...data });
                 });
-                allChatsCache.sort((a,b) => {
-                    const at = a.lastMessageAt?.toMillis?.() || 0;
-                    const bt = b.lastMessageAt?.toMillis?.() || 0;
+                allChatsCache.sort((a, b) => {
+                    const at = getTimestamp(a.lastMessageAt || a.createdAt);
+                    const bt = getTimestamp(b.lastMessageAt || b.createdAt);
                     return bt - at;
                 });
                 renderChats();
@@ -903,23 +880,12 @@
         }
 
         function renderChats() {
-            const term = (chatsSearchInput.value || '').trim().toLowerCase();
             chatsList.innerHTML = '';
             if (!allChatsCache.length) {
-                chatsList.innerHTML = '<div class="chats-empty">Пока нет чатов.<br>Нажмите «+», чтобы добавить контакт.</div>';
+                chatsList.innerHTML = '<div class="chats-empty">Пока нет чатов.<br>Нажмите ➕, чтобы начать новый чат.</div>';
                 return;
             }
-            const filtered = allChatsCache.filter(chat => {
-                if (!term) return true;
-                const otherUid = chat.members.find(id => id !== currentUser.uid);
-                const otherName = chat.memberNames?.[otherUid] || '';
-                return otherName.toLowerCase().includes(term);
-            });
-            if (!filtered.length) {
-                chatsList.innerHTML = '<div class="chats-empty">Ничего не найдено.</div>';
-                return;
-            }
-            filtered.forEach(chat => {
+            allChatsCache.forEach(chat => {
                 const otherUid = chat.members.find(id => id !== currentUser.uid);
                 const otherName = chat.memberNames?.[otherUid] || 'Пользователь';
                 const item = document.createElement('div');
@@ -930,14 +896,12 @@
                         <div class="chat-item-name">${escapeHtml(otherName)}</div>
                         <div class="chat-item-last">${escapeHtml(chat.lastMessage || '')}</div>
                     </div>
-                    <div class="chat-item-time">${formatChatTime(chat.lastMessageAt)}</div>
+                    <div class="chat-item-time">${formatChatTime(chat.lastMessageAt || chat.createdAt)}</div>
                 `;
                 item.addEventListener('click', () => openChat(chat.id, otherUid, otherName));
                 chatsList.appendChild(item);
             });
         }
-
-        chatsSearchInput.addEventListener('input', renderChats);
 
         function subscribeTyping(chatId) {
             if (typingUnsub) typingUnsub();
@@ -1095,17 +1059,15 @@
             }
         });
 
-        function openSettingsScreen() {
+        document.getElementById('new-chat-btn').addEventListener('click', loadUsersForNewChat);
+        document.getElementById('settings-btn').addEventListener('click', () => {
             if (!currentUser) return;
             document.getElementById('settings-name-input').value = normalizeName(currentUser);
             document.getElementById('settings-email').textContent = currentUser.email || '';
             const theme = localStorage.getItem('theme-pref') || 'dark';
             document.getElementById('theme-toggle').checked = theme === 'dark';
             showScreen(settingsScreen);
-        }
-        document.getElementById('new-chat-btn').addEventListener('click', loadUsersForNewChat);
-        document.getElementById('settings-btn').addEventListener('click', openSettingsScreen);
-        profileBtn.addEventListener('click', openSettingsScreen);
+        });
         document.getElementById('back-from-settings').addEventListener('click', () => showScreen(chatsScreen));
         document.getElementById('back-to-chats').addEventListener('click', () => {
             if (messagesUnsub) messagesUnsub();
