@@ -1,4 +1,4 @@
-name: Deploy Firestore Rules
+name: Deploy Firebase Database Rules
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'firestore.rules'
+      - 'database.rules.json'
       - 'firebase.json'
       - '.firebaserc'
       - '.github/workflows/deploy-firestore-rules.yml'
@@ -40,8 +41,8 @@ jobs:
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
 
-      - name: Deploy Firestore rules
-        run: firebase deploy --only firestore:rules --project artvas-722f6 --non-interactive
+      - name: Deploy Firestore and Realtime Database rules
+        run: firebase deploy --only firestore:rules,database --project artvas-722f6 --non-interactive
 
       - name: Remove credentials
         if: always()
