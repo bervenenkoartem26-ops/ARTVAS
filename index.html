@@ -365,195 +365,98 @@
         .switch input:checked + .slider { background: var(--accent); }
         .switch input:checked + .slider:before { transform: translateX(20px); }
 
+        .file-protocol-banner {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+            background: #b91c1c; color: white; padding: 10px 14px;
+            text-align: center; font-size: 12px;
+        }
+
         .toast {
-            position: fixed; left: 50%; bottom: calc(30px + env(safe-area-inset-bottom, 0px));
-            transform: translateX(-50%) translateY(10px);
-            background: #26262b; color: #fff; padding: 10px 16px; border-radius: 12px;
-            font-size: 13px; max-width: 85%; text-align: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease;
-            z-index: 1000; box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+            position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+            padding: 10px 16px; border-radius: 12px; background: var(--surface-color);
+            color: var(--text-primary); border: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px rgba(0,0,0,.35); opacity: 0; pointer-events: none;
+            transition: opacity .2s, transform .2s; z-index: 2000; font-size: 13px; max-width: 90%;
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-        .toast.toast-error { background: var(--danger); }
-
-        .file-protocol-banner {
-            position: fixed; top: 0; left: 0; right: 0;
-            padding: calc(8px + env(safe-area-inset-top, 0px)) 14px 8px;
-            background: #b45309; color: #fff; font-size: 12px; line-height: 1.4;
-            text-align: center; z-index: 2000;
-        }
+        .toast-error { border-color: var(--danger); }
 
         .hidden { display: none !important; }
 
-        .chats-search-row { padding: 8px 16px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
-        .chats-search-row input { padding: 9px 14px; font-size: 14px; border-radius: 10px; }
-
-        .chat-item-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
-        .unread-badge {
-            min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
-            background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .partner-status { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
-        .partner-status.online { color: #22c55e; }
-
-        .reply-preview {
-            display: flex; align-items: center; gap: 10px;
-            background: var(--bg-color); border: 1px solid var(--border-color);
-            border-radius: 12px; padding: 8px 10px;
-        }
-        .reply-preview-bar { width: 3px; align-self: stretch; background: var(--accent); border-radius: 2px; flex-shrink: 0; }
-        .reply-preview-text { flex: 1; min-width: 0; }
-        .reply-preview-name { font-size: 12px; font-weight: 600; color: var(--accent); }
-        .reply-preview-snippet { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        .msg-reply-quote {
-            border-left: 3px solid rgba(255,255,255,0.5); padding: 4px 8px; margin-bottom: 6px;
-            font-size: 12.5px; opacity: 0.85; border-radius: 4px; background: rgba(0,0,0,0.12);
-        }
-        .message.other .msg-reply-quote { border-left-color: var(--accent); background: rgba(0,0,0,0.05); }
-        .msg-reply-quote .rq-name { font-weight: 600; }
-
-        .msg-ticks { display: inline-flex; margin-left: 4px; vertical-align: middle; }
-        .msg-ticks.read svg { color: #7dd3fc; }
-
-        .msg-wrap { display: flex; flex-direction: column; max-width: 78%; }
-        .msg-wrap.me { align-self: flex-end; align-items: flex-end; }
-        .msg-wrap.other { align-self: flex-start; align-items: flex-start; }
-        .msg-actions { display: flex; gap: 4px; margin-top: 2px; }
-        .msg-action-btn {
-            background: transparent; border: none; color: var(--text-secondary);
-            font-size: 11px; cursor: pointer; padding: 2px 6px; border-radius: 6px;
-        }
-        .msg-action-btn:active { background: var(--surface-hover); }
-        .msg-deleted { font-style: italic; color: var(--text-secondary); }
-
         .image-viewer {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.92);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 900; padding: 20px;
+            position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.9);
+            display: flex; align-items: center; justify-content: center; padding: 20px; cursor: zoom-out;
         }
-        .image-viewer img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+        .image-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+
+        @media (max-width: 520px) {
+            .auth-card { padding: 28px 22px; }
+            .message { max-width: 88%; }
+        }
     </style>
 </head>
 <body>
-
     <div class="app-shell">
-        <!-- Экран входа -->
         <div id="auth-screen" class="screen screen-center active">
             <div class="auth-card">
                 <div class="logo-c">C</div>
-                <div id="auth-title" class="auth-title">Вход в C Messenger</div>
-
-                <div class="input-group" id="nickname-group" style="display: none;">
-                    <label>Ваш никнейм</label>
-                    <input type="text" id="nickname-input" placeholder="Как вас называть?">
+                <h1 id="auth-title" class="auth-title">Вход в C Messenger</h1>
+                <div class="input-group">
+                    <label for="email-input">Email</label>
+                    <input id="email-input" type="email" autocomplete="email" placeholder="you@example.com">
                 </div>
                 <div class="input-group">
-                    <label>Email</label>
-                    <input type="email" id="email-input" placeholder="name@example.com">
+                    <label for="password-input">Пароль</label>
+                    <input id="password-input" type="password" autocomplete="current-password" placeholder="Минимум 6 символов">
                 </div>
-                <div class="input-group">
-                    <label>Пароль</label>
-                    <input type="password" id="password-input" placeholder="••••••••">
+                <div id="nickname-group" class="input-group hidden">
+                    <label for="nickname-input">Имя</label>
+                    <input id="nickname-input" type="text" autocomplete="name" placeholder="Ваше имя">
                 </div>
-
                 <button id="auth-btn" class="btn btn-block">Войти</button>
-                <div id="auth-error" class="error-msg"></div>
                 <div id="switch-auth" class="switch-auth">Нет аккаунта? <span>Зарегистрироваться</span></div>
+                <div id="auth-error" class="error-msg"></div>
             </div>
         </div>
 
-        <!-- Список чатов -->
         <div id="chats-screen" class="screen">
             <div class="top-bar">
                 <div class="top-bar-title">Чаты</div>
                 <div class="top-bar-actions">
-                    <button id="settings-open-btn" class="icon-btn" title="Настройки">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="18" r="2"/></svg>
-                    </button>
-                    <button id="new-chat-btn" class="icon-btn" title="Новый чат">
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    </button>
+                    <button id="new-chat-btn" class="icon-btn" title="Новый чат">➕</button>
+                    <button id="settings-btn" class="icon-btn" title="Настройки">⚙️</button>
                 </div>
-            </div>
-            <div class="chats-search-row">
-                <input type="text" id="chats-search-input" placeholder="Поиск чатов...">
             </div>
             <div id="chats-list" class="chats-list"></div>
-            <div id="chats-empty" class="chats-empty hidden">Пока нет ни одного чата.<br>Нажмите «+» вверху, чтобы начать переписку по email.</div>
         </div>
 
-        <!-- Модалка нового чата -->
-        <div id="new-chat-modal" class="modal-overlay hidden">
-            <div class="modal-card">
-                <div class="modal-title">Новый чат</div>
-                <div class="input-group">
-                    <label>Email собеседника</label>
-                    <input type="email" id="new-chat-email" placeholder="friend@example.com">
-                </div>
-                <div class="modal-actions">
-                    <button id="new-chat-cancel" class="btn btn-secondary">Отмена</button>
-                    <button id="new-chat-start" class="btn">Начать</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Экран чата -->
         <div id="chat-screen" class="screen">
             <div class="top-bar">
-                <button id="chat-back-btn" class="icon-btn" title="Назад к чатам">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                </button>
-                <div class="avatar" id="chat-partner-avatar">?</div>
-                <div style="flex:1; min-width:0;">
-                    <div class="top-bar-title" id="chat-partner-name" style="font-size:16px;">Собеседник</div>
-                    <div id="chat-partner-status" class="partner-status"></div>
-                </div>
+                <button id="back-to-chats" class="icon-btn" title="Назад">←</button>
+                <div id="chat-avatar" class="avatar">C</div>
+                <div id="chat-title" class="top-bar-title">Чат</div>
             </div>
-
             <div id="messages-list" class="messages-list"></div>
             <div id="typing-indicator" class="typing-indicator-box"></div>
-
             <div class="chat-input-panel">
-                <div id="reply-preview" class="reply-preview hidden">
-                    <div class="reply-preview-bar"></div>
-                    <div class="reply-preview-text">
-                        <div class="reply-preview-name" id="reply-preview-name"></div>
-                        <div class="reply-preview-snippet" id="reply-preview-snippet"></div>
-                    </div>
-                    <button id="reply-cancel-btn" class="remove-attachment" title="Отменить ответ">✕</button>
-                </div>
                 <div id="attachment-preview" class="attachment-preview hidden">
                     <div id="attachment-thumb" class="attachment-thumb"></div>
                     <div id="attachment-info" class="attachment-info"></div>
-                    <button id="remove-attachment-btn" class="remove-attachment" title="Убрать вложение">✕</button>
+                    <button id="remove-attachment" class="remove-attachment" title="Убрать">✕</button>
                 </div>
                 <div class="input-row">
-                    <label for="file-input" class="file-btn" title="Отправить картинку">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2l1.4-2h6.8l1.4 2H20a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="14" r="3.4"/></svg>
-                    </label>
-                    <input type="file" id="file-input" accept="image/*">
-
-                    <button id="mic-btn" class="file-btn mic-btn" title="Записать голосовое">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><line x1="12" y1="17.5" x2="12" y2="21"/><line x1="8.5" y1="21" x2="15.5" y2="21"/></svg>
-                    </button>
-
-                    <input type="text" id="message-input" placeholder="Введите сообщение...">
-                    <button id="send-btn" class="send-btn">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
-                    </button>
+                    <button id="file-btn" class="file-btn" title="Отправить фото">📎</button>
+                    <input id="file-input" type="file" accept="image/*">
+                    <input id="message-input" type="text" placeholder="Сообщение..." autocomplete="off">
+                    <button id="mic-btn" class="file-btn mic-btn" title="Записать голос">🎤</button>
+                    <button id="send-btn" class="send-btn" title="Отправить">➤</button>
                 </div>
             </div>
         </div>
 
-        <!-- Настройки -->
         <div id="settings-screen" class="screen">
             <div class="top-bar">
-                <button id="settings-back-btn" class="icon-btn" title="Назад">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                </button>
+                <button id="back-from-settings" class="icon-btn" title="Назад">←</button>
                 <div class="top-bar-title">Настройки</div>
             </div>
             <div class="settings-body">
@@ -630,54 +533,42 @@
             return __supabaseClientPromise;
         }
 
-        // ===== Supabase Storage (фото и голосовые) =====
-        const SUPABASE_PROJECT_REF = 'kbtqxdhgliksoucyvaq';
-        const SUPABASE_URL = `https://${SUPABASE_PROJECT_REF}.supabase.co`;
-        const SUPABASE_STORAGE_URL = `https://${SUPABASE_PROJECT_REF}.storage.supabase.co`;
-        const SUPABASE_ANON_KEY = 'sb_publishable_xugWMEBuzsnT6d7YPBKOMQ_XWHmdBWk';
-        const SUPABASE_BUCKET = 'chat-media';
-
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         async function uploadToSupabase(fileOrBlob, filename, folder) {
-            if (!SUPABASE_ANON_KEY) throw new Error('Supabase не настроен');
-            if (!currentUser?.uid) throw new Error('Нужно войти в аккаунт перед загрузкой файла');
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+                throw new Error('Supabase не настроен');
+            }
+            if (!currentUser) {
+                throw new Error('Пользователь не авторизован');
+            }
 
             const safeName = String(filename || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
-            const uniqueId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-            const safeFolder = String(folder || 'files').replace(/[^a-zA-Z0-9._-]/g, '_');
-            const path = `${safeFolder}/${currentUser.uid}/${Date.now()}_${uniqueId}_${safeName}`;
-            const encodedPath = encodeURIComponent(path).replace(/%2F/g, '/');
-            const uploadUrl = `${SUPABASE_STORAGE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${encodedPath}`;
+            const uniqueId = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`);
+            const path = `${folder}/${currentUser.uid}/${Date.now()}_${uniqueId}_${safeName}`;
 
-            try {
-                const response = await fetch(uploadUrl, {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-                        apikey: SUPABASE_ANON_KEY,
-                        'Content-Type': fileOrBlob.type || 'application/octet-stream',
-                        'x-upsert': 'false',
-                        'cache-control': '3600'
-                    },
-                    body: fileOrBlob
+            const supabase = await getSupabaseClient();
+
+            const { error } = await supabase.storage
+                .from(SUPABASE_BUCKET)
+                .upload(path, fileOrBlob, {
+                    cacheControl: '3600',
+                    contentType: fileOrBlob.type || 'application/octet-stream',
+                    upsert: false
                 });
 
-                const responseText = await response.text();
-                if (!response.ok) {
-                    let message = responseText;
-                    try {
-                        const json = JSON.parse(responseText);
-                        message = json.message || json.error || json.error_description || responseText;
-                    } catch (_) {}
-                    throw new Error(message || `Storage upload failed (${response.status})`);
-                }
-
-                return `${SUPABASE_STORAGE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${encodedPath}`;
-            } catch (error) {
-                console.error('Supabase direct storage upload error:', error);
-                throw new Error(error?.message || 'Не удалось загрузить файл в Supabase Storage');
+            if (error) {
+                console.error('Supabase upload error:', error);
+                throw new Error(error.message || 'ошибка загрузки файла');
             }
+
+            const { data } = supabase.storage
+                .from(SUPABASE_BUCKET)
+                .getPublicUrl(path);
+
+            if (!data?.publicUrl) {
+                throw new Error('Supabase не вернул ссылку на файл');
+            }
+
+            return data.publicUrl;
         }
 
         const firebaseConfig = {
@@ -752,665 +643,516 @@
         const emailInput = document.getElementById('email-input');
         const passwordInput = document.getElementById('password-input');
         const authError = document.getElementById('auth-error');
-
+        const chatsScreen = document.getElementById('chats-screen');
+        const chatScreen = document.getElementById('chat-screen');
+        const settingsScreen = document.getElementById('settings-screen');
         const chatsList = document.getElementById('chats-list');
-        const chatsEmpty = document.getElementById('chats-empty');
-        const chatsSearchInput = document.getElementById('chats-search-input');
-        const settingsOpenBtn = document.getElementById('settings-open-btn');
-        const newChatBtn = document.getElementById('new-chat-btn');
-        const newChatModal = document.getElementById('new-chat-modal');
-        const newChatEmailInput = document.getElementById('new-chat-email');
-        const newChatCancelBtn = document.getElementById('new-chat-cancel');
-        const newChatStartBtn = document.getElementById('new-chat-start');
-
-        const chatBackBtn = document.getElementById('chat-back-btn');
-        const chatPartnerName = document.getElementById('chat-partner-name');
-        const chatPartnerAvatar = document.getElementById('chat-partner-avatar');
-        const chatPartnerStatus = document.getElementById('chat-partner-status');
         const messagesList = document.getElementById('messages-list');
-        const typingIndicator = document.getElementById('typing-indicator');
+        const chatTitle = document.getElementById('chat-title');
+        const chatAvatar = document.getElementById('chat-avatar');
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
+        const fileBtn = document.getElementById('file-btn');
         const fileInput = document.getElementById('file-input');
         const micBtn = document.getElementById('mic-btn');
         const attachmentPreview = document.getElementById('attachment-preview');
         const attachmentThumb = document.getElementById('attachment-thumb');
         const attachmentInfo = document.getElementById('attachment-info');
-        const removeAttachmentBtn = document.getElementById('remove-attachment-btn');
-        const replyPreview = document.getElementById('reply-preview');
-        const replyPreviewName = document.getElementById('reply-preview-name');
-        const replyPreviewSnippet = document.getElementById('reply-preview-snippet');
-        const replyCancelBtn = document.getElementById('reply-cancel-btn');
+        const removeAttachment = document.getElementById('remove-attachment');
+        const typingIndicator = document.getElementById('typing-indicator');
         const imageViewer = document.getElementById('image-viewer');
         const imageViewerImg = document.getElementById('image-viewer-img');
 
-        const settingsBackBtn = document.getElementById('settings-back-btn');
-        const settingsNameInput = document.getElementById('settings-name-input');
-        const settingsNameSave = document.getElementById('settings-name-save');
-        const settingsEmailDisplay = document.getElementById('settings-email');
-        const themeToggle = document.getElementById('theme-toggle');
-        const notifToggle = document.getElementById('notif-toggle');
-        const settingsLogoutBtn = document.getElementById('settings-logout-btn');
-
-        function showScreen(name) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(name + '-screen').classList.add('active');
+        function showScreen(screen) {
+            [authScreen, chatsScreen, chatScreen, settingsScreen].forEach(el => el.classList.remove('active'));
+            screen.classList.add('active');
         }
 
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        function setAuthError(message) {
+            authError.textContent = message || '';
+            authError.style.display = message ? 'block' : 'none';
         }
 
-        function setupPresence(uid) {
-            const myStatusRef = rtdbRef(rtdb, '/status/' + uid);
-            const connectedRef = rtdbRef(rtdb, '.info/connected');
-            onValue(connectedRef, (snap) => {
-                if (snap.val() === false) return;
-                onDisconnect(myStatusRef).set({ state: 'offline', last_changed: rtdbServerTimestamp() }).then(() => {
-                    rtdbSet(myStatusRef, { state: 'online', last_changed: rtdbServerTimestamp() });
-                });
-            });
+        function normalizeName(user) {
+            return user?.displayName || user?.email?.split('@')[0] || 'Пользователь';
         }
 
-        function formatLastSeen(ts) {
-            if (!ts) return 'не в сети';
-            const diffMs = Date.now() - ts;
-            const diffMin = Math.floor(diffMs / 60000);
-            if (diffMin < 1) return 'был(а) только что';
-            if (diffMin < 60) return `был(а) ${diffMin} мин назад`;
-            const diffH = Math.floor(diffMin / 60);
-            if (diffH < 24) return `был(а) ${diffH} ч назад`;
-            return 'был(а) недавно';
+        function getInitial(name) {
+            return (name || 'C').trim().charAt(0).toUpperCase() || 'C';
         }
 
-        function watchPartnerStatus(otherUid) {
-            if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
-            const statusRef = rtdbRef(rtdb, '/status/' + otherUid);
-            presenceUnsub = onValue(statusRef, (snap) => {
-                const val = snap.val();
-                if (!val) { chatPartnerStatus.textContent = ''; chatPartnerStatus.classList.remove('online'); return; }
-                if (val.state === 'online') {
-                    chatPartnerStatus.textContent = 'в сети';
-                    chatPartnerStatus.classList.add('online');
-                } else {
-                    chatPartnerStatus.textContent = formatLastSeen(val.last_changed);
-                    chatPartnerStatus.classList.remove('online');
-                }
-            });
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]));
         }
 
-        switchAuth.addEventListener('click', () => {
-            isSignUp = !isSignUp;
-            authTitle.textContent = isSignUp ? 'Регистрация в C Messenger' : 'Вход в C Messenger';
-            authBtn.textContent = isSignUp ? 'Зарегистрироваться' : 'Войти';
-            nicknameGroup.style.display = isSignUp ? 'block' : 'none';
-            switchAuth.innerHTML = isSignUp ? 'Уже есть аккаунт? <span>Войти</span>' : 'Нет аккаунта? <span>Зарегистрироваться</span>';
-            authError.style.display = 'none';
-        });
-
-        authBtn.addEventListener('click', async () => {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-            const nickname = nicknameInput.value.trim();
-            authError.style.display = 'none';
-
-            if (!email || !password || (isSignUp && !nickname)) {
-                authError.textContent = 'Заполните все поля';
-                authError.style.display = 'block';
-                return;
-            }
-
-            authBtn.disabled = true;
-            try {
-                if (isSignUp) {
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    await updateProfile(userCredential.user, { displayName: nickname });
-                } else {
-                    await signInWithEmailAndPassword(auth, email, password);
-                }
-            } catch (error) {
-                authError.textContent = error.message;
-                authError.style.display = 'block';
-                showToast(error.message);
-            } finally {
-                authBtn.disabled = false;
-            }
-        });
-
-        onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
-            if (chatsUnsub) { chatsUnsub(); chatsUnsub = null; }
-            if (messagesUnsub) { messagesUnsub(); messagesUnsub = null; }
-            if (typingUnsub) { typingUnsub(); typingUnsub = null; }
-            currentChatId = null;
-
-            if (user) {
-                try {
-                    await setDoc(doc(db, 'users', user.uid), {
-                        email: user.email.toLowerCase(),
-                        displayName: user.displayName || user.email.split('@')[0],
-                        updatedAt: serverTimestamp()
-                    }, { merge: true });
-                } catch (e) {
-                    console.error('Не удалось сохранить профиль пользователя:', e);
-                    showToast('Не удалось сохранить профиль: ' + e.message);
-                }
-                showScreen('chats');
-                setupPresence(user.uid);
-                listenToChats();
-            } else {
-                showScreen('auth');
-                emailInput.value = '';
-                passwordInput.value = '';
-                nicknameInput.value = '';
-            }
-        });
-
-        function renderChatsList() {
-            const term = (chatsSearchInput.value || '').trim().toLowerCase();
-            const filtered = term
-                ? allChatsCache.filter(c => c.label.toLowerCase().includes(term))
-                : allChatsCache;
-
-            chatsList.innerHTML = '';
-            chatsEmpty.classList.toggle('hidden', allChatsCache.length !== 0);
-
-            filtered.forEach((c) => {
-                const item = document.createElement('div');
-                item.className = 'chat-item';
-                const unread = c.unreadCount;
-                item.innerHTML = `
-                    <div class="avatar">${escapeHtml(c.label.charAt(0).toUpperCase())}</div>
-                    <div class="chat-item-info">
-                        <div class="chat-item-name">${escapeHtml(c.label)}</div>
-                        <div class="chat-item-last">${escapeHtml(c.lastMessage || 'Нет сообщений')}</div>
-                    </div>
-                    <div class="chat-item-meta">
-                        <div class="chat-item-time">${c.timeStr}</div>
-                        ${unread > 0 ? `<div class="unread-badge">${unread > 99 ? '99+' : unread}</div>` : ''}
-                    </div>
-                `;
-                item.addEventListener('click', () => openChat(c.id));
-                chatsList.appendChild(item);
-            });
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         }
 
-        chatsSearchInput.addEventListener('input', renderChatsList);
-
-        function listenToChats() {
-            const q = query(collection(db, 'chats'), where('participants', 'array-contains', currentUser.uid), orderBy('lastMessageAt', 'desc'));
-            chatsUnsub = onSnapshot(q, (snapshot) => {
-                allChatsCache = [];
-                snapshot.forEach((docSnap) => {
-                    const chat = docSnap.data();
-                    const otherUid = (chat.participants || []).find(id => id !== currentUser.uid);
-                    const info = (chat.participantInfo && chat.participantInfo[otherUid]) || {};
-                    const label = info.displayName || info.email || 'Собеседник';
-                    const timeStr = chat.lastMessageAt ? new Date(chat.lastMessageAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                    const unreadCount = (chat.unread && chat.unread[currentUser.uid]) || 0;
-                    allChatsCache.push({ id: docSnap.id, label, lastMessage: chat.lastMessage, timeStr, unreadCount });
-                });
-                renderChatsList();
-            }, (err) => {
-                console.error('Ошибка загрузки чатов:', err);
-                showToast('Не удалось загрузить чаты: ' + err.message);
-            });
-        }
-
-        newChatBtn.addEventListener('click', () => {
-            newChatEmailInput.value = '';
-            newChatModal.classList.remove('hidden');
-            newChatEmailInput.focus();
-        });
-        newChatCancelBtn.addEventListener('click', () => newChatModal.classList.add('hidden'));
-
-        newChatStartBtn.addEventListener('click', async () => {
-            const email = newChatEmailInput.value.trim().toLowerCase();
-            if (!email) { showToast('Введите email собеседника'); return; }
-            if (email === (currentUser.email || '').toLowerCase()) { showToast('Нельзя начать чат с самим собой'); return; }
-
-            newChatStartBtn.disabled = true;
-            try {
-                const q = query(collection(db, 'users'), where('email', '==', email));
-                const snap = await getDocs(q);
-                if (snap.empty) {
-                    showToast('Пользователь с таким email не найден. Он должен хотя бы раз войти в приложение.');
-                    return;
-                }
-                const otherDoc = snap.docs[0];
-                const otherUid = otherDoc.id;
-                const otherData = otherDoc.data();
-                const chatId = [currentUser.uid, otherUid].sort().join('_');
-                const chatRef = doc(db, 'chats', chatId);
-                const existing = await getDoc(chatRef);
-                if (!existing.exists()) {
-                    await setDoc(chatRef, {
-                        participants: [currentUser.uid, otherUid].sort(),
-                        participantInfo: {
-                            [currentUser.uid]: { email: currentUser.email.toLowerCase(), displayName: currentUser.displayName || currentUser.email.split('@')[0] },
-                            [otherUid]: { email: otherData.email, displayName: otherData.displayName || otherData.email.split('@')[0] }
-                        },
-                        unread: { [currentUser.uid]: 0, [otherUid]: 0 },
-                        lastMessage: '',
-                        lastMessageAt: serverTimestamp(),
-                        createdAt: serverTimestamp()
-                    });
-                }
-                newChatModal.classList.add('hidden');
-                openChat(chatId);
-            } catch (err) {
-                console.error('Ошибка создания чата:', err);
-                showToast('Не удалось создать чат: ' + err.message);
-            } finally {
-                newChatStartBtn.disabled = false;
-            }
-        });
-
-        function openChat(chatId) {
-            currentChatId = chatId;
-            const participants = chatId.split('_');
-            currentChatOtherUid = participants.find(id => id !== currentUser.uid) || null;
-
-            if (messagesUnsub) { messagesUnsub(); messagesUnsub = null; }
-            if (typingUnsub) { typingUnsub(); typingUnsub = null; }
-            if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
-            messagesList.innerHTML = '';
-            typingIndicator.textContent = '';
-            chatPartnerStatus.textContent = '';
-            chatPartnerStatus.classList.remove('online');
-            clearAttachment();
-            clearReply();
-            messageInput.value = '';
-
-            getDoc(doc(db, 'chats', chatId)).then(snap => {
-                if (!snap.exists()) return;
-                const chat = snap.data();
-                const otherUid = currentChatOtherUid;
-                const info = (chat.participantInfo && chat.participantInfo[otherUid]) || {};
-                const label = info.displayName || info.email || 'Собеседник';
-                chatPartnerName.textContent = label;
-                chatPartnerAvatar.textContent = label.charAt(0).toUpperCase();
-                if (otherUid) watchPartnerStatus(otherUid);
-            }).catch(err => console.error(err));
-
-            updateDoc(doc(db, 'chats', chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(() => {});
-
-            showScreen('chat');
-            loadMessages(chatId);
-            listenTyping(chatId);
-        }
-
-        chatBackBtn.addEventListener('click', () => {
-            if (messagesUnsub) { messagesUnsub(); messagesUnsub = null; }
-            if (typingUnsub) { typingUnsub(); typingUnsub = null; }
-            if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
-            currentChatId = null;
-            showScreen('chats');
-        });
-
-        function loadMessages(chatId) {
-            let isFirstSnapshot = true;
-            const q = query(collection(db, 'chats', chatId, 'messages'), orderBy('createdAt', 'asc'));
-            messagesUnsub = onSnapshot(q, (snapshot) => {
-                messagesList.innerHTML = '';
-                const toMarkRead = [];
-
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const isMe = data.sender === currentUser.uid;
-
-                    if (!isMe && !data.read) toMarkRead.push(docSnap.id);
-
-                    const wrap = document.createElement('div');
-                    wrap.className = `msg-wrap ${isMe ? 'me' : 'other'}`;
-
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = `message ${isMe ? 'me' : 'other'}`;
-
-                    let contentHtml = '';
-                    if (data.deleted) {
-                        contentHtml += `<div class="msg-deleted">Сообщение удалено</div>`;
-                    } else {
-                        if (data.replyTo) {
-                            contentHtml += `<div class="msg-reply-quote"><div class="rq-name">${escapeHtml(data.replyTo.senderName || '')}</div><div>${escapeHtml(data.replyTo.text || '')}</div></div>`;
-                        }
-                        if (data.text) contentHtml += `<div>${escapeHtml(data.text)}</div>`;
-                        if (data.imageUrl) contentHtml += `<img src="${data.imageUrl}" alt="фото" class="msg-image" data-url="${data.imageUrl}">`;
-                        if (data.audioUrl) contentHtml += `<audio controls src="${data.audioUrl}"></audio>`;
-                    }
-
-                    const timeStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                    let ticksHtml = '';
-                    if (isMe && !data.deleted) {
-                        ticksHtml = `<span class="msg-ticks ${data.read ? 'read' : ''}">${data.read ? '✓✓' : '✓'}</span>`;
-                    }
-                    contentHtml += `<div class="msg-time">${timeStr}${ticksHtml}</div>`;
-
-                    msgDiv.innerHTML = contentHtml;
-                    wrap.appendChild(msgDiv);
-
-                    if (!data.deleted) {
-                        const actions = document.createElement('div');
-                        actions.className = 'msg-actions';
-                        const replyBtn = document.createElement('button');
-                        replyBtn.className = 'msg-action-btn';
-                        replyBtn.textContent = 'Ответить';
-                        replyBtn.addEventListener('click', () => setReplyTarget(data, isMe));
-                        actions.appendChild(replyBtn);
-                        if (isMe) {
-                            const delBtn = document.createElement('button');
-                            delBtn.className = 'msg-action-btn';
-                            delBtn.textContent = 'Удалить';
-                            delBtn.addEventListener('click', () => deleteMessage(docSnap.id));
-                            actions.appendChild(delBtn);
-                        }
-                        wrap.appendChild(actions);
-                    }
-
-                    messagesList.appendChild(wrap);
-                });
-
-                messagesList.querySelectorAll('.msg-image').forEach(img => {
-                    img.addEventListener('click', () => {
-                        imageViewerImg.src = img.dataset.url;
-                        imageViewer.classList.remove('hidden');
-                    });
-                });
-
-                messagesList.scrollTop = messagesList.scrollHeight;
-
-                if (toMarkRead.length) {
-                    toMarkRead.forEach(id => {
-                        updateDoc(doc(db, 'chats', chatId, 'messages', id), { read: true }).catch(() => {});
-                    });
-                }
-
-                if (!isFirstSnapshot) {
-                    snapshot.docChanges().forEach(change => {
-                        if (change.type === 'added') {
-                            const data = change.doc.data();
-                            if (data.sender !== currentUser.uid) maybeNotify(data);
-                        }
-                    });
-                }
-                isFirstSnapshot = false;
-            }, (err) => {
-                console.error('Ошибка загрузки сообщений:', err);
-                showToast('Не удалось загрузить сообщения: ' + err.message);
-            });
-        }
-
-        function setReplyTarget(data, isMe) {
-            replyingTo = {
-                senderName: isMe ? (currentUser.displayName || 'Вы') : (chatPartnerName.textContent || 'Собеседник'),
-                text: data.text || (data.imageUrl ? '📷 Фото' : (data.audioUrl ? '🎤 Голосовое' : ''))
-            };
-            replyPreviewName.textContent = replyingTo.senderName;
-            replyPreviewSnippet.textContent = replyingTo.text;
-            replyPreview.classList.remove('hidden');
-            messageInput.focus();
-        }
-
-        function clearReply() {
-            replyingTo = null;
-            replyPreview.classList.add('hidden');
-        }
-        replyCancelBtn.addEventListener('click', clearReply);
-
-        async function deleteMessage(messageId) {
-            if (!confirm('Удалить это сообщение?')) return;
-            try {
-                await updateDoc(doc(db, 'chats', currentChatId, 'messages', messageId), {
-                    deleted: true, text: '', imageUrl: null, audioUrl: null
-                });
-            } catch (err) {
-                console.error(err);
-                showToast('Не удалось удалить сообщение: ' + err.message);
-            }
-        }
-
-        imageViewer.addEventListener('click', () => imageViewer.classList.add('hidden'));
-
-        function maybeNotify(data) {
-            try {
-                if (localStorage.getItem('notif-pref') !== 'on') return;
-            } catch (e) { return; }
-            if (!('Notification' in window) || Notification.permission !== 'granted') return;
-            if (document.visibilityState === 'visible') return;
-            const body = data.text || (data.imageUrl ? 'Фото' : '') || (data.audioUrl ? 'Голосовое сообщение' : '');
-            try {
-                new Notification(data.senderName || 'Новое сообщение', { body });
-            } catch (e) { console.error(e); }
-        }
-
-        async function sendMessage(text = '', imageUrl = null, audioUrl = null) {
-            if (!text && !imageUrl && !audioUrl) return;
-            if (!currentChatId) return;
-
-            const msgData = {
-                text: text,
-                imageUrl: imageUrl,
-                audioUrl: audioUrl,
-                sender: currentUser.uid,
-                senderName: currentUser.displayName || currentUser.email.split('@')[0],
-                read: false,
-                createdAt: serverTimestamp()
-            };
-            if (replyingTo) {
-                msgData.replyTo = { senderName: replyingTo.senderName, text: replyingTo.text };
-            }
-
-            await addDoc(collection(db, 'chats', currentChatId, 'messages'), msgData);
-
-            const preview = text ? text : (imageUrl ? '📷 Фото' : (audioUrl ? '🎤 Голосовое' : ''));
-            const chatUpdate = {
-                lastMessage: preview,
-                lastMessageAt: serverTimestamp()
-            };
-            if (currentChatOtherUid) {
-                chatUpdate[`unread.${currentChatOtherUid}`] = increment(1);
-            }
-            await updateDoc(doc(db, 'chats', currentChatId), chatUpdate);
-
-            messageInput.value = '';
-            clearReply();
-            stopTyping();
+        function formatChatTime(timestamp) {
+            if (!timestamp) return '';
+            const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
         }
 
         function clearAttachment() {
             pendingImageFile = null;
             pendingAudioBlob = null;
-            if (pendingAudioUrl) { URL.revokeObjectURL(pendingAudioUrl); pendingAudioUrl = null; }
+            if (pendingAudioUrl) URL.revokeObjectURL(pendingAudioUrl);
+            pendingAudioUrl = null;
             attachmentPreview.classList.add('hidden');
             attachmentThumb.innerHTML = '';
             attachmentInfo.innerHTML = '';
+            fileInput.value = '';
         }
 
-        function showImagePreview(file) {
+        function renderAttachmentPreview() {
+            if (pendingImageFile) {
+                attachmentPreview.classList.remove('hidden');
+                attachmentThumb.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(pendingImageFile);
+                img.alt = 'превью';
+                attachmentThumb.appendChild(img);
+                attachmentInfo.innerHTML = `<span>${escapeHtml(pendingImageFile.name || 'Фото')}</span>`;
+            } else if (pendingAudioBlob) {
+                attachmentPreview.classList.remove('hidden');
+                attachmentThumb.innerHTML = '<div class="audio-icon">🎤</div>';
+                attachmentInfo.innerHTML = '';
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                audio.src = pendingAudioUrl;
+                attachmentInfo.appendChild(audio);
+            } else {
+                clearAttachment();
+            }
+        }
+
+        function setPendingImage(file) {
             clearAttachment();
             pendingImageFile = file;
-            const url = URL.createObjectURL(file);
-            attachmentThumb.innerHTML = `<img src="${url}" alt="превью">`;
-            attachmentInfo.innerHTML = `<span>${escapeHtml(file.name)}</span>`;
-            attachmentPreview.classList.remove('hidden');
+            renderAttachmentPreview();
         }
 
-        function showAudioPreview(blob) {
+        function setPendingAudio(blob) {
             clearAttachment();
             pendingAudioBlob = blob;
             pendingAudioUrl = URL.createObjectURL(blob);
-            attachmentThumb.innerHTML = `<div class="audio-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><line x1="12" y1="17.5" x2="12" y2="21"/><line x1="8.5" y1="21" x2="15.5" y2="21"/></svg></div>`;
-            attachmentInfo.innerHTML = `<span>Голосовое сообщение</span><audio controls src="${pendingAudioUrl}"></audio>`;
-            attachmentPreview.classList.remove('hidden');
+            renderAttachmentPreview();
         }
 
-        removeAttachmentBtn.addEventListener('click', clearAttachment);
-
-        sendBtn.addEventListener('click', handleSend);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSend();
-            handleTypingSignal();
-        });
-
-        async function handleSend() {
+        async function sendMessage() {
+            if (!currentUser || !currentChatId) return;
             const text = messageInput.value.trim();
             if (!text && !pendingImageFile && !pendingAudioBlob) return;
-            if (!currentChatId) { showToast('Чат не выбран'); return; }
-
             sendBtn.disabled = true;
             try {
+                let imageUrl = null;
+                let audioUrl = null;
                 if (pendingImageFile) {
-                    const url = await uploadToSupabase(pendingImageFile, pendingImageFile.name, 'images');
-                    await sendMessage(text, url, null);
-                } else if (pendingAudioBlob) {
-                    const url = await uploadToSupabase(pendingAudioBlob, `voice_${Date.now()}.webm`, 'audio');
-                    await sendMessage(text, null, url);
-                } else {
-                    await sendMessage(text);
+                    imageUrl = await uploadToSupabase(pendingImageFile, pendingImageFile.name || 'image.jpg', 'images');
                 }
+                if (pendingAudioBlob) {
+                    audioUrl = await uploadToSupabase(pendingAudioBlob, `voice-${Date.now()}.webm`, 'audio');
+                }
+
+                const payload = {
+                    senderId: currentUser.uid,
+                    receiverId: currentChatOtherUid,
+                    text: text || '',
+                    imageUrl,
+                    audioUrl,
+                    createdAt: serverTimestamp()
+                };
+                if (replyingTo?.id) {
+                    payload.replyTo = replyingTo.id;
+                }
+                await addDoc(collection(db, 'messages'), payload);
+                messageInput.value = '';
                 clearAttachment();
-            } catch (err) {
-                console.error('Ошибка отправки:', err);
-                let hint = err.message || 'неизвестная ошибка';
-                if (err.code === 'permission-denied') {
-                    hint = 'нет доступа к Firestore — проверьте правила безопасности Firestore';
-                } else if (location.protocol === 'file:') {
-                    hint += ' (возможно из-за того, что файл открыт локально — разместите его на хостинге)';
-                }
-                showToast('Не удалось отправить: ' + hint);
+                replyingTo = null;
+                await updateChatSummary(currentChatId, text || (imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение'));
+            } catch (error) {
+                console.error(error);
+                showToast('Не удалось отправить: ' + (error.message || error));
             } finally {
                 sendBtn.disabled = false;
             }
         }
 
-        function handleTypingSignal() {
-            if (!currentUser || !currentChatId) return;
-            const name = currentUser.displayName || currentUser.email.split('@')[0];
-            const typingRef = doc(db, 'chats', currentChatId, 'typing', currentUser.uid);
-            setDoc(typingRef, { name: name, time: serverTimestamp() }).catch(() => {});
-
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(async () => {
-                await deleteDoc(typingRef).catch(() => {});
-            }, 2000);
-        }
-
-        async function stopTyping() {
-            if (!currentUser || !currentChatId) return;
-            await deleteDoc(doc(db, 'chats', currentChatId, 'typing', currentUser.uid)).catch(() => {});
-        }
-
-        function listenTyping(chatId) {
-            typingUnsub = onSnapshot(collection(db, 'chats', chatId, 'typing'), (snapshot) => {
-                let names = [];
-                snapshot.forEach((docSnap) => {
-                    const d = docSnap.data();
-                    if (d.name && docSnap.id !== currentUser?.uid) names.push(d.name);
+        async function updateChatSummary(chatId, lastText) {
+            try {
+                await updateDoc(doc(db, 'chats', chatId), {
+                    lastMessage: lastText,
+                    lastMessageAt: serverTimestamp()
                 });
-                typingIndicator.textContent = names.length ? `${names.join(', ')} печатает...` : '';
-            }, () => {});
+            } catch (e) {
+                console.warn('Не удалось обновить чат:', e);
+            }
         }
 
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
+        function subscribeMessages(chatId) {
+            if (messagesUnsub) messagesUnsub();
+            const q = query(collection(db, 'messages'), where('chatId', '==', chatId), orderBy('createdAt', 'asc'));
+            messagesUnsub = onSnapshot(q, snapshot => {
+                messagesList.innerHTML = '';
+                snapshot.forEach(snap => {
+                    const msg = snap.data();
+                    renderMessage(snap.id, msg);
+                });
+                messagesList.scrollTop = messagesList.scrollHeight;
+            }, error => {
+                console.error('Messages listener error:', error);
+                showToast('Не удалось загрузить сообщения: ' + error.message);
+            });
+        }
 
-            if (!file.type || !file.type.startsWith('image/')) {
-                showToast('Можно отправлять только изображения');
-                fileInput.value = '';
+        function renderMessage(id, msg) {
+            const div = document.createElement('div');
+            div.className = 'message ' + (msg.senderId === currentUser?.uid ? 'me' : 'other');
+            div.dataset.id = id;
+            let html = '';
+            if (msg.text) html += `<div>${escapeHtml(msg.text).replace(/\n/g, '<br>')}</div>`;
+            if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image">`;
+            if (msg.audioUrl) html += `<audio controls src="${escapeHtml(msg.audioUrl)}"></audio>`;
+            html += `<div class="msg-time">${formatTime(msg.createdAt)}</div>`;
+            div.innerHTML = html;
+            messagesList.appendChild(div);
+        }
+
+        async function createOrOpenChat(otherUid, otherName) {
+            if (!currentUser || !otherUid || otherUid === currentUser.uid) return;
+            const ids = [currentUser.uid, otherUid].sort();
+            const chatId = ids.join('_');
+            const chatRef = doc(db, 'chats', chatId);
+            const existing = await getDoc(chatRef);
+            if (!existing.exists()) {
+                await setDoc(chatRef, {
+                    members: ids,
+                    memberNames: {
+                        [currentUser.uid]: normalizeName(currentUser),
+                        [otherUid]: otherName || 'Пользователь'
+                    },
+                    lastMessage: '',
+                    lastMessageAt: serverTimestamp()
+                });
+            }
+            openChat(chatId, otherUid, otherName || 'Пользователь');
+        }
+
+        async function openChat(chatId, otherUid, otherName) {
+            currentChatId = chatId;
+            currentChatOtherUid = otherUid;
+            chatTitle.textContent = otherName || 'Чат';
+            chatAvatar.textContent = getInitial(otherName);
+            showScreen(chatScreen);
+            subscribeMessages(chatId);
+            subscribeTyping(chatId);
+            await markChatRead(chatId);
+        }
+
+        async function markChatRead(chatId) {
+            try {
+                await updateDoc(doc(db, 'chats', chatId), { [`unread_${currentUser.uid}`]: 0 });
+            } catch (e) {}
+        }
+
+        function subscribeChats() {
+            if (chatsUnsub) chatsUnsub();
+            const q = query(collection(db, 'chats'), where('members', 'array-contains', currentUser.uid));
+            chatsUnsub = onSnapshot(q, snapshot => {
+                allChatsCache = [];
+                snapshot.forEach(snap => {
+                    const data = snap.data();
+                    allChatsCache.push({ id: snap.id, ...data });
+                });
+                allChatsCache.sort((a,b) => {
+                    const at = a.lastMessageAt?.toMillis?.() || 0;
+                    const bt = b.lastMessageAt?.toMillis?.() || 0;
+                    return bt - at;
+                });
+                renderChats();
+            }, error => {
+                console.error('Chats listener error:', error);
+                showToast('Не удалось загрузить чаты: ' + error.message);
+            });
+        }
+
+        function renderChats() {
+            chatsList.innerHTML = '';
+            if (!allChatsCache.length) {
+                chatsList.innerHTML = '<div class="chats-empty">Пока нет чатов.<br>Нажмите ➕, чтобы начать новый чат.</div>';
                 return;
             }
+            allChatsCache.forEach(chat => {
+                const otherUid = chat.members.find(id => id !== currentUser.uid);
+                const otherName = chat.memberNames?.[otherUid] || 'Пользователь';
+                const item = document.createElement('div');
+                item.className = 'chat-item';
+                item.innerHTML = `
+                    <div class="avatar">${escapeHtml(getInitial(otherName))}</div>
+                    <div class="chat-item-info">
+                        <div class="chat-item-name">${escapeHtml(otherName)}</div>
+                        <div class="chat-item-last">${escapeHtml(chat.lastMessage || '')}</div>
+                    </div>
+                    <div class="chat-item-time">${formatChatTime(chat.lastMessageAt)}</div>
+                `;
+                item.addEventListener('click', () => openChat(chat.id, otherUid, otherName));
+                chatsList.appendChild(item);
+            });
+        }
 
-            if (file.size > 45 * 1024 * 1024) {
-                showToast('Картинка слишком большая (максимум 45 МБ)');
-                fileInput.value = '';
+        function subscribeTyping(chatId) {
+            if (typingUnsub) typingUnsub();
+            const typingRef = rtdbRef(rtdb, `typing/${chatId}/${currentChatOtherUid}`);
+            typingUnsub = onValue(typingRef, snap => {
+                typingIndicator.textContent = snap.val() ? `${chatTitle.textContent} печатает…` : '';
+            });
+        }
+
+        function setTyping(value) {
+            if (!currentUser || !currentChatId || !currentChatOtherUid) return;
+            const ref = rtdbRef(rtdb, `typing/${currentChatId}/${currentUser.uid}`);
+            rtdbSet(ref, value).catch(() => {});
+            if (typingTimeout) clearTimeout(typingTimeout);
+            if (value) typingTimeout = setTimeout(() => rtdbSet(ref, false).catch(() => {}), 1200);
+        }
+
+        function setupPresence() {
+            if (!currentUser) return;
+            const statusRef = rtdbRef(rtdb, `presence/${currentUser.uid}`);
+            const connectedRef = rtdbRef(rtdb, '.info/connected');
+            if (presenceUnsub) presenceUnsub();
+            presenceUnsub = onValue(connectedRef, snap => {
+                if (!snap.val()) return;
+                onDisconnect(statusRef).set({ state: 'offline', lastChanged: rtdbServerTimestamp() }).catch(() => {});
+                rtdbSet(statusRef, { state: 'online', lastChanged: rtdbServerTimestamp() }).catch(() => {});
+            });
+        }
+
+        async function loadUsersForNewChat() {
+            if (!currentUser) return;
+            try {
+                const snapshot = await getDocs(collection(db, 'users'));
+                const users = [];
+                snapshot.forEach(snap => {
+                    if (snap.id !== currentUser.uid) users.push({ uid: snap.id, ...snap.data() });
+                });
+                users.sort((a,b) => String(a.displayName || a.email || '').localeCompare(String(b.displayName || b.email || ''), 'ru'));
+                if (!users.length) {
+                    showToast('Других пользователей пока нет', false);
+                    return;
+                }
+                const names = users.map((u, i) => `${i+1}. ${u.displayName || u.email || 'Пользователь'}`).join('\n');
+                const choice = prompt('Выберите пользователя:\n\n' + names + '\n\nВведите номер:');
+                const index = Number(choice) - 1;
+                if (!Number.isInteger(index) || !users[index]) return;
+                const user = users[index];
+                await createOrOpenChat(user.uid, user.displayName || user.email || 'Пользователь');
+            } catch (e) {
+                console.error(e);
+                showToast('Не удалось получить список пользователей: ' + e.message);
+            }
+        }
+
+        authBtn.addEventListener('click', async () => {
+            setAuthError('');
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            if (!email || !password) {
+                setAuthError('Введите email и пароль.');
                 return;
             }
-
-            showImagePreview(file);
-            fileInput.value = '';
+            authBtn.disabled = true;
+            try {
+                if (isSignUp) {
+                    const nickname = nicknameInput.value.trim();
+                    if (!nickname) throw new Error('Введите имя.');
+                    const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    await updateProfile(cred.user, { displayName: nickname });
+                    await setDoc(doc(db, 'users', cred.user.uid), {
+                        displayName: nickname,
+                        email,
+                        createdAt: serverTimestamp()
+                    });
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+            } catch (error) {
+                console.error(error);
+                const messages = {
+                    'auth/invalid-credential': 'Неверный email или пароль.',
+                    'auth/email-already-in-use': 'Этот email уже зарегистрирован.',
+                    'auth/weak-password': 'Пароль должен содержать минимум 6 символов.',
+                    'auth/invalid-email': 'Введите корректный email.'
+                };
+                setAuthError(messages[error.code] || error.message || 'Ошибка авторизации.');
+            } finally {
+                authBtn.disabled = false;
+            }
         });
+
+        switchAuth.addEventListener('click', () => {
+            isSignUp = !isSignUp;
+            authTitle.textContent = isSignUp ? 'Регистрация в C Messenger' : 'Вход в C Messenger';
+            authBtn.textContent = isSignUp ? 'Зарегистрироваться' : 'Войти';
+            nicknameGroup.classList.toggle('hidden', !isSignUp);
+            setAuthError('');
+        });
+
+        passwordInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') authBtn.click();
+        });
+        emailInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') passwordInput.focus();
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        messageInput.addEventListener('input', () => setTyping(true));
+
+        fileBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files?.[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                showToast('Можно выбрать только изображение.');
+                fileInput.value = '';
+                return;
+            }
+            setPendingImage(file);
+        });
+        removeAttachment.addEventListener('click', clearAttachment);
 
         micBtn.addEventListener('click', async () => {
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        showAudioPreview(audioBlob);
-                        stream.getTracks().forEach(track => track.stop());
-                    };
-                    mediaRecorder.start();
-                    micBtn.classList.add('recording');
-                    micBtn.title = 'Остановить запись';
-                } catch (err) {
-                    showToast('Нет доступа к микрофону — разрешите доступ в настройках браузера');
-                }
-            } else {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
                 micBtn.classList.remove('recording');
-                micBtn.title = 'Записать голосовое';
+                return;
+            }
+            if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+                showToast('Запись голоса не поддерживается этим браузером.');
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioChunks = [];
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => { if (e.data.size) audioChunks.push(e.data); };
+                mediaRecorder.onstop = () => {
+                    stream.getTracks().forEach(t => t.stop());
+                    const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                    setPendingAudio(blob);
+                    micBtn.classList.remove('recording');
+                };
+                mediaRecorder.start();
+                micBtn.classList.add('recording');
+            } catch (e) {
+                console.error(e);
+                showToast('Не удалось получить доступ к микрофону: ' + e.message);
             }
         });
 
-        settingsOpenBtn.addEventListener('click', () => {
-            settingsNameInput.value = currentUser.displayName || '';
-            settingsEmailDisplay.textContent = currentUser.email || '';
-            try {
-                themeToggle.checked = localStorage.getItem('theme-pref') === 'light';
-                notifToggle.checked = localStorage.getItem('notif-pref') === 'on' && ('Notification' in window) && Notification.permission === 'granted';
-            } catch (e) {}
-            showScreen('settings');
+        document.getElementById('new-chat-btn').addEventListener('click', loadUsersForNewChat);
+        document.getElementById('settings-btn').addEventListener('click', () => {
+            if (!currentUser) return;
+            document.getElementById('settings-name-input').value = normalizeName(currentUser);
+            document.getElementById('settings-email').textContent = currentUser.email || '';
+            const theme = localStorage.getItem('theme-pref') || 'dark';
+            document.getElementById('theme-toggle').checked = theme === 'dark';
+            showScreen(settingsScreen);
         });
-        settingsBackBtn.addEventListener('click', () => showScreen('chats'));
+        document.getElementById('back-from-settings').addEventListener('click', () => showScreen(chatsScreen));
+        document.getElementById('back-to-chats').addEventListener('click', () => {
+            if (messagesUnsub) messagesUnsub();
+            if (typingUnsub) typingUnsub();
+            currentChatId = null;
+            currentChatOtherUid = null;
+            showScreen(chatsScreen);
+        });
 
-        settingsNameSave.addEventListener('click', async () => {
-            const newName = settingsNameInput.value.trim();
-            if (!newName) { showToast('Введите имя'); return; }
-            settingsNameSave.disabled = true;
+        document.getElementById('settings-name-save').addEventListener('click', async () => {
+            if (!currentUser) return;
+            const name = document.getElementById('settings-name-input').value.trim();
+            if (!name) {
+                showToast('Имя не может быть пустым.');
+                return;
+            }
             try {
-                await updateProfile(auth.currentUser, { displayName: newName });
-                await setDoc(doc(db, 'users', currentUser.uid), { displayName: newName }, { merge: true });
-                showToast('Имя обновлено', false);
-            } catch (err) {
-                console.error(err);
-                showToast('Не удалось сохранить имя: ' + err.message);
-            } finally {
-                settingsNameSave.disabled = false;
+                await updateProfile(currentUser, { displayName: name });
+                await setDoc(doc(db, 'users', currentUser.uid), { displayName: name }, { merge: true });
+                showToast('Имя сохранено', false);
+            } catch (e) {
+                showToast('Не удалось сохранить имя: ' + e.message);
             }
         });
 
-        themeToggle.addEventListener('change', () => {
-            const theme = themeToggle.checked ? 'light' : 'dark';
+        document.getElementById('theme-toggle').addEventListener('change', e => {
+            const theme = e.target.checked ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', theme);
-            try { localStorage.setItem('theme-pref', theme); } catch (e) {}
+            localStorage.setItem('theme-pref', theme);
         });
 
-        notifToggle.addEventListener('change', async () => {
-            if (notifToggle.checked) {
-                if (!('Notification' in window)) {
-                    showToast('Уведомления не поддерживаются в этом браузере');
-                    notifToggle.checked = false;
-                    return;
+        document.getElementById('notif-toggle').addEventListener('change', e => {
+            localStorage.setItem('notif-pref', e.target.checked ? '1' : '0');
+        });
+
+        document.getElementById('settings-logout-btn').addEventListener('click', async () => {
+            try {
+                if (currentUser) {
+                    const statusRef = rtdbRef(rtdb, `presence/${currentUser.uid}`);
+                    await rtdbSet(statusRef, { state: 'offline', lastChanged: rtdbServerTimestamp() });
                 }
-                const perm = await Notification.requestPermission();
-                if (perm !== 'granted') {
-                    showToast('Доступ к уведомлениям не предоставлен');
-                    notifToggle.checked = false;
-                    try { localStorage.setItem('notif-pref', 'off'); } catch (e) {}
-                    return;
+            } catch (e) {}
+            try { await signOut(auth); } catch (e) { showToast('Ошибка выхода: ' + e.message); }
+        });
+
+        imageViewer.addEventListener('click', () => imageViewer.classList.add('hidden'));
+        messagesList.addEventListener('click', e => {
+            const img = e.target.closest('.message-image');
+            if (!img) return;
+            imageViewerImg.src = img.src;
+            imageViewer.classList.remove('hidden');
+        });
+
+        onAuthStateChanged(auth, async user => {
+            currentUser = user;
+            if (user) {
+                showScreen(chatsScreen);
+                subscribeChats();
+                setupPresence();
+                try {
+                    const userRef = doc(db, 'users', user.uid);
+                    const snap = await getDoc(userRef);
+                    if (!snap.exists()) {
+                        await setDoc(userRef, {
+                            displayName: normalizeName(user),
+                            email: user.email || '',
+                            createdAt: serverTimestamp()
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Не удалось сохранить профиль:', e);
                 }
-                try { localStorage.setItem('notif-pref', 'on'); } catch (e) {}
-                showToast('Уведомления включены', false);
             } else {
-                try { localStorage.setItem('notif-pref', 'off'); } catch (e) {}
+                if (chatsUnsub) chatsUnsub();
+                if (messagesUnsub) messagesUnsub();
+                if (typingUnsub) typingUnsub();
+                if (presenceUnsub) presenceUnsub();
+                currentChatId = null;
+                currentChatOtherUid = null;
+                showScreen(authScreen);
             }
         });
-
-        settingsLogoutBtn.addEventListener('click', () => signOut(auth));
     </script>
 </body>
 </html>
