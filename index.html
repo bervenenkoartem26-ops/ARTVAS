@@ -1049,13 +1049,15 @@
             }
         }
 
-        // Логика пуш-уведомлений FCM
+        // Логика пуш-уведомлений FCM (исправлена регистрация serviceWorker с учётом пути /ARTVAS/)
         async function initPushNotifications() {
             try {
                 const permission = await Notification.requestPermission();
                 if (permission === 'granted') {
+                    const swRegistration = await navigator.serviceWorker.register('/ARTVAS/firebase-messaging-sw.js');
                     const token = await getToken(messaging, {
-                        vapidKey: 'BIwFmsxByzTiIH3-sNMnhmp-tZDo99NBN2Z9YWMCDDxi7KWm0v_XmXr6DuerrV5wN6_ro8rIiYNBRAY1kcbil0Q'
+                        vapidKey: 'BIwFmsxByzTiIH3-sNMnhmp-tZDo99NBN2Z9YWMCDDxi7KWm0v_XmXr6DuerrV5wN6_ro8rIiYNBRAY1kcbil0Q',
+                        serviceWorkerRegistration: swRegistration
                     });
                     
                     if (token && currentUser) {
