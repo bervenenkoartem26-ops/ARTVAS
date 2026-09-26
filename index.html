@@ -175,7 +175,7 @@
             gap: 10px;
             flex-shrink: 0;
         }
-        .top-bar-title { font-size: 19px; font-weight: 700; flex: 1; }
+        .top-bar-title { font-size: 22px; font-weight: 800; flex: 1; letter-spacing: 0.5px; }
         .top-bar-actions { display: flex; gap: 2px; }
 
         .icon-btn {
@@ -207,6 +207,52 @@
             flex-shrink: 0;
         }
 
+        /* Новая компоновка экрана чатов согласно макету */
+        .chats-hint {
+            padding: 8px 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-color);
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .chats-screen-body {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .pinned-sidebar {
+            width: 76px;
+            background: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 0;
+            gap: 14px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .red-circle-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--danger);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+            transition: transform 0.15s;
+            flex-shrink: 0;
+        }
+        .red-circle-avatar:active { transform: scale(0.92); }
+
         .chats-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .chat-item {
             display: flex;
@@ -225,6 +271,19 @@
         }
         .chat-item-time { font-size: 11px; color: var(--text-secondary); flex-shrink: 0; }
         .chats-empty { padding: 60px 24px; text-align: center; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+
+        .bottom-menu {
+            height: 60px;
+            background: color-mix(in srgb, var(--surface-color) 92%, transparent);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
 
         .messages-list {
             flex: 1;
@@ -406,15 +465,22 @@
             </div>
         </div>
 
+        <!-- Экран чатов по вашему макету -->
         <div id="chats-screen" class="screen">
             <div class="top-bar">
-                <div class="top-bar-title">Чаты</div>
+                <div class="top-bar-title">ЧАТЫ</div>
                 <div class="top-bar-actions">
                     <button id="new-chat-btn" class="icon-btn" title="Новый чат">➕</button>
-                    <button id="settings-btn" class="icon-btn" title="Настройки">⚙️</button>
                 </div>
             </div>
-            <div id="chats-list" class="chats-list"></div>
+            <div class="chats-hint">Нажмите ➕, чтобы начать новый чат.</div>
+            <div class="chats-screen-body">
+                <div id="pinned-sidebar" class="pinned-sidebar" title="Закрепленные чаты (кому вы писали)"></div>
+                <div id="chats-list" class="chats-list"></div>
+            </div>
+            <div class="bottom-menu">
+                <button id="settings-btn" class="icon-btn" title="Настройки">⚙️</button>
+            </div>
         </div>
 
         <div id="chat-screen" class="screen">
@@ -634,6 +700,7 @@
         const chatScreen = document.getElementById('chat-screen');
         const settingsScreen = document.getElementById('settings-screen');
         const chatsList = document.getElementById('chats-list');
+        const pinnedSidebar = document.getElementById('pinned-sidebar');
         const messagesList = document.getElementById('messages-list');
         const chatTitle = document.getElementById('chat-title');
         const chatAvatar = document.getElementById('chat-avatar');
@@ -881,6 +948,7 @@
 
         function renderChats() {
             chatsList.innerHTML = '';
+            pinnedSidebar.innerHTML = '';
             if (!allChatsCache.length) {
                 chatsList.innerHTML = '<div class="chats-empty">Пока нет чатов.<br>Нажмите ➕, чтобы начать новый чат.</div>';
                 return;
@@ -888,6 +956,16 @@
             allChatsCache.forEach(chat => {
                 const otherUid = chat.members.find(id => id !== currentUser.uid);
                 const otherName = chat.memberNames?.[otherUid] || 'Пользователь';
+
+                // Рендер красного кружка в левой боковой панели согласно вашему рисунку
+                const circle = document.createElement('div');
+                circle.className = 'red-circle-avatar';
+                circle.title = otherName;
+                circle.textContent = getInitial(otherName);
+                circle.addEventListener('click', () => openChat(chat.id, otherUid, otherName));
+                pinnedSidebar.appendChild(circle);
+
+                // Рендер строки чата в основном списке
                 const item = document.createElement('div');
                 item.className = 'chat-item';
                 item.innerHTML = `
