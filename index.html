@@ -514,7 +514,7 @@
                         <div class="settings-toggle-label">Уведомления о сообщениях</div>
                         <label class="switch"><input type="checkbox" id="notif-toggle"><span class="slider"></span></label>
                     </div>
-                    <div class="settings-toggle-hint">Работают, только пока эта вкладка открыта в браузере.</div>
+                    <div class="settings-toggle-hint">Работают в фоновом режиме через Firebase Cloud Messaging.</div>
                 </div>
                 <button id="settings-logout-btn" class="btn btn-danger btn-block" style="margin-top: 12px;">Выйти из аккаунта</button>
             </div>
@@ -553,6 +553,7 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDatabase, ref as rtdbRef, onValue, onDisconnect, set as rtdbSet, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
         var SUPABASE_URL = 'https://kbtqxdhglikskouycvaq.supabase.co';
         var SUPABASE_ANON_KEY = 'sb_publishable_xugWMEBuzsnT6d7YPBKOMQ_XWHmdBWk';
@@ -643,6 +644,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const rtdb = getDatabase(app);
+        const messaging = getMessaging(app);
 
         setPersistence(auth, browserLocalPersistence).catch((error) => {
             console.error('Ошибка сохранения сессии:', error);
@@ -1047,6 +1049,48 @@
             }
         }
 
+        // Логика пуш-уведомлений FCM
+        async function initPushNotifications() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    const token = await getToken(messaging, {
+                        vapidKey: 'BIwFmsxByzTiIH3-sNMnhmp-tZDo99NBN2Z9YWMCDDxi7KWm0v_XmXr6DuerrV5wN6_ro8rIiYNBRAY1kcbil0Q'
+                    });
+                    
+                    if (token && currentUser) {
+                        await setDoc(doc(db, 'users', currentUser.uid), {
+                            fcmToken: token
+                        }, { merge: true });
+                        console.log('Токен уведомлений сохранен:', token);
+                    }
+                    showToast('Уведомления включены!', false);
+                } else {
+                    showToast('Вы запретили уведомления');
+                    document.getElementById('notif-toggle').checked = false;
+                }
+            } catch (error) {
+                console.error('Ошибка настройки пушей:', error);
+                showToast('Не удалось включить уведомления');
+                document.getElementById('notif-toggle').checked = false;
+            }
+        }
+
+        document.getElementById('notif-toggle').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                initPushNotifications();
+            } else {
+                localStorage.setItem('notif-pref', '0');
+            }
+        });
+
+        onMessage(messaging, (payload) => {
+            console.log('Сообщение получено на переднем плане:', payload);
+            const title = payload.notification?.title || 'Новое сообщение';
+            const body = payload.notification?.body || '';
+            showToast(`${title}: ${body}`, false);
+        });
+
         authBtn.addEventListener('click', async () => {
             setAuthError('');
             const email = emailInput.value.trim();
@@ -1188,10 +1232,6 @@
             const theme = e.target.checked ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme-pref', theme);
-        });
-
-        document.getElementById('notif-toggle').addEventListener('change', e => {
-            localStorage.setItem('notif-pref', e.target.checked ? '1' : '0');
         });
 
         document.getElementById('settings-logout-btn').addEventListener('click', async () => {
