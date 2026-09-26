@@ -1,15 +1,9 @@
-name: Deploy Firebase Database Rules
+name: Deploy Firebase Rules
 
 on:
   push:
     branches:
       - main
-    paths:
-      - 'firestore.rules'
-      - 'database.rules.json'
-      - 'firebase.json'
-      - '.firebaserc'
-      - '.github/workflows/deploy-firestore-rules.yml'
   workflow_dispatch:
 
 permissions:
@@ -30,14 +24,21 @@ jobs:
       - name: Install Firebase CLI
         run: npm install --global firebase-tools
 
-      - name: Write Firebase service account
+      - name: Check Firebase service account secret
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
-            echo "FIREBASE_SERVICE_ACCOUNT GitHub secret is not configured."
+            echo "ERROR: GitHub secret FIREBASE_SERVICE_ACCOUNT is missing."
+            echo "Add the Firebase service-account JSON as a repository secret with this exact name."
             exit 1
           fi
+          echo "Firebase service account secret is present."
+
+      - name: Write Firebase service account
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
 
