@@ -164,7 +164,6 @@
 
         .error-msg { color: var(--danger); font-size: 12px; margin-top: 12px; display: none; }
 
-        /* Общая шапка (чаты / чат / настройки) */
         .top-bar {
             padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px;
             background: color-mix(in srgb, var(--surface-color) 92%, transparent);
@@ -208,7 +207,6 @@
             flex-shrink: 0;
         }
 
-        /* Список чатов */
         .chats-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .chat-item {
             display: flex;
@@ -228,7 +226,6 @@
         .chat-item-time { font-size: 11px; color: var(--text-secondary); flex-shrink: 0; }
         .chats-empty { padding: 60px 24px; text-align: center; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
 
-        /* Модалка нового чата */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6);
             display: flex; align-items: center; justify-content: center;
@@ -242,7 +239,6 @@
         .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
         .modal-actions .btn { flex: 1; }
 
-        /* Экран чата */
         .messages-list {
             flex: 1;
             padding: 16px;
@@ -336,7 +332,6 @@
 
         #file-input { display: none; }
 
-        /* Настройки */
         .settings-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px; }
         .settings-section { margin-bottom: 24px; }
         .settings-section > .settings-label {
@@ -370,7 +365,6 @@
         .switch input:checked + .slider { background: var(--accent); }
         .switch input:checked + .slider:before { transform: translateX(20px); }
 
-        /* Тост-уведомления и служебные баннеры */
         .toast {
             position: fixed; left: 50%; bottom: calc(30px + env(safe-area-inset-bottom, 0px));
             transform: translateX(-50%) translateY(10px);
@@ -391,11 +385,9 @@
 
         .hidden { display: none !important; }
 
-        /* Поиск по чатам */
         .chats-search-row { padding: 8px 16px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
         .chats-search-row input { padding: 9px 14px; font-size: 14px; border-radius: 10px; }
 
-        /* Бейдж непрочитанных */
         .chat-item-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
         .unread-badge {
             min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
@@ -403,11 +395,9 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* Статус "в сети" / "был недавно" */
         .partner-status { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
         .partner-status.online { color: #22c55e; }
 
-        /* Ответ на сообщение (превью над полем ввода) */
         .reply-preview {
             display: flex; align-items: center; gap: 10px;
             background: var(--bg-color); border: 1px solid var(--border-color);
@@ -418,7 +408,6 @@
         .reply-preview-name { font-size: 12px; font-weight: 600; color: var(--accent); }
         .reply-preview-snippet { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Цитата ответа внутри пузыря сообщения */
         .msg-reply-quote {
             border-left: 3px solid rgba(255,255,255,0.5); padding: 4px 8px; margin-bottom: 6px;
             font-size: 12.5px; opacity: 0.85; border-radius: 4px; background: rgba(0,0,0,0.12);
@@ -426,11 +415,9 @@
         .message.other .msg-reply-quote { border-left-color: var(--accent); background: rgba(0,0,0,0.05); }
         .msg-reply-quote .rq-name { font-weight: 600; }
 
-        /* Тики прочтения */
         .msg-ticks { display: inline-flex; margin-left: 4px; vertical-align: middle; }
         .msg-ticks.read svg { color: #7dd3fc; }
 
-        /* Действия на сообщении (ответить/удалить) */
         .msg-wrap { display: flex; flex-direction: column; max-width: 78%; }
         .msg-wrap.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrap.other { align-self: flex-start; align-items: flex-start; }
@@ -442,15 +429,12 @@
         .msg-action-btn:active { background: var(--surface-hover); }
         .msg-deleted { font-style: italic; color: var(--text-secondary); }
 
-        /* Полноэкранный просмотр фото */
         .image-viewer {
             position: fixed; inset: 0; background: rgba(0,0,0,0.92);
             display: flex; align-items: center; justify-content: center;
             z-index: 900; padding: 20px;
         }
         .image-viewer img { max-width: 100%; max-height: 100%; border-radius: 8px; }
-
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -604,7 +588,6 @@
         <img id="image-viewer-img" src="" alt="фото">
     </div>
 
-    <!-- Ловим вообще любые ошибки уровня страницы, даже если модуль ниже не запустится совсем -->
     <script>
         function __showGlobalError(msg) {
             let el = document.getElementById('global-error-banner');
@@ -634,21 +617,10 @@
         import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDatabase, ref as rtdbRef, onValue, onDisconnect, set as rtdbSet, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // ===== Supabase Storage (фото и голосовые) =====
-        // 1. Создайте проект на https://supabase.com/
-        // 2. Storage → New bucket → имя: chat-media
-        // 3. Для простого варианта поставьте bucket "Public".
-        // 4. Project Settings → API: вставьте Project URL и Publishable/anon key ниже.
-        //
-        // ВАЖНО: используйте только publishable/anon key на клиенте.
-        // Secret/service_role key сюда вставлять НЕЛЬЗЯ.
         const SUPABASE_URL = 'https://kbtqxdhglikskouycvaq.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_xugWMEBuzsnT6d7YPBKOMQ_XWHmdBWk';
         const SUPABASE_BUCKET = 'chat-media';
 
-        // Supabase грузится ЛЕНИВО (только когда реально нужно отправить фото/аудио).
-        // Это специально сделано так, чтобы если CDN Supabase не отвечает — это не ломало
-        // вход, чаты и текстовые сообщения, которые вообще не зависят от Supabase.
         let __supabaseClientPromise = null;
         function getSupabaseClient() {
             if (!__supabaseClientPromise) {
@@ -658,54 +630,42 @@
             return __supabaseClientPromise;
         }
 
-        // ===== Supabase Storage (фото и голосовые) =====
-        const SUPABASE_PROJECT_REF = 'kbtqxdhgliksoucyvaq';
-        const SUPABASE_URL = `https://${SUPABASE_PROJECT_REF}.supabase.co`;
-        const SUPABASE_STORAGE_URL = `https://${SUPABASE_PROJECT_REF}.storage.supabase.co`;
-        const SUPABASE_ANON_KEY = 'sb_publishable_xugWMEBuzsnT6d7YPBKOMQ_XWHmdBWk';
-        const SUPABASE_BUCKET = 'chat-media';
-
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         async function uploadToSupabase(fileOrBlob, filename, folder) {
-            if (!SUPABASE_ANON_KEY) throw new Error('Supabase не настроен');
-            if (!currentUser?.uid) throw new Error('Нужно войти в аккаунт перед загрузкой файла');
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+                throw new Error('Supabase не настроен');
+            }
+            if (!currentUser) {
+                throw new Error('Пользователь не авторизован');
+            }
 
             const safeName = String(filename || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
-            const uniqueId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-            const safeFolder = String(folder || 'files').replace(/[^a-zA-Z0-9._-]/g, '_');
-            const path = `${safeFolder}/${currentUser.uid}/${Date.now()}_${uniqueId}_${safeName}`;
-            const encodedPath = encodeURIComponent(path).replace(/%2F/g, '/');
-            const uploadUrl = `${SUPABASE_STORAGE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${encodedPath}`;
+            const uniqueId = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`);
+            const path = `${folder}/${currentUser.uid}/${Date.now()}_${uniqueId}_${safeName}`;
 
-            try {
-                const response = await fetch(uploadUrl, {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-                        apikey: SUPABASE_ANON_KEY,
-                        'Content-Type': fileOrBlob.type || 'application/octet-stream',
-                        'x-upsert': 'false',
-                        'cache-control': '3600'
-                    },
-                    body: fileOrBlob
+            const supabase = await getSupabaseClient();
+
+            const { error } = await supabase.storage
+                .from(SUPABASE_BUCKET)
+                .upload(path, fileOrBlob, {
+                    cacheControl: '3600',
+                    contentType: fileOrBlob.type || 'application/octet-stream',
+                    upsert: false
                 });
 
-                const responseText = await response.text();
-                if (!response.ok) {
-                    let message = responseText;
-                    try {
-                        const json = JSON.parse(responseText);
-                        message = json.message || json.error || json.error_description || responseText;
-                    } catch (_) {}
-                    throw new Error(message || `Storage upload failed (${response.status})`);
-                }
-
-                return `${SUPABASE_STORAGE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${encodedPath}`;
-            } catch (error) {
-                console.error('Supabase direct storage upload error:', error);
-                throw new Error(error?.message || 'Не удалось загрузить файл в Supabase Storage');
+            if (error) {
+                console.error('Supabase upload error:', error);
+                throw new Error(error.message || 'ошибка загрузки файла');
             }
+
+            const { data } = supabase.storage
+                .from(SUPABASE_BUCKET)
+                .getPublicUrl(path);
+
+            if (!data?.publicUrl) {
+                throw new Error('Supabase не вернул ссылку на файл');
+            }
+
+            return data.publicUrl;
         }
 
         const firebaseConfig = {
@@ -719,7 +679,6 @@
             measurementId: "G-02MBC79J6E"
         };
 
-        // --- Тема (применяем сразу, до входа) ---
         try {
             const savedTheme = localStorage.getItem('theme-pref');
             if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
@@ -750,9 +709,6 @@
         const db = getFirestore(app);
         const rtdb = getDatabase(app);
 
-        // ВАЖНО: не блокируем инициализацию остального скрипта ожиданием этого промиса —
-        // если он зависнет (например, из-за ограничений file://), все обработчики кнопок ниже
-        // всё равно должны быть подключены.
         setPersistence(auth, browserLocalPersistence).catch((error) => {
             console.error('Ошибка сохранения сессии:', error);
             showToast('Не удалось включить сохранение сессии: ' + error.message);
@@ -871,7 +827,6 @@
             });
         }
 
-        // ---------- Авторизация ----------
         switchAuth.addEventListener('click', () => {
             isSignUp = !isSignUp;
             authTitle.textContent = isSignUp ? 'Регистрация в C Messenger' : 'Вход в C Messenger';
@@ -920,7 +875,7 @@
             if (user) {
                 try {
                     await setDoc(doc(db, 'users', user.uid), {
-                        email: user.email,
+                        email: user.email.toLowerCase(),
                         displayName: user.displayName || user.email.split('@')[0],
                         updatedAt: serverTimestamp()
                     }, { merge: true });
@@ -939,7 +894,6 @@
             }
         });
 
-        // ---------- Список чатов ----------
         function renderChatsList() {
             const term = (chatsSearchInput.value || '').trim().toLowerCase();
             const filtered = term
@@ -1021,7 +975,7 @@
                     await setDoc(chatRef, {
                         participants: [currentUser.uid, otherUid].sort(),
                         participantInfo: {
-                            [currentUser.uid]: { email: currentUser.email, displayName: currentUser.displayName || currentUser.email.split('@')[0] },
+                            [currentUser.uid]: { email: currentUser.email.toLowerCase(), displayName: currentUser.displayName || currentUser.email.split('@')[0] },
                             [otherUid]: { email: otherData.email, displayName: otherData.displayName || otherData.email.split('@')[0] }
                         },
                         unread: { [currentUser.uid]: 0, [otherUid]: 0 },
@@ -1040,10 +994,11 @@
             }
         });
 
-        // ---------- Экран конкретного чата ----------
         function openChat(chatId) {
             currentChatId = chatId;
-            currentChatOtherUid = null;
+            const participants = chatId.split('_');
+            currentChatOtherUid = participants.find(id => id !== currentUser.uid) || null;
+
             if (messagesUnsub) { messagesUnsub(); messagesUnsub = null; }
             if (typingUnsub) { typingUnsub(); typingUnsub = null; }
             if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
@@ -1058,8 +1013,7 @@
             getDoc(doc(db, 'chats', chatId)).then(snap => {
                 if (!snap.exists()) return;
                 const chat = snap.data();
-                const otherUid = (chat.participants || []).find(id => id !== currentUser.uid);
-                currentChatOtherUid = otherUid;
+                const otherUid = currentChatOtherUid;
                 const info = (chat.participantInfo && chat.participantInfo[otherUid]) || {};
                 const label = info.displayName || info.email || 'Собеседник';
                 chatPartnerName.textContent = label;
@@ -1067,7 +1021,6 @@
                 if (otherUid) watchPartnerStatus(otherUid);
             }).catch(err => console.error(err));
 
-            // Сбрасываем счётчик непрочитанных для себя
             updateDoc(doc(db, 'chats', chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(() => {});
 
             showScreen('chat');
@@ -1350,14 +1303,12 @@
             const file = e.target.files?.[0];
             if (!file) return;
 
-            // Принимаем только изображения. Bucket chat-media сейчас настроен на загрузку файлов.
             if (!file.type || !file.type.startsWith('image/')) {
                 showToast('Можно отправлять только изображения');
                 fileInput.value = '';
                 return;
             }
 
-            // Оставляем запас до лимита bucket (50 MB).
             if (file.size > 45 * 1024 * 1024) {
                 showToast('Картинка слишком большая (максимум 45 МБ)');
                 fileInput.value = '';
@@ -1393,7 +1344,6 @@
             }
         });
 
-        // ---------- Настройки ----------
         settingsOpenBtn.addEventListener('click', () => {
             settingsNameInput.value = currentUser.displayName || '';
             settingsEmailDisplay.textContent = currentUser.email || '';
