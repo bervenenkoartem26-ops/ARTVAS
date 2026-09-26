@@ -211,7 +211,6 @@
             flex-shrink: 0;
         }
 
-        /* Список чатов в стиле Telegram (как на 2 фото) */
         .chats-list {
             flex: 1;
             overflow-y: auto;
@@ -237,7 +236,6 @@
         }
         .chats-empty { padding: 80px 24px; text-align: center; color: var(--text-secondary); font-size: 15px; line-height: 1.6; }
 
-        /* Плавающая кнопка создания чата (FAB, как на 2 фото) */
         .fab-btn {
             position: absolute;
             right: 20px;
@@ -441,7 +439,6 @@
             </div>
         </div>
 
-        <!-- Экран чатов в стиле Telegram (как на 2 фото) -->
         <div id="chats-screen" class="screen">
             <div class="top-bar">
                 <div class="top-bar-title">ЧАТЫ</div>
@@ -452,7 +449,6 @@
                 </div>
             </div>
             <div id="chats-list" class="chats-list"></div>
-            <!-- Плавающая кнопка создания нового чата (FAB) -->
             <button id="new-chat-fab" class="fab-btn" title="Новый чат">
                 <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
             </button>
@@ -828,7 +824,14 @@
                     lastMessageAt: serverTimestamp()
                 });
             } catch (e) {
-                console.warn('Не удалось обновить чат:', e);
+                try {
+                    await setDoc(doc(db, 'chats', chatId), {
+                        lastMessage: lastText,
+                        lastMessageAt: serverTimestamp()
+                    }, { merge: true });
+                } catch (err) {
+                    console.warn('Не удалось обновить чат:', err);
+                }
             }
         }
 
@@ -867,17 +870,28 @@
             const chatId = ids.join('_');
             const chatRef = doc(db, 'chats', chatId);
             const existing = await getDoc(chatRef);
+            
+            const myName = normalizeName(currentUser);
+            const dataToSet = {
+                members: ids,
+                participants: ids,
+                memberNames: {
+                    [currentUser.uid]: myName,
+                    [otherUid]: otherName || 'Пользователь'
+                },
+                participantInfo: {
+                    [currentUser.uid]: { displayName: myName, email: currentUser.email || '' },
+                    [otherUid]: { displayName: otherName || 'Пользователь', email: '' }
+                },
+                lastMessage: existing.exists() ? (existing.data().lastMessage || 'Чат создан') : 'Чат создан',
+                lastMessageAt: existing.exists() ? (existing.data().lastMessageAt || serverTimestamp()) : serverTimestamp(),
+                createdAt: existing.exists() ? (existing.data().createdAt || serverTimestamp()) : serverTimestamp()
+            };
+
             if (!existing.exists()) {
-                await setDoc(chatRef, {
-                    members: ids,
-                    memberNames: {
-                        [currentUser.uid]: normalizeName(currentUser),
-                        [otherUid]: otherName || 'Пользователь'
-                    },
-                    lastMessage: 'Чат создан',
-                    lastMessageAt: serverTimestamp(),
-                    createdAt: serverTimestamp()
-                });
+                await setDoc(chatRef, dataToSet);
+            } else {
+                await setDoc(chatRef, dataToSet, { merge: true });
             }
             openChat(chatId, otherUid, otherName || 'Пользователь');
         }
@@ -906,25 +920,52 @@
             return new Date(field).getTime() || Date.now();
         }
 
+        function getOtherUserInfo(chat, currentUid) {
+            const membersArr = chat.members || chat.participants || [];
+            const otherUid = membersArr.find(id => id !== currentUid);
+            if (!otherUid) return { uid: '', name: 'Чат' };
+            
+            let name = 'Пользователь';
+            if (chat.memberNames && chat.memberNames[otherUid]) {
+                name = chat.memberNames[otherUid];
+            } else if (chat.participantInfo && chat.participantInfo[otherUid]) {
+                const info = chat.participantInfo[otherUid];
+                name = info.displayName || info.email?.split('@')[0] || 'Пользователь';
+            }
+            return { uid: otherUid, name };
+        }
+
         function subscribeChats() {
             if (chatsUnsub) chatsUnsub();
-            const q = query(collection(db, 'chats'), where('members', 'array-contains', currentUser.uid));
-            chatsUnsub = onSnapshot(q, snapshot => {
-                allChatsCache = [];
-                snapshot.forEach(snap => {
-                    const data = snap.data();
-                    allChatsCache.push({ id: snap.id, ...data });
-                });
+            const chatsMap = new Map();
+            
+            const q1 = query(collection(db, 'chats'), where('members', 'array-contains', currentUser.uid));
+            const q2 = query(collection(db, 'chats'), where('participants', 'array-contains', currentUser.uid));
+
+            const updateAndRenderChats = () => {
+                allChatsCache = Array.from(chatsMap.values());
                 allChatsCache.sort((a, b) => {
                     const at = getTimestamp(a.lastMessageAt || a.createdAt);
                     const bt = getTimestamp(b.lastMessageAt || b.createdAt);
                     return bt - at;
                 });
                 renderChats();
-            }, error => {
-                console.error('Chats listener error:', error);
-                showToast('Не удалось загрузить чаты: ' + error.message);
-            });
+            };
+
+            let unsub1 = onSnapshot(q1, snap1 => {
+                snap1.forEach(docSnap => chatsMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() }));
+                updateAndRenderChats();
+            }, err => console.error('q1 error:', err));
+
+            let unsub2 = onSnapshot(q2, snap2 => {
+                snap2.forEach(docSnap => chatsMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() }));
+                updateAndRenderChats();
+            }, err => console.error('q2 error:', err));
+
+            chatsUnsub = () => {
+                unsub1();
+                unsub2();
+            };
         }
 
         function renderChats() {
@@ -934,8 +975,7 @@
                 return;
             }
             allChatsCache.forEach(chat => {
-                const otherUid = chat.members.find(id => id !== currentUser.uid);
-                const otherName = chat.memberNames?.[otherUid] || 'Пользователь';
+                const { uid: otherUid, name: otherName } = getOtherUserInfo(chat, currentUser.uid);
 
                 const item = document.createElement('div');
                 item.className = 'chat-item';
