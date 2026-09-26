@@ -1,0 +1,112 @@
+name: Fix Supabase Storage upload
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Patch Storage upload
+        id: patch
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          p = Path("index.html")
+          text = p.read_text(encoding="utf-8")
+
+          start = text.find("        async function uploadToSupabase(")
+          end = text.find("        const firebaseConfig =", start)
+          if start == -1 or end == -1:
+              raise SystemExit("uploadToSupabase block not found")
+
+          replacement = r'''        // ===== Supabase Storage (фото и голосовые) =====
+        // Используем прямой Storage hostname: он рекомендован Supabase
+        // для загрузок и не зависит от API hostname проекта.
+        const SUPABASE_PROJECT_REF = 'kbtqxdhgliksoucyvaq';
+        const SUPABASE_URL = `https://${SUPABASE_PROJECT_REF}.supabase.co`;
+        const SUPABASE_STORAGE_URL = `https://${SUPABASE_PROJECT_REF}.storage.supabase.co`;
+        const SUPABASE_ANON_KEY = 'sb_publishable_xugWMEBuzsnT6d7YPBKOMQ_XWHmdBWk';
+        const SUPABASE_BUCKET = 'chat-media';
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function uploadToSupabase(fileOrBlob, filename, folder) {
+            if (!SUPABASE_ANON_KEY) {
+                throw new Error('Supabase не настроен');
+            }
+            if (!currentUser?.uid) {
+                throw new Error('Нужно войти в аккаунт перед загрузкой файла');
+            }
+
+            const safeName = String(filename || 'file')
+                .replace(/[^a-zA-Z0-9._-]/g, '_');
+            const uniqueId = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`);
+            const safeFolder = String(folder || 'files').replace(/[^a-zA-Z0-9._-]/g, '_');
+            const path = `${safeFolder}/${currentUser.uid}/${Date.now()}_${uniqueId}_${safeName}`;
+            const uploadUrl = `${SUPABASE_STORAGE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${encodeURIComponent(path).replace(/%2F/g, '/')}`;
+
+            try {
+                const response = await fetch(uploadUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Content-Type': fileOrBlob.type || 'application/octet-stream',
+                        'x-upsert': 'false',
+                        'cache-control': '3600'
+                    },
+                    body: fileOrBlob
+                });
+
+                const responseText = await response.text();
+                if (!response.ok) {
+                    let message = responseText;
+                    try {
+                        const json = JSON.parse(responseText);
+                        message = json.message || json.error || json.error_description || responseText;
+                    } catch (_) {}
+                    throw new Error(message || `Storage upload failed (${response.status})`);
+                }
+
+                // Bucket chat-media уже PUBLIC, поэтому файл доступен по public URL.
+                return `${SUPABASE_STORAGE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${encodeURIComponent(path).replace(/%2F/g, '/')}`;
+            } catch (error) {
+                console.error('Supabase direct storage upload error:', error);
+                throw new Error(error?.message || 'Не удалось загрузить файл в Supabase Storage');
+            }
+        }
+
+'''
+
+          new_text = text[:start] + replacement + text[end:]
+          if new_text == text:
+              raise SystemExit("No changes made")
+          p.write_text(new_text, encoding="utf-8")
+          print("Patched index.html")
+
+      - name: Commit patch
+        if: steps.patch.outcome == 'success'
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No patch needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Fix image and voice uploads"
+          git push
