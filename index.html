@@ -530,33 +530,56 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-        // ===== Cloudinary (бесплатная загрузка фото и голосовых, без карты) =====
-        // 1. Зарегистрируйтесь на https://cloudinary.com/users/register_free
-        // 2. На главной странице консоли скопируйте "Cloud name" и вставьте ниже
-        // 3. Settings (шестерёнка) → Upload → Upload presets → Add upload preset →
-        //    Signing Mode = Unsigned → Save → скопируйте имя пресета и вставьте ниже
-        const CLOUDINARY_CLOUD_NAME = 'ВАШ_CLOUD_NAME';
-        const CLOUDINARY_UPLOAD_PRESET = 'ВАШ_UPLOAD_PRESET';
+        // ===== Supabase Storage (фото и голосовые) =====
+        // 1. Создайте проект на https://supabase.com/
+        // 2. Storage → New bucket → имя: chat-media
+        // 3. Для простого варианта поставьте bucket "Public".
+        // 4. Project Settings → API: вставьте Project URL и Publishable/anon key ниже.
+        //
+        // ВАЖНО: используйте только publishable/anon key на клиенте.
+        // Secret/service_role key сюда вставлять НЕЛЬЗЯ.
+        const SUPABASE_URL = 'https://kbtqxdhgliksoucyvaq.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_xugWMEBuzsnT6d7YPBKOMQ_XWHmdBWk';
+        const SUPABASE_BUCKET = 'chat-media';
 
-        async function uploadToCloudinary(fileOrBlob, filename) {
-            if (CLOUDINARY_CLOUD_NAME === 'ВАШ_CLOUD_NAME' || CLOUDINARY_UPLOAD_PRESET === 'ВАШ_UPLOAD_PRESET') {
-                throw new Error('Cloudinary не настроен: впишите CLOUDINARY_CLOUD_NAME и CLOUDINARY_UPLOAD_PRESET в коде');
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function uploadToSupabase(fileOrBlob, filename, folder) {
+            if (SUPABASE_URL === 'ВАШ_SUPABASE_URL' || SUPABASE_ANON_KEY === 'ВАШ_SUPABASE_ANON_KEY') {
+                throw new Error('Supabase не настроен: впишите SUPABASE_URL и SUPABASE_ANON_KEY в коде');
             }
-            const formData = new FormData();
-            formData.append('file', fileOrBlob, filename);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
-                method: 'POST',
-                body: formData
-            });
-            if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
-                throw new Error('Cloudinary: ' + (errData.error?.message || res.statusText));
+            if (!currentUser) {
+                throw new Error('Пользователь не авторизован');
             }
-            const data = await res.json();
-            return data.secure_url;
+
+            const safeName = String(filename || 'file')
+                .replace(/[^a-zA-Z0-9._-]/g, '_');
+            const path = `${folder}/${currentUser.uid}/${Date.now()}_${crypto.randomUUID()}_${safeName}`;
+
+            const { error } = await supabase.storage
+                .from(SUPABASE_BUCKET)
+                .upload(path, fileOrBlob, {
+                    cacheControl: '3600',
+                    contentType: fileOrBlob.type || undefined,
+                    upsert: false
+                });
+
+            if (error) {
+                throw new Error('Supabase Storage: ' + error.message);
+            }
+
+            const { data } = supabase.storage
+                .from(SUPABASE_BUCKET)
+                .getPublicUrl(path);
+
+            if (!data?.publicUrl) {
+                throw new Error('Supabase не вернул URL файла');
+            }
+
+            return data.publicUrl;
         }
 
         const firebaseConfig = {
@@ -967,10 +990,10 @@
             sendBtn.disabled = true;
             try {
                 if (pendingImageFile) {
-                    const url = await uploadToCloudinary(pendingImageFile, pendingImageFile.name);
+                    const url = await uploadToSupabase(pendingImageFile, pendingImageFile.name, 'images');
                     await sendMessage(text, url, null);
                 } else if (pendingAudioBlob) {
-                    const url = await uploadToCloudinary(pendingAudioBlob, `voice_${Date.now()}.webm`);
+                    const url = await uploadToSupabase(pendingAudioBlob, `voice_${Date.now()}.webm`, 'audio');
                     await sendMessage(text, null, url);
                 } else {
                     await sendMessage(text);
