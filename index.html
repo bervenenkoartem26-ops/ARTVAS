@@ -226,19 +226,6 @@
         .chat-item-time { font-size: 11px; color: var(--text-secondary); flex-shrink: 0; }
         .chats-empty { padding: 60px 24px; text-align: center; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
 
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 500; padding: 20px;
-        }
-        .modal-card {
-            background: var(--surface-color); border: 1px solid var(--border-color);
-            border-radius: 20px; padding: 22px; width: 100%; max-width: 360px;
-        }
-        .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
-        .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
-        .modal-actions .btn { flex: 1; }
-
         .messages-list {
             flex: 1;
             padding: 16px;
@@ -533,7 +520,6 @@
             return __supabaseClientPromise;
         }
 
-        // ===== Supabase Storage (фото и голосовые) =====
         var SUPABASE_STORAGE_URL = SUPABASE_URL.replace('.supabase.co', '.storage.supabase.co');
 
         async function uploadToSupabase(fileOrBlob, filename, folder) {
@@ -767,6 +753,7 @@
                     text: text || '',
                     imageUrl,
                     audioUrl,
+                    chatId: currentChatId, // <--- Добавлено обязательное поле chatId
                     createdAt: serverTimestamp()
                 };
                 if (replyingTo?.id) {
