@@ -643,7 +643,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDoc, getDocs, updateDoc, deleteField, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, orderBy, limit, startAfter, getDocs, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteField, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDatabase, ref as rtdbRef, onValue, onDisconnect, set as rtdbSet, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
@@ -758,6 +758,12 @@
         let presenceUnsub = null;
         let replyingTo = null;
         let allChatsCache = [];
+
+        /* ===== Состояние пагинации сообщений ===== */
+        let lastVisibleMessageDoc = null;
+        let isLoadingMoreMessages = false;
+        let hasMoreMessages = true;
+        const PAGE_SIZE = 20;
 
         /* ===== Новые функции ===== */
         const lsGet = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } };
@@ -1129,23 +1135,61 @@
             }
         }
 
+        /* ===== Пагинация и подписка на сообщения с лимитом ===== */
         function subscribeMessages(chatId) {
             if (messagesUnsub) messagesUnsub();
-            messagesCache = new Map(); lastMessageId = null; readAttempted = new Set();
+            messagesCache = new Map(); 
+            lastMessageId = null; 
+            readAttempted = new Set();
+            lastVisibleMessageDoc = null;
+            hasMoreMessages = true;
+
             let first = true;
-            const q = query(collection(db, 'messages'), where('chatId', '==', chatId), orderBy('createdAt', 'asc'));
+            const q = query(
+                collection(db, 'messages'), 
+                where('chatId', '==', chatId), 
+                orderBy('createdAt', 'desc'), 
+                limit(PAGE_SIZE)
+            );
+
             messagesUnsub = onSnapshot(q, snapshot => {
+                if (snapshot.docs.length > 0) {
+                    // Самый старый документ в текущей порции для дальнейшей пагинации
+                    lastVisibleMessageDoc = snapshot.docs[snapshot.docs.length - 1];
+                    if (snapshot.docs.length < PAGE_SIZE) {
+                        hasMoreMessages = false;
+                    }
+                } else {
+                    hasMoreMessages = false;
+                }
+
                 const nearBottom = first || messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight < 150;
                 const prevTop = messagesList.scrollTop;
                 let ownAdded = false, incoming = false;
+
                 snapshot.docChanges().forEach(ch => {
                     if (ch.type !== 'added') return;
                     if (ch.doc.data().senderId === currentUser.uid) ownAdded = true;
                     else if (!first && !ch.doc.metadata.hasPendingWrites) incoming = true;
                 });
-                messagesList.innerHTML = ''; messagesCache = new Map();
-                snapshot.forEach(snap => { messagesCache.set(snap.id, snap.data()); lastMessageId = snap.id; renderMessage(snap.id, snap.data()); });
-                messagesList.scrollTop = (nearBottom || ownAdded) ? messagesList.scrollHeight : prevTop;
+
+                messagesList.innerHTML = ''; 
+                messagesCache = new Map();
+
+                // Firestore отдает по убыванию (desc), а в чате новейшие снизу, поэтому переворачиваем
+                const docsReversed = snapshot.docs.slice().reverse();
+                docsReversed.forEach(snap => {
+                    messagesCache.set(snap.id, snap.data());
+                    lastMessageId = snap.id; 
+                    renderMessage(snap.id, snap.data());
+                });
+
+                if (first || nearBottom || ownAdded) {
+                    messagesList.scrollTop = messagesList.scrollHeight;
+                } else {
+                    messagesList.scrollTop = prevTop;
+                }
+
                 if (incoming) playNotificationSound();
                 first = false;
                 markIncomingRead();
@@ -1155,7 +1199,58 @@
             });
         }
 
-        function renderMessage(id, msg) {
+        // Загрузка более старых сообщений при скролле вверх
+        async function loadMoreMessages() {
+            if (isLoadingMoreMessages || !hasMoreMessages || !lastVisibleMessageDoc || !currentChatId) return;
+            isLoadingMoreMessages = true;
+
+            try {
+                const q = query(
+                    collection(db, 'messages'),
+                    where('chatId', '==', currentChatId),
+                    orderBy('createdAt', 'desc'),
+                    startAfter(lastVisibleMessageDoc),
+                    limit(PAGE_SIZE)
+                );
+
+                const snapshot = await getDocs(q);
+                if (snapshot.empty) {
+                    hasMoreMessages = false;
+                    isLoadingMoreMessages = false;
+                    return;
+                }
+
+                lastVisibleMessageDoc = snapshot.docs[snapshot.docs.length - 1];
+                if (snapshot.docs.length < PAGE_SIZE) {
+                    hasMoreMessages = false;
+                }
+
+                const oldScrollHeight = messagesList.scrollHeight;
+                const oldScrollTop = messagesList.scrollTop;
+
+                // Превращаем старые документы в массив и разворачиваем обратно
+                const olderDocs = snapshot.docs.slice().reverse();
+                
+                // Вставляем старые сообщения в самый верх списка DOM
+                const tempContainer = document.createDocumentFragment();
+                olderDocs.forEach(snap => {
+                    messagesCache.set(snap.id, snap.data());
+                    const div = createMessageElement(snap.id, snap.data());
+                    tempContainer.appendChild(div);
+                });
+
+                messagesList.insertBefore(tempContainer, messagesList.firstChild);
+
+                // Корректируем положение скролла, чтобы пользователь не потерял позицию
+                messagesList.scrollTop = messagesList.scrollHeight - oldScrollHeight + oldScrollTop;
+            } catch (error) {
+                console.error('Ошибка пагинации сообщений:', error);
+            } finally {
+                isLoadingMoreMessages = false;
+            }
+        }
+
+        function createMessageElement(id, msg) {
             const mine = msg.senderId === currentUser?.uid;
             const div = document.createElement('div');
             div.className = 'message ' + (mine ? 'me' : 'other') + (msg.deleted ? ' deleted' : '');
@@ -1174,8 +1269,22 @@
             }
             html += `<div class="msg-meta">${msg.edited && !msg.deleted ? '<span class="msg-edited">изменено</span>' : ''}<span class="msg-time">${formatTime(msg.createdAt)}</span>${mine && !msg.deleted ? `<span class="ticks${msg.read ? ' read' : ''}" title="${msg.read ? 'Прочитано' : 'Отправлено'}">${msg.read ? TICK2 : TICK1}</span>` : ''}</div>`;
             div.innerHTML = html;
+            return div;
+        }
+
+        function renderMessage(id, msg) {
+            const div = createMessageElement(id, msg);
             messagesList.appendChild(div);
         }
+
+        // Обработчик скролла в контейнере сообщений (для пагинации)
+        messagesList.addEventListener('scroll', () => {
+            closeMsgMenu();
+            // Если доскроллили близко к верху (<= 40px), подгружаем старые сообщения
+            if (messagesList.scrollTop <= 40) {
+                loadMoreMessages();
+            }
+        }, { passive: true });
 
         async function createOrOpenChat(otherUid, otherName) {
             if (!currentUser || !otherUid || otherUid === currentUser.uid) return;
@@ -1601,7 +1710,6 @@
         }, { passive: true });
         ['touchend', 'touchmove', 'touchcancel'].forEach(ev => messagesList.addEventListener(ev, () => clearTimeout(pressTimer), { passive: true }));
         messagesList.addEventListener('contextmenu', e => { const b = e.target.closest('.message'); if (b) { e.preventDefault(); openMsgMenu(b); } });
-        messagesList.addEventListener('scroll', closeMsgMenu, { passive: true });
         document.addEventListener('pointerdown', e => { if (menuEl && !menuEl.contains(e.target)) closeMsgMenu(); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMsgMenu(); });
         messageInput.addEventListener('keydown', e => { if (e.key === 'Escape') cancelEdit(); });
