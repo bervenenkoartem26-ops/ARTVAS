@@ -267,13 +267,34 @@
         .chat-item-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
         .chat-item-name { font-size: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chat-item-time { font-size: 12px; color: var(--text-secondary); flex-shrink: 0; margin-left: 8px; }
+        
+        .chat-item-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .chat-item-last {
             font-size: 14px; color: var(--text-secondary);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0;
         }
+        /* Бейдж непрочитанных сообщений */
+        .unread-badge {
+            background: var(--text-secondary);
+            color: var(--bg-color);
+            font-size: 12px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            flex-shrink: 0;
+        }
+        .chat-item.has-unread .unread-badge {
+            background: var(--accent);
+            color: #ffffff;
+        }
+
         .chats-empty { padding: 80px 24px; text-align: center; color: var(--text-secondary); font-size: 15px; line-height: 1.6; }
 
-        /* Стили панели закрепленных сообщений */
         .pinned-banner {
             display: flex;
             align-items: center;
@@ -451,7 +472,6 @@
 
         .hidden { display: none !important; }
 
-        /* Интерактивный просмотр фото с поддержкой зума и перетаскивания */
         .image-viewer {
             position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.92);
             display: flex; align-items: center; justify-content: center; overflow: hidden;
@@ -564,7 +584,6 @@
                     <div id="chat-status-text" class="chat-status-text"></div>
                 </div>
             </div>
-            <!-- Панель закрепленного сообщения -->
             <div id="pinned-banner" class="pinned-banner hidden">
                 <div class="pinned-icon"><svg viewBox="0 0 24 24"><path d="M16 12V4H17V2H7V4H8V12L6 14V16H11.5V22H12.5V16H18V14L16 12Z"/></svg></div>
                 <div class="pinned-content">
@@ -663,7 +682,6 @@
         </div>
     </div>
 
-    <!-- Интерактивный просмотрщик фото с поддержкой масштабирования -->
     <div id="image-viewer" class="image-viewer hidden">
         <button id="image-viewer-close" class="image-viewer-close">✕</button>
         <img id="image-viewer-img" src="" alt="фото">
@@ -691,7 +709,6 @@
         });
     </script>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -913,7 +930,6 @@
         async function saveProfile(data) {
             try {
                 await setDoc(doc(db, 'users', currentUser.uid), data, { merge: true });
-                // Принудительно обновляем локальный кеш профиля текущего пользователя
                 const cur = profiles.get(currentUser.uid) || {};
                 profiles.set(currentUser.uid, { ...cur, ...data });
                 onPeopleChanged();
@@ -971,7 +987,6 @@
         async function togglePinMessage(id, pinState) {
             if (!currentChatId) return;
             try {
-                // Если закрепляем, снимаем закреп со всех остальных в этом чате (или оставляем последнее)
                 const batch = writeBatch(db);
                 if (pinState) {
                     messagesCache.forEach((m, msgId) => {
@@ -1033,7 +1048,7 @@
             } catch (e) { showToast('Не удалось удалить: ' + e.message); }
         }
 
-        function markIncomingRead() {
+        async function markIncomingRead() {
             if (document.visibilityState !== 'visible' || !currentChatId) return;
             const batch = writeBatch(db); let n = 0;
             messagesCache.forEach((m, id) => {
@@ -1041,7 +1056,10 @@
                     readAttempted.add(id); batch.update(doc(db, 'messages', id), { read: true, readAt: serverTimestamp() }); n++;
                 }
             });
-            if (n) batch.commit().catch(e => console.warn('Не удалось отметить прочитанным:', e));
+            if (n) {
+                batch.update(doc(db, 'chats', currentChatId), { [`unread_${currentUser.uid}`]: 0 });
+                batch.commit().catch(e => console.warn('Не удалось отметить прочитанным:', e));
+            }
         }
         document.addEventListener('visibilitychange', markIncomingRead);
 
@@ -1192,7 +1210,7 @@
                 messageInput.value = '';
                 clearAttachment();
                 replyingTo = null;
-                await updateChatSummary(currentChatId, text || (imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение'));
+                await updateChatSummary(currentChatId, text || (imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение'), currentChatOtherUid);
             } catch (error) {
                 console.error(error);
                 showToast('Не удалось отправить: ' + (error.message || error));
@@ -1201,19 +1219,28 @@
             }
         }
 
-        async function updateChatSummary(chatId, lastText) {
+        async function updateChatSummary(chatId, lastText, recipientUid) {
             try {
-                await updateDoc(doc(db, 'chats', chatId), {
+                const chatRef = doc(db, 'chats', chatId);
+                const chatSnap = await getDoc(chatRef);
+                let currentUnread = 0;
+                if (chatSnap.exists()) {
+                    currentUnread = chatSnap.data()[`unread_${recipientUid}`] || 0;
+                }
+                
+                await updateDoc(chatRef, {
                     lastMessage: lastText,
                     lastSenderId: currentUser.uid,
-                    lastMessageAt: serverTimestamp()
+                    lastMessageAt: serverTimestamp(),
+                    [`unread_${recipientUid}`]: currentUnread + 1
                 });
             } catch (e) {
                 try {
                     await setDoc(doc(db, 'chats', chatId), {
                         lastMessage: lastText,
                         lastSenderId: currentUser.uid,
-                        lastMessageAt: serverTimestamp()
+                        lastMessageAt: serverTimestamp(),
+                        [`unread_${recipientUid}`]: 1
                     }, { merge: true });
                 } catch (err) {
                     console.warn('Не удалось обновить чат:', err);
@@ -1230,7 +1257,6 @@
             lastVisibleMessageDoc = null;
             hasMoreMessages = true;
 
-            // Подписка на метаданные чата (включая закрепленное сообщение)
             chatDetailsUnsub = onSnapshot(doc(db, 'chats', chatId), snap => {
                 if (snap.exists()) {
                     const data = snap.data();
@@ -1241,7 +1267,6 @@
                         pinnedTextEl.textContent = pMsg.text || (pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение');
                         pinnedBanner.dataset.msgId = pinnedId;
                     } else if (pinnedId) {
-                        // Если в кеше нет, подгружаем отдельно
                         getDoc(doc(db, 'messages', pinnedId)).then(mSnap => {
                             if (mSnap.exists()) {
                                 const pMsg = mSnap.data();
@@ -1392,7 +1417,6 @@
             }
         }, { passive: true });
 
-        // Клик по закрепленному сообщению в шапке чата (скроллит к нему)
         pinnedBanner.addEventListener('click', e => {
             if (e.target.closest('#pinned-close')) {
                 togglePinMessage(pinnedBanner.dataset.msgId, false);
@@ -1546,8 +1570,11 @@
                 const { uid: otherUid, name: rawName } = getOtherUserInfo(chat, currentUser.uid);
                 watchUser(otherUid); watchPresence(otherUid);
                 const otherName = displayNameFor(otherUid, rawName), st = effectiveStatus(otherUid);
+                
+                const unreadCount = currentUser ? (chat[`unread_${currentUser.uid}`] || 0) : 0;
+                
                 const item = document.createElement('div');
-                item.className = 'chat-item';
+                item.className = 'chat-item' + (unreadCount > 0 ? ' has-unread' : '');
                 item.innerHTML = `
                     <div class="avatar"></div>
                     <div class="chat-item-info">
@@ -1555,7 +1582,10 @@
                             <div class="chat-item-name-row"><span class="status-dot ${st}" title="${STATUS_LABELS[st]}"></span><div class="chat-item-name">${escapeHtml(otherName)}</div></div>
                             <div class="chat-item-time">${formatChatTime(chat.lastMessageAt || chat.createdAt)}</div>
                         </div>
-                        <div class="chat-item-last">${escapeHtml(chat.lastMessage || '')}</div>
+                        <div class="chat-item-footer">
+                            <div class="chat-item-last">${escapeHtml(chat.lastMessage || '')}</div>
+                            ${unreadCount > 0 ? `<div class="unread-badge">${unreadCount}</div>` : ''}
+                        </div>
                     </div>
                 `;
                 applyAvatar(item.querySelector('.avatar'), otherUid, otherName);
@@ -1813,7 +1843,6 @@
             try { await signOut(auth); } catch (e) { showToast('Ошибка выхода: ' + e.message); }
         });
 
-        // --- Интерактивный просметр фотографий со смещением и зумом ---
         let currentScale = 1, panX = 0, panY = 0, isDragging = false, startX = 0, startY = 0;
         let initialPinchDist = null;
 
@@ -1837,7 +1866,6 @@
             }
         });
 
-        // Зум колесиком мыши
         imageViewer.addEventListener('wheel', e => {
             e.preventDefault();
             const zoomFactor = 1.15;
@@ -1850,7 +1878,6 @@
             updateImageViewerTransform();
         }, { passive: false });
 
-        // Перетаскивание и пинч-зум
         imageViewer.addEventListener('pointerdown', e => {
             if (e.target === document.getElementById('image-viewer-close')) return;
             isDragging = true;
@@ -1871,7 +1898,6 @@
         imageViewer.addEventListener('pointerup', e => { isDragging = false; });
         imageViewer.addEventListener('pointercancel', e => { isDragging = false; });
 
-        // Поддержка жестов на мобильных (pinch-to-zoom двумя пальцами)
         imageViewer.addEventListener('touchstart', e => {
             if (e.touches.length === 2) {
                 initialPinchDist = Math.hypot(
@@ -1894,7 +1920,6 @@
             }
         }, { passive: true });
 
-        // --- Обработка кликов по сообщениям ---
         let pressTimer = null, suppressClickUntil = 0;
         messagesList.addEventListener('click', e => {
             const chip = e.target.closest('.reaction-chip');
