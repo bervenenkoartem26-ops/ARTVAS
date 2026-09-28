@@ -180,12 +180,47 @@
         .top-bar-title { font-size: 20px; font-weight: 700; flex: 1; letter-spacing: 0.3px; }
         .top-bar-actions { display: flex; gap: 8px; align-items: center; }
 
+        /* Стили полукруглого длинного меню для экрана чатов */
+        .semi-circle-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 30px; /* Полукруглые/овальные края */
+            margin: 12px 16px 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .nav-tab-chats {
+            font-weight: 700;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: color-mix(in srgb, var(--accent) 15%, transparent);
+            color: var(--accent);
+            white-space: nowrap;
+        }
+        .nav-search-input {
+            flex: 1;
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-primary);
+            outline: none;
+        }
+        .nav-search-input:focus { border-color: var(--accent); }
+
         .icon-btn {
             background: transparent;
             border: none;
             color: var(--text-primary);
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -195,7 +230,7 @@
             transition: background 0.15s;
         }
         .icon-btn:active, .icon-btn:hover { background: var(--surface-hover); }
-        .icon-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .icon-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
         .avatar {
             width: 48px;
@@ -235,27 +270,6 @@
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .chats-empty { padding: 80px 24px; text-align: center; color: var(--text-secondary); font-size: 15px; line-height: 1.6; }
-
-        .fab-btn {
-            position: absolute;
-            right: 20px;
-            bottom: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: var(--accent);
-            color: white;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-            transition: transform 0.2s, background 0.2s;
-            z-index: 100;
-        }
-        .fab-btn:active { transform: scale(0.92); background: var(--accent-hover); }
-        .fab-btn svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
         .messages-list {
             flex: 1;
@@ -480,17 +494,22 @@
 
         <div id="chats-screen" class="screen">
             <div class="top-bar">
-                <div class="top-bar-title">ЧАТЫ</div>
+                <div class="top-bar-title">C Messenger</div>
                 <div class="top-bar-actions">
-                    <button id="settings-btn" class="icon-btn" title="Настройки">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.69 0 1.31.4 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.2.6-.82 1-1.51 1z"></path></svg>
+                    <button id="new-chat-btn" class="icon-btn" title="Новый чат">
+                        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
                     </button>
                 </div>
             </div>
+            <!-- Полукруглое длинное меню: Чаты, Поиск по чатам, Настройки -->
+            <div class="semi-circle-nav">
+                <div class="nav-tab-chats">Чаты</div>
+                <input id="chats-search-input" class="nav-search-input" type="text" placeholder="Поиск по чатам...">
+                <button id="settings-btn" class="icon-btn" title="Настройки">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.69 0 1.31.4 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.2.6-.82 1-1.51 1z"></path></svg>
+                </button>
+            </div>
             <div id="chats-list" class="chats-list"></div>
-            <button id="new-chat-fab" class="fab-btn" title="Новый чат">
-                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
-            </button>
         </div>
 
         <div id="chat-screen" class="screen">
@@ -748,6 +767,7 @@
         let soundEnabled = lsGet('sound-pref', '1') !== '0';
         let editingMessageId = null, messagesCache = new Map(), lastMessageId = null, readAttempted = new Set();
         let menuEl = null, peopleRaf = 0, lastSoundAt = 0, audioCtx = null;
+        let currentSearchQuery = '';
         const REACTIONS = ['👍', '🔥', '❤️'];
         const STATUS_LABELS = { online: 'В сети', away: 'Отошёл', dnd: 'Не беспокоить', offline: 'Не в сети' };
         const TICK1 = '<svg viewBox="0 0 18 11"><path d="M1 5.8l3.6 3.6L11.4 1.6"/></svg>';
@@ -1272,11 +1292,24 @@
 
         function renderChats() {
             chatsList.innerHTML = '';
-            if (!allChatsCache.length) {
-                chatsList.innerHTML = '<div class="chats-empty">Пока нет чатов.<br>Нажмите на кнопку <b>+</b> в правом нижнем углу, чтобы начать новый чат.</div>';
+            
+            let filteredChats = allChatsCache;
+            if (currentSearchQuery.trim()) {
+                const queryStr = currentSearchQuery.trim().toLowerCase();
+                filteredChats = allChatsCache.filter(chat => {
+                    const { name } = getOtherUserInfo(chat, currentUser.uid);
+                    const otherName = displayNameFor(getOtherUserInfo(chat, currentUser.uid).uid, name).toLowerCase();
+                    const lastMsg = (chat.lastMessage || '').toLowerCase();
+                    return otherName.includes(queryStr) || lastMsg.includes(queryStr);
+                });
+            }
+
+            if (!filteredChats.length) {
+                chatsList.innerHTML = `<div class="chats-empty">${allChatsCache.length ? 'Ничего не найдено по вашему запросу.' : 'Пока нет чатов.<br>Нажмите на кнопку <b>+</b> вверху справа, чтобы начать новый чат.'}</div>`;
                 return;
             }
-            allChatsCache.forEach(chat => {
+            
+            filteredChats.forEach(chat => {
                 const { uid: otherUid, name: rawName } = getOtherUserInfo(chat, currentUser.uid);
                 watchUser(otherUid); watchPresence(otherUid);
                 const otherName = displayNameFor(otherUid, rawName), st = effectiveStatus(otherUid);
@@ -1297,6 +1330,11 @@
                 chatsList.appendChild(item);
             });
         }
+
+        document.getElementById('chats-search-input').addEventListener('input', (e) => {
+            currentSearchQuery = e.target.value;
+            renderChats();
+        });
 
         function subscribeTyping(chatId) {
             if (typingUnsub) typingUnsub();
@@ -1350,7 +1388,6 @@
             }
         }
 
-        // Логика пуш-уведомлений FCM (исправлена регистрация serviceWorker с учётом пути /ARTVAS/)
         async function initPushNotifications() {
             try {
                 const permission = await Notification.requestPermission();
@@ -1497,7 +1534,7 @@
             }
         });
 
-        document.getElementById('new-chat-fab').addEventListener('click', loadUsersForNewChat);
+        document.getElementById('new-chat-btn').addEventListener('click', loadUsersForNewChat);
         document.getElementById('settings-btn').addEventListener('click', () => {
             if (!currentUser) return;
             document.getElementById('settings-name-input').value = normalizeName(currentUser);
@@ -1570,7 +1607,6 @@
         messageInput.addEventListener('keydown', e => { if (e.key === 'Escape') cancelEdit(); });
         document.getElementById('cancel-edit').addEventListener('click', cancelEdit);
 
-        document.getElementById('settings-btn').addEventListener('click', syncSettingsUI);
         document.getElementById('status-picker').addEventListener('click', e => {
             const b = e.target.closest('button[data-status]'); if (!b) return;
             myStatus = b.dataset.status; lsSet('status-pref', myStatus);
@@ -1595,34 +1631,23 @@
         });
         document.getElementById('avatar-reset-btn').addEventListener('click', () => saveProfile({ avatar: deleteField(), avatarGradient: deleteField() }));
 
-        onAuthStateChanged(auth, async user => {
+        onAuthStateChanged(auth, user => {
             currentUser = user;
+            teardownWatchers();
             if (user) {
-                showScreen(chatsScreen);
-                subscribeChats();
                 setupPresence();
-                watchUser(user.uid);
-                try {
-                    const userRef = doc(db, 'users', user.uid);
-                    const snap = await getDoc(userRef);
-                    if (!snap.exists()) {
-                        await setDoc(userRef, {
-                            displayName: normalizeName(user),
-                            email: user.email || '',
-                            createdAt: serverTimestamp()
-                        });
-                    }
-                } catch (e) {
-                    console.warn('Не удалось сохранить профиль:', e);
+                subscribeChats();
+                showScreen(chatsScreen);
+                syncSettingsUI();
+                const notifPref = localStorage.getItem('notif-pref');
+                if (notifPref !== '0') {
+                    document.getElementById('notif-toggle').checked = true;
                 }
             } else {
-                if (chatsUnsub) chatsUnsub();
-                if (messagesUnsub) messagesUnsub();
-                if (typingUnsub) typingUnsub();
-                if (presenceUnsub) presenceUnsub();
-                teardownWatchers(); cancelEdit(); closeMsgMenu();
-                currentChatId = null;
-                currentChatOtherUid = null;
+                if (chatsUnsub) { chatsUnsub(); chatsUnsub = null; }
+                if (messagesUnsub) { messagesUnsub(); messagesUnsub = null; }
+                if (typingUnsub) { typingUnsub(); typingUnsub = null; }
+                if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
                 showScreen(authScreen);
             }
         });
