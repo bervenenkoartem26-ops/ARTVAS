@@ -180,7 +180,6 @@
         .top-bar-title { font-size: 20px; font-weight: 700; flex: 1; letter-spacing: 0.3px; }
         .top-bar-actions { display: flex; gap: 8px; align-items: center; }
 
-        /* Стили полукруглого длинного меню для экрана чатов */
         .semi-circle-nav {
             display: flex;
             align-items: center;
@@ -188,7 +187,7 @@
             padding: 8px 12px;
             background: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 30px; /* Полукруглые/овальные края */
+            border-radius: 30px;
             margin: 12px 16px 6px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             flex-shrink: 0;
@@ -244,7 +243,10 @@
             font-weight: 700;
             font-size: 18px;
             flex-shrink: 0;
+            overflow: hidden;
         }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .avatar-xl { width: 88px; height: 88px; font-size: 34px; }
 
         .chats-list {
             flex: 1;
@@ -271,6 +273,28 @@
         }
         .chats-empty { padding: 80px 24px; text-align: center; color: var(--text-secondary); font-size: 15px; line-height: 1.6; }
 
+        /* Стили панели закрепленных сообщений */
+        .pinned-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.15s;
+        }
+        .pinned-banner:hover { background: var(--surface-hover); }
+        .pinned-icon { color: var(--accent); flex-shrink: 0; display: flex; align-items: center; }
+        .pinned-icon svg { width: 16px; height: 16px; fill: currentColor; }
+        .pinned-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .pinned-title { font-weight: 600; color: var(--accent); font-size: 11px; text-transform: uppercase; }
+        .pinned-text { color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pinned-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; font-size: 16px; }
+        .pinned-close:hover { color: var(--danger); }
+
         .messages-list {
             flex: 1;
             padding: 16px;
@@ -290,6 +314,16 @@
             line-height: 1.4;
             word-break: break-word;
             animation: fadeIn 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        .message.deleted { cursor: default; }
+        .message.highlight {
+            animation: highlightPulse 1.5s ease;
+        }
+        @keyframes highlightPulse {
+            0% { box-shadow: 0 0 0 2px var(--accent); background: color-mix(in srgb, var(--accent) 30%, var(--surface-color)); }
+            100% { box-shadow: 0 0 0 0 transparent; }
         }
 
         @keyframes fadeIn {
@@ -307,7 +341,7 @@
             border: 1px solid var(--border-color);
         }
         .msg-time { font-size: 10px; text-align: right; margin-top: 4px; opacity: 0.7; }
-        .message img { max-width: 100%; border-radius: 8px; margin-top: 4px; display: block; }
+        .message img { max-width: 100%; border-radius: 8px; margin-top: 4px; display: block; cursor: zoom-in; }
         .message audio { max-width: 100%; margin-top: 4px; height: 35px; }
 
         .typing-indicator-box {
@@ -417,15 +451,24 @@
 
         .hidden { display: none !important; }
 
+        /* Интерактивный просмотр фото с поддержкой зума и перетаскивания */
         .image-viewer {
-            position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.9);
-            display: flex; align-items: center; justify-content: center; padding: 20px; cursor: zoom-out;
+            position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.92);
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+            touch-action: none; cursor: grab;
         }
-        .image-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+        .image-viewer:active { cursor: grabbing; }
+        .image-viewer img {
+            max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px;
+            transform-origin: center; transition: transform 0.05s ease-out; will-change: transform;
+        }
+        .image-viewer-close {
+            position: absolute; top: 20px; right: 20px; width: 40px; height: 40px;
+            background: rgba(255,255,255,0.15); border: none; border-radius: 50%; color: #fff;
+            font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1001;
+        }
+        .image-viewer-close:hover { background: rgba(255,255,255,0.3); }
 
-        .avatar{overflow:hidden}
-        .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-        .avatar-xl{width:88px;height:88px;font-size:34px}
         .status-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#71717a}
         .status-dot.online{background:#22c55e}.status-dot.away{background:#eab308}.status-dot.dnd{background:#ef4444}.status-dot.offline{background:#71717a}
         .chat-item-name-row{display:flex;align-items:center;gap:6px;min-width:0}
@@ -433,7 +476,6 @@
         .chat-title-row{display:flex;align-items:center;gap:8px;min-width:0}
         .chat-title-row .top-bar-title{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .chat-status-text{font-size:12px;color:var(--text-secondary);margin-top:2px}
-        .message{cursor:pointer}.message.deleted{cursor:default}
         .msg-meta{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:4px;font-size:10px}
         .msg-meta .msg-time{margin:0}
         .msg-edited{opacity:.7;font-style:italic}
@@ -501,12 +543,11 @@
                     </button>
                 </div>
             </div>
-            <!-- Полукруглое длинное меню: Чаты, Поиск по чатам, Настройки -->
             <div class="semi-circle-nav">
                 <div class="nav-tab-chats">Чаты</div>
                 <input id="chats-search-input" class="nav-search-input" type="text" placeholder="Поиск по чатам...">
                 <button id="settings-btn" class="icon-btn" title="Настройки">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.69 0 1.31.4 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.2.6-.82 1-1.51 1z"></path></svg>
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9c.69 0 1.31.4 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.2.6-.82 1-1.51 1z"></path></svg>
                 </button>
             </div>
             <div id="chats-list" class="chats-list"></div>
@@ -522,6 +563,15 @@
                     <div class="chat-title-row"><span id="chat-status-dot" class="status-dot offline"></span><div id="chat-title" class="top-bar-title">Чат</div></div>
                     <div id="chat-status-text" class="chat-status-text"></div>
                 </div>
+            </div>
+            <!-- Панель закрепленного сообщения -->
+            <div id="pinned-banner" class="pinned-banner hidden">
+                <div class="pinned-icon"><svg viewBox="0 0 24 24"><path d="M16 12V4H17V2H7V4H8V12L6 14V16H11.5V22H12.5V16H18V14L16 12Z"/></svg></div>
+                <div class="pinned-content">
+                    <div class="pinned-title">Закрепленное сообщение</div>
+                    <div id="pinned-text" class="pinned-text"></div>
+                </div>
+                <button id="pinned-close" class="pinned-close" title="Убрать закрепление">✕</button>
             </div>
             <div id="messages-list" class="messages-list"></div>
             <div id="typing-indicator" class="typing-indicator-box"></div>
@@ -613,7 +663,9 @@
         </div>
     </div>
 
+    <!-- Интерактивный просмотрщик фото с поддержкой масштабирования -->
     <div id="image-viewer" class="image-viewer hidden">
+        <button id="image-viewer-close" class="image-viewer-close">✕</button>
         <img id="image-viewer-img" src="" alt="фото">
     </div>
 
@@ -754,18 +806,17 @@
         let pendingAudioUrl = null;
         let chatsUnsub = null;
         let messagesUnsub = null;
+        let chatDetailsUnsub = null;
         let typingUnsub = null;
         let presenceUnsub = null;
         let replyingTo = null;
         let allChatsCache = [];
 
-        /* ===== Состояние пагинации сообщений ===== */
         let lastVisibleMessageDoc = null;
         let isLoadingMoreMessages = false;
         let hasMoreMessages = true;
         const PAGE_SIZE = 20;
 
-        /* ===== Новые функции ===== */
         const lsGet = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } };
         const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
         const profiles = new Map(), presenceMap = new Map(), profileUnsubs = new Map(), presenceUnsubs = new Map();
@@ -779,7 +830,6 @@
         const TICK1 = '<svg viewBox="0 0 18 11"><path d="M1 5.8l3.6 3.6L11.4 1.6"/></svg>';
         const TICK2 = '<svg viewBox="0 0 18 11"><path d="M1 5.8l3.6 3.6L11.4 1.6"/><path d="M7.2 8.6l.8.8 8.4-7.8"/></svg>';
 
-        // --- профили и присутствие других пользователей ---
         function watchUser(uid) {
             if (!uid || profileUnsubs.has(uid)) return;
             profileUnsubs.set(uid, onSnapshot(doc(db, 'users', uid), s => { profiles.set(uid, s.exists() ? s.data() : {}); onPeopleChanged(); }, () => {}));
@@ -838,7 +888,6 @@
             rtdbSet(r, { state: 'online', status: myStatus, lastChanged: rtdbServerTimestamp() }).catch(() => {});
         }
 
-        // --- звук (Web Audio API, без внешних файлов) ---
         function unlockAudio() {
             const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
             if (!audioCtx) audioCtx = new AC();
@@ -861,10 +910,18 @@
             });
         }
 
-        // --- аватарки: FileReader -> Base64 (сжатие до 192x192) ---
         async function saveProfile(data) {
-            try { await setDoc(doc(db, 'users', currentUser.uid), data, { merge: true }); return true; }
-            catch (e) { showToast('Не удалось сохранить профиль: ' + e.message); return false; }
+            try {
+                await setDoc(doc(db, 'users', currentUser.uid), data, { merge: true });
+                // Принудительно обновляем локальный кеш профиля текущего пользователя
+                const cur = profiles.get(currentUser.uid) || {};
+                profiles.set(currentUser.uid, { ...cur, ...data });
+                onPeopleChanged();
+                return true;
+            } catch (e) {
+                showToast('Не удалось сохранить профиль: ' + e.message);
+                return false;
+            }
         }
         function fileToAvatar(file) {
             return new Promise((resolve, reject) => {
@@ -885,15 +942,16 @@
             });
         }
 
-        // --- меню сообщения: реакции, редактирование, удаление ---
         function closeMsgMenu() { if (menuEl) menuEl.remove(); menuEl = null; }
         function openMsgMenu(bubble) {
             const id = bubble.dataset.id, msg = messagesCache.get(id);
             if (!msg || msg.deleted) return;
             closeMsgMenu();
             const mine = msg.senderId === currentUser.uid, myReact = msg.reactions?.[currentUser.uid];
+            const isPinned = msg.pinned;
             menuEl = document.createElement('div'); menuEl.className = 'msg-menu';
             menuEl.innerHTML = `<div class="msg-menu-reactions">${REACTIONS.map(e => `<button class="react-btn${myReact === e ? ' active' : ''}" data-emoji="${e}">${e}</button>`).join('')}</div>` +
+                `<button class="msg-menu-item" data-act="pin">${isPinned ? '📌 Открепить' : '📌 Закрепить'}</button>` +
                 (mine ? `${msg.text ? '<button class="msg-menu-item" data-act="edit">✏️ Редактировать</button>' : ''}<button class="msg-menu-item danger" data-act="delete">🗑 Удалить</button>` : '');
             document.body.appendChild(menuEl);
             const r = bubble.getBoundingClientRect(), w = menuEl.offsetWidth, h = menuEl.offsetHeight;
@@ -904,10 +962,32 @@
                 const rb = e.target.closest('.react-btn'), it = e.target.closest('[data-act]');
                 closeMsgMenu();
                 if (rb) toggleReaction(id, rb.dataset.emoji);
+                else if (it?.dataset.act === 'pin') togglePinMessage(id, !isPinned);
                 else if (it?.dataset.act === 'edit') startEdit(id);
                 else if (it?.dataset.act === 'delete') deleteMessage(id);
             });
         }
+
+        async function togglePinMessage(id, pinState) {
+            if (!currentChatId) return;
+            try {
+                // Если закрепляем, снимаем закреп со всех остальных в этом чате (или оставляем последнее)
+                const batch = writeBatch(db);
+                if (pinState) {
+                    messagesCache.forEach((m, msgId) => {
+                        if (m.pinned && msgId !== id) {
+                            batch.update(doc(db, 'messages', msgId), { pinned: false });
+                        }
+                    });
+                }
+                batch.update(doc(db, 'messages', id), { pinned: pinState });
+                batch.update(doc(db, 'chats', currentChatId), { pinnedMessageId: pinState ? id : deleteField() });
+                await batch.commit();
+            } catch (e) {
+                showToast('Не удалось закрепить сообщение: ' + e.message);
+            }
+        }
+
         async function toggleReaction(id, emoji) {
             const msg = messagesCache.get(id); if (!msg || msg.deleted) return;
             const same = msg.reactions?.[currentUser.uid] === emoji;
@@ -943,12 +1023,16 @@
         async function deleteMessage(id) {
             if (!confirm('Удалить сообщение?')) return;
             try {
-                await updateDoc(doc(db, 'messages', id), { deleted: true, text: '', imageUrl: null, audioUrl: null, reactions: deleteField() });
+                const msg = messagesCache.get(id);
+                const updates = { deleted: true, text: '', imageUrl: null, audioUrl: null, reactions: deleteField(), pinned: false };
+                await updateDoc(doc(db, 'messages', id), updates);
+                if (msg?.pinned) {
+                    await updateDoc(doc(db, 'chats', currentChatId), { pinnedMessageId: deleteField() });
+                }
                 if (id === lastMessageId) await updateChatLastText(currentChatId, '🚫 Сообщение удалено');
             } catch (e) { showToast('Не удалось удалить: ' + e.message); }
         }
 
-        // --- статусы прочтения ---
         function markIncomingRead() {
             if (document.visibilityState !== 'visible' || !currentChatId) return;
             const batch = writeBatch(db); let n = 0;
@@ -989,6 +1073,8 @@
         const typingIndicator = document.getElementById('typing-indicator');
         const imageViewer = document.getElementById('image-viewer');
         const imageViewerImg = document.getElementById('image-viewer-img');
+        const pinnedBanner = document.getElementById('pinned-banner');
+        const pinnedTextEl = document.getElementById('pinned-text');
 
         function showScreen(screen) {
             [authScreen, chatsScreen, chatScreen, settingsScreen].forEach(el => el.classList.remove('active'));
@@ -1126,7 +1212,7 @@
                 try {
                     await setDoc(doc(db, 'chats', chatId), {
                         lastMessage: lastText,
-                    lastSenderId: currentUser.uid,
+                        lastSenderId: currentUser.uid,
                         lastMessageAt: serverTimestamp()
                     }, { merge: true });
                 } catch (err) {
@@ -1135,14 +1221,44 @@
             }
         }
 
-        /* ===== Пагинация и подписка на сообщения с лимитом ===== */
         function subscribeMessages(chatId) {
             if (messagesUnsub) messagesUnsub();
+            if (chatDetailsUnsub) chatDetailsUnsub();
             messagesCache = new Map(); 
             lastMessageId = null; 
             readAttempted = new Set();
             lastVisibleMessageDoc = null;
             hasMoreMessages = true;
+
+            // Подписка на метаданные чата (включая закрепленное сообщение)
+            chatDetailsUnsub = onSnapshot(doc(db, 'chats', chatId), snap => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const pinnedId = data.pinnedMessageId;
+                    if (pinnedId && messagesCache.has(pinnedId)) {
+                        const pMsg = messagesCache.get(pinnedId);
+                        pinnedBanner.classList.remove('hidden');
+                        pinnedTextEl.textContent = pMsg.text || (pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение');
+                        pinnedBanner.dataset.msgId = pinnedId;
+                    } else if (pinnedId) {
+                        // Если в кеше нет, подгружаем отдельно
+                        getDoc(doc(db, 'messages', pinnedId)).then(mSnap => {
+                            if (mSnap.exists()) {
+                                const pMsg = mSnap.data();
+                                pinnedBanner.classList.remove('hidden');
+                                pinnedTextEl.textContent = pMsg.text || (pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение');
+                                pinnedBanner.dataset.msgId = pinnedId;
+                            } else {
+                                pinnedBanner.classList.add('hidden');
+                            }
+                        });
+                    } else {
+                        pinnedBanner.classList.add('hidden');
+                    }
+                } else {
+                    pinnedBanner.classList.add('hidden');
+                }
+            });
 
             let first = true;
             const q = query(
@@ -1154,7 +1270,6 @@
 
             messagesUnsub = onSnapshot(q, snapshot => {
                 if (snapshot.docs.length > 0) {
-                    // Самый старый документ в текущей порции для дальнейшей пагинации
                     lastVisibleMessageDoc = snapshot.docs[snapshot.docs.length - 1];
                     if (snapshot.docs.length < PAGE_SIZE) {
                         hasMoreMessages = false;
@@ -1176,7 +1291,6 @@
                 messagesList.innerHTML = ''; 
                 messagesCache = new Map();
 
-                // Firestore отдает по убыванию (desc), а в чате новейшие снизу, поэтому переворачиваем
                 const docsReversed = snapshot.docs.slice().reverse();
                 docsReversed.forEach(snap => {
                     messagesCache.set(snap.id, snap.data());
@@ -1199,7 +1313,6 @@
             });
         }
 
-        // Загрузка более старых сообщений при скролле вверх
         async function loadMoreMessages() {
             if (isLoadingMoreMessages || !hasMoreMessages || !lastVisibleMessageDoc || !currentChatId) return;
             isLoadingMoreMessages = true;
@@ -1228,10 +1341,7 @@
                 const oldScrollHeight = messagesList.scrollHeight;
                 const oldScrollTop = messagesList.scrollTop;
 
-                // Превращаем старые документы в массив и разворачиваем обратно
                 const olderDocs = snapshot.docs.slice().reverse();
-                
-                // Вставляем старые сообщения в самый верх списка DOM
                 const tempContainer = document.createDocumentFragment();
                 olderDocs.forEach(snap => {
                     messagesCache.set(snap.id, snap.data());
@@ -1240,8 +1350,6 @@
                 });
 
                 messagesList.insertBefore(tempContainer, messagesList.firstChild);
-
-                // Корректируем положение скролла, чтобы пользователь не потерял позицию
                 messagesList.scrollTop = messagesList.scrollHeight - oldScrollHeight + oldScrollTop;
             } catch (error) {
                 console.error('Ошибка пагинации сообщений:', error);
@@ -1277,14 +1385,30 @@
             messagesList.appendChild(div);
         }
 
-        // Обработчик скролла в контейнере сообщений (для пагинации)
         messagesList.addEventListener('scroll', () => {
             closeMsgMenu();
-            // Если доскроллили близко к верху (<= 40px), подгружаем старые сообщения
             if (messagesList.scrollTop <= 40) {
                 loadMoreMessages();
             }
         }, { passive: true });
+
+        // Клик по закрепленному сообщению в шапке чата (скроллит к нему)
+        pinnedBanner.addEventListener('click', e => {
+            if (e.target.closest('#pinned-close')) {
+                togglePinMessage(pinnedBanner.dataset.msgId, false);
+                return;
+            }
+            const msgId = pinnedBanner.dataset.msgId;
+            if (!msgId) return;
+            const targetEl = messagesList.querySelector(`[data-id="${msgId}"]`);
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetEl.classList.add('highlight');
+                setTimeout(() => targetEl.classList.remove('highlight'), 1500);
+            } else {
+                showToast('Сообщение находится выше в истории', false);
+            }
+        });
 
         async function createOrOpenChat(otherUid, otherName) {
             if (!currentUser || !otherUid || otherUid === currentUser.uid) return;
@@ -1511,7 +1635,6 @@
                         await setDoc(doc(db, 'users', currentUser.uid), {
                             fcmToken: token
                         }, { merge: true });
-                        console.log('Токен уведомлений сохранен:', token);
                     }
                     showToast('Уведомления включены!', false);
                 } else {
@@ -1534,7 +1657,6 @@
         });
 
         onMessage(messaging, (payload) => {
-            console.log('Сообщение получено на переднем плане:', payload);
             const title = payload.notification?.title || 'Новое сообщение';
             const body = payload.notification?.body || '';
             showToast(`${title}: ${body}`, false);
@@ -1585,12 +1707,8 @@
             setAuthError('');
         });
 
-        passwordInput.addEventListener('keydown', e => {
-            if (e.key === 'Enter') authBtn.click();
-        });
-        emailInput.addEventListener('keydown', e => {
-            if (e.key === 'Enter') passwordInput.focus();
-        });
+        passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') authBtn.click(); });
+        emailInput.addEventListener('keydown', e => { if (e.key === 'Enter') passwordInput.focus(); });
 
         sendBtn.addEventListener('click', sendMessage);
         messageInput.addEventListener('keydown', e => {
@@ -1655,6 +1773,7 @@
         document.getElementById('back-from-settings').addEventListener('click', () => showScreen(chatsScreen));
         document.getElementById('back-to-chats').addEventListener('click', () => {
             if (messagesUnsub) messagesUnsub();
+            if (chatDetailsUnsub) chatDetailsUnsub();
             if (typingUnsub) typingUnsub();
             cancelEdit(); closeMsgMenu();
             currentChatId = null;
@@ -1694,13 +1813,99 @@
             try { await signOut(auth); } catch (e) { showToast('Ошибка выхода: ' + e.message); }
         });
 
-        imageViewer.addEventListener('click', () => imageViewer.classList.add('hidden'));
+        // --- Интерактивный просметр фотографий со смещением и зумом ---
+        let currentScale = 1, panX = 0, panY = 0, isDragging = false, startX = 0, startY = 0;
+        let initialPinchDist = null;
+
+        function updateImageViewerTransform() {
+            imageViewerImg.style.transform = `translate(${panX}px, ${panY}px) scale(${currentScale})`;
+        }
+
+        function resetImageViewer() {
+            currentScale = 1; panX = 0; panY = 0;
+            updateImageViewerTransform();
+        }
+
+        document.querySelectorAll('.image-viewer-close').forEach(el => el.addEventListener('click', () => {
+            imageViewer.classList.add('hidden');
+            resetImageViewer();
+        }));
+        imageViewer.addEventListener('click', e => {
+            if (e.target === imageViewer) {
+                imageViewer.classList.add('hidden');
+                resetImageViewer();
+            }
+        });
+
+        // Зум колесиком мыши
+        imageViewer.addEventListener('wheel', e => {
+            e.preventDefault();
+            const zoomFactor = 1.15;
+            if (e.deltaY < 0) {
+                currentScale = Math.min(currentScale * zoomFactor, 5);
+            } else {
+                currentScale = Math.max(currentScale / zoomFactor, 1);
+                if (currentScale === 1) { panX = 0; panY = 0; }
+            }
+            updateImageViewerTransform();
+        }, { passive: false });
+
+        // Перетаскивание и пинч-зум
+        imageViewer.addEventListener('pointerdown', e => {
+            if (e.target === document.getElementById('image-viewer-close')) return;
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            imageViewer.setPointerCapture(e.pointerId);
+        });
+
+        imageViewer.addEventListener('pointermove', e => {
+            if (!isDragging) return;
+            if (currentScale > 1) {
+                panX = e.clientX - startX;
+                panY = e.clientY - startY;
+                updateImageViewerTransform();
+            }
+        });
+
+        imageViewer.addEventListener('pointerup', e => { isDragging = false; });
+        imageViewer.addEventListener('pointercancel', e => { isDragging = false; });
+
+        // Поддержка жестов на мобильных (pinch-to-zoom двумя пальцами)
+        imageViewer.addEventListener('touchstart', e => {
+            if (e.touches.length === 2) {
+                initialPinchDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+            }
+        }, { passive: true });
+
+        imageViewer.addEventListener('touchmove', e => {
+            if (e.touches.length === 2 && initialPinchDist) {
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const factor = dist / initialPinchDist;
+                currentScale = Math.max(1, Math.min(5, currentScale * (factor > 1 ? 1.05 : 0.95)));
+                initialPinchDist = dist;
+                updateImageViewerTransform();
+            }
+        }, { passive: true });
+
+        // --- Обработка кликов по сообщениям ---
         let pressTimer = null, suppressClickUntil = 0;
         messagesList.addEventListener('click', e => {
             const chip = e.target.closest('.reaction-chip');
             if (chip) { toggleReaction(chip.closest('.message').dataset.id, chip.dataset.emoji); return; }
             const img = e.target.closest('.message-image');
-            if (img) { imageViewerImg.src = img.src; imageViewer.classList.remove('hidden'); return; }
+            if (img) {
+                resetImageViewer();
+                imageViewerImg.src = img.src;
+                imageViewer.classList.remove('hidden');
+                return;
+            }
             if (e.target.closest('audio') || Date.now() < suppressClickUntil) return;
             const bubble = e.target.closest('.message'); if (bubble) openMsgMenu(bubble);
         });
@@ -1711,7 +1916,7 @@
         ['touchend', 'touchmove', 'touchcancel'].forEach(ev => messagesList.addEventListener(ev, () => clearTimeout(pressTimer), { passive: true }));
         messagesList.addEventListener('contextmenu', e => { const b = e.target.closest('.message'); if (b) { e.preventDefault(); openMsgMenu(b); } });
         document.addEventListener('pointerdown', e => { if (menuEl && !menuEl.contains(e.target)) closeMsgMenu(); });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMsgMenu(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMsgMenu(); imageViewer.classList.add('hidden'); resetImageViewer(); } });
         messageInput.addEventListener('keydown', e => { if (e.key === 'Escape') cancelEdit(); });
         document.getElementById('cancel-edit').addEventListener('click', cancelEdit);
 
@@ -1730,7 +1935,10 @@
             if (!f) return;
             if (!f.type.startsWith('image/')) { showToast('Выберите изображение.'); return; }
             try {
-                if (await saveProfile({ avatar: await fileToAvatar(f), avatarGradient: deleteField() })) showToast('Аватар обновлён', false);
+                const base64Avatar = await fileToAvatar(f);
+                if (await saveProfile({ avatar: base64Avatar, avatarGradient: deleteField() })) {
+                    showToast('Аватар обновлён', false);
+                }
             } catch (err) { showToast(err.message); }
         });
         document.getElementById('avatar-gradient-btn').addEventListener('click', () => {
@@ -1743,6 +1951,7 @@
             currentUser = user;
             teardownWatchers();
             if (user) {
+                watchUser(user.uid);
                 setupPresence();
                 subscribeChats();
                 showScreen(chatsScreen);
@@ -1754,6 +1963,7 @@
             } else {
                 if (chatsUnsub) { chatsUnsub(); chatsUnsub = null; }
                 if (messagesUnsub) { messagesUnsub(); messagesUnsub = null; }
+                if (chatDetailsUnsub) { chatDetailsUnsub(); chatDetailsUnsub = null; }
                 if (typingUnsub) { typingUnsub(); typingUnsub = null; }
                 if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
                 showScreen(authScreen);
