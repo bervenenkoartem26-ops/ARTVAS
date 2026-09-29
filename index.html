@@ -519,6 +519,24 @@
         .edit-banner-text span{color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .chat-input-panel.editing .file-btn{opacity:.35;pointer-events:none}
         .profile-card{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+        .profile-menu{position:fixed;inset:0;z-index:1800;background:rgba(0,0,0,.58);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;padding:70px 16px 24px;overflow:auto}
+        .profile-menu-card{width:min(440px,100%);background:var(--surface-color);border:1px solid var(--border-color);border-radius:24px;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden;animation:profileIn .18s ease}
+        @keyframes profileIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+        .profile-menu-head{padding:26px 20px 22px;text-align:center;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 18%,var(--surface-color)),var(--surface-color))}
+        .profile-menu-head .avatar-xl{margin:0 auto 12px}
+        .profile-menu-name{font-size:23px;font-weight:750}
+        .profile-menu-status{font-size:13px;color:var(--text-secondary);margin-top:5px}
+        .profile-menu-body{padding:10px 14px 14px}
+        .profile-menu-section{padding:12px 8px;border-bottom:1px solid var(--border-color)}
+        .profile-menu-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:5px}
+        .profile-menu-about{font-size:15px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+        .profile-menu-action{width:100%;display:flex;align-items:center;gap:12px;padding:13px 10px;border:0;border-radius:12px;background:transparent;color:var(--text-primary);font-size:15px;text-align:left;cursor:pointer}
+        .profile-menu-action:hover{background:var(--surface-hover)}
+        .profile-menu-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border:1px solid var(--border-color);border-radius:50%;background:var(--surface-color);color:var(--text-primary);font-size:20px;cursor:pointer}
+        .about-hint{font-size:11px;color:var(--text-secondary);margin-top:5px}
+        .chat-bottom-btn{position:absolute;right:16px;bottom:92px;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--surface-color);color:var(--text-primary);box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:12;opacity:0;transform:translateY(8px);pointer-events:none;transition:.18s}
+        .chat-bottom-btn.show{opacity:1;transform:none;pointer-events:auto}
+        .chat-bottom-btn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
         .profile-actions{display:flex;flex-direction:column;gap:8px;flex:1;min-width:180px}
         .status-picker{display:flex;flex-direction:column;gap:8px}
         .status-picker button{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface-color);border:1px solid var(--border-color);border-radius:12px;color:var(--text-primary);font-size:14px;cursor:pointer}
@@ -578,7 +596,9 @@
                 <button id="back-to-chats" class="icon-btn" title="Назад">
                     <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
                 </button>
-                <div id="chat-avatar" class="avatar">C</div>
+                <button id="chat-avatar-btn" class="icon-btn" title="Профиль собеседника" style="padding:0;width:48px;height:48px;border-radius:50%;overflow:hidden">
+                    <div id="chat-avatar" class="avatar">C</div>
+                </button>
                 <div class="chat-title-wrap">
                     <div class="chat-title-row"><span id="chat-status-dot" class="status-dot offline"></span><div id="chat-title" class="top-bar-title">Чат</div></div>
                     <div id="chat-status-text" class="chat-status-text"></div>
@@ -593,6 +613,9 @@
                 <button id="pinned-close" class="pinned-close" title="Убрать закрепление">✕</button>
             </div>
             <div id="messages-list" class="messages-list"></div>
+            <button id="chat-bottom-btn" class="chat-bottom-btn" title="К последнему сообщению" aria-label="К последнему сообщению">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 13l7 7 7-7"></path></svg>
+            </button>
             <div id="typing-indicator" class="typing-indicator-box"></div>
             <div id="chat-panel" class="chat-input-panel">
                 <div id="edit-banner" class="edit-banner hidden">
@@ -656,6 +679,12 @@
                     </div>
                 </div>
                 <div class="settings-section">
+                    <label class="settings-label">О себе</label>
+                    <textarea id="settings-about-input" placeholder="Напишите немного о себе..." maxlength="160" style="width:100%;min-height:96px;resize:vertical;padding:12px 16px;background:var(--bg-color);border:1px solid var(--border-color);border-radius:12px;color:var(--text-primary);font:inherit;outline:none"></textarea>
+                    <div class="about-hint">Этот текст увидят люди, открывшие ваш профиль.</div>
+                    <button id="settings-about-save" class="btn" style="margin-top:8px">Сохранить «О себе»</button>
+                </div>
+                <div class="settings-section">
                     <label class="settings-label">Email</label>
                     <div class="settings-static" id="settings-email"></div>
                 </div>
@@ -678,6 +707,25 @@
                     <div class="settings-toggle-hint">В режиме «Не беспокоить» звук отключается.</div>
                 </div>
                 <button id="settings-logout-btn" class="btn btn-danger btn-block" style="margin-top: 12px;">Выйти из аккаунта</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-menu" class="profile-menu hidden" role="dialog" aria-modal="true">
+        <button id="profile-menu-close" class="profile-menu-close" title="Закрыть">✕</button>
+        <div class="profile-menu-card">
+            <div class="profile-menu-head">
+                <div id="profile-menu-avatar" class="avatar avatar-xl">C</div>
+                <div id="profile-menu-name" class="profile-menu-name">Пользователь</div>
+                <div id="profile-menu-status" class="profile-menu-status">Не в сети</div>
+            </div>
+            <div class="profile-menu-body">
+                <div class="profile-menu-section">
+                    <div class="profile-menu-label">О себе</div>
+                    <div id="profile-menu-about" class="profile-menu-about">О себе не заполнено</div>
+                </div>
+                <button id="profile-search-action" class="profile-menu-action">🔎 Поиск в переписке</button>
+                <button id="profile-media-action" class="profile-menu-action">🖼 Общие медиа</button>
             </div>
         </div>
     </div>
@@ -1079,6 +1127,9 @@
         const messagesList = document.getElementById('messages-list');
         const chatTitle = document.getElementById('chat-title');
         const chatAvatar = document.getElementById('chat-avatar');
+        const chatAvatarBtn = document.getElementById('chat-avatar-btn');
+        const chatBottomBtn = document.getElementById('chat-bottom-btn');
+        const profileMenu = document.getElementById('profile-menu');
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
         const fileBtn = document.getElementById('file-btn');
@@ -1328,6 +1379,8 @@
                 } else {
                     messagesList.scrollTop = prevTop;
                 }
+                const distanceAfterRender = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight;
+                chatBottomBtn.classList.toggle('show', distanceAfterRender > 220);
 
                 if (incoming) playNotificationSound();
                 first = false;
@@ -1412,6 +1465,8 @@
 
         messagesList.addEventListener('scroll', () => {
             closeMsgMenu();
+            const distance = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight;
+            chatBottomBtn.classList.toggle('show', distance > 220);
             if (messagesList.scrollTop <= 40) {
                 loadMoreMessages();
             }
@@ -1477,6 +1532,7 @@
             subscribeMessages(chatId);
             subscribeTyping(chatId);
             await markChatRead(chatId);
+            renderChats();
         }
 
         async function markChatRead(chatId) {
@@ -1598,6 +1654,47 @@
             currentSearchQuery = e.target.value;
             renderChats();
         });
+
+        function openProfileMenu() {
+            if (!currentChatOtherUid || !currentUser) return;
+            const name = displayNameFor(currentChatOtherUid, chatTitle.textContent);
+            document.getElementById('profile-menu-name').textContent = name;
+            document.getElementById('profile-menu-status').textContent = STATUS_LABELS[effectiveStatus(currentChatOtherUid)] || 'Не в сети';
+            const about = profiles.get(currentChatOtherUid)?.about?.trim();
+            document.getElementById('profile-menu-about').textContent = about || 'О себе не заполнено';
+            applyAvatar(document.getElementById('profile-menu-avatar'), currentChatOtherUid, name);
+            profileMenu.classList.remove('hidden');
+        }
+
+        function closeProfileMenu() { profileMenu.classList.add('hidden'); }
+
+        function goToBottom(smooth = true) {
+            messagesList.scrollTo({ top: messagesList.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+        }
+
+        async function searchInCurrentChat() {
+            const term = prompt('Что найти в этой переписке?');
+            if (!term?.trim()) return;
+            closeProfileMenu();
+            const needle = term.trim().toLowerCase();
+            let found = Array.from(messagesCache.entries()).find(([id,m]) => String(m.text || '').toLowerCase().includes(needle));
+            if (!found && hasMoreMessages) {
+                showToast('Сообщение может быть выше загруженной истории. Прокрутите вверх для загрузки истории.', false);
+                return;
+            }
+            if (!found) { showToast('Ничего не найдено', false); return; }
+            const el = messagesList.querySelector(`[data-id="${found[0]}"]`);
+            if (el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.classList.add('highlight'); setTimeout(() => el.classList.remove('highlight'), 1500); }
+        }
+
+        function showSharedMedia() {
+            closeProfileMenu();
+            const media = Array.from(messagesList.querySelectorAll('.message-image, .message audio'));
+            if (!media.length) { showToast('В загруженной части переписки медиа нет', false); return; }
+            media[0].closest('.message')?.scrollIntoView({behavior:'smooth', block:'center'});
+            media[0].closest('.message')?.classList.add('highlight');
+            setTimeout(() => media[0].closest('.message')?.classList.remove('highlight'), 1500);
+        }
 
         function subscribeTyping(chatId) {
             if (typingUnsub) typingUnsub();
@@ -1795,6 +1892,7 @@
         document.getElementById('settings-btn').addEventListener('click', () => {
             if (!currentUser) return;
             document.getElementById('settings-name-input').value = normalizeName(currentUser);
+            document.getElementById('settings-about-input').value = profiles.get(currentUser.uid)?.about || '';
             document.getElementById('settings-email').textContent = currentUser.email || '';
             const theme = localStorage.getItem('theme-pref') || 'dark';
             document.getElementById('theme-toggle').checked = theme === 'dark';
@@ -1805,7 +1903,8 @@
             if (messagesUnsub) messagesUnsub();
             if (chatDetailsUnsub) chatDetailsUnsub();
             if (typingUnsub) typingUnsub();
-            cancelEdit(); closeMsgMenu();
+            cancelEdit(); closeMsgMenu(); closeProfileMenu();
+            chatBottomBtn.classList.remove('show');
             currentChatId = null;
             currentChatOtherUid = null;
             showScreen(chatsScreen);
@@ -1826,6 +1925,19 @@
                 showToast('Не удалось сохранить имя: ' + e.message);
             }
         });
+
+        document.getElementById('settings-about-save').addEventListener('click', async () => {
+            if (!currentUser) return;
+            const about = document.getElementById('settings-about-input').value.trim();
+            if (await saveProfile({ about })) showToast('«О себе» сохранено', false);
+        });
+
+        chatAvatarBtn.addEventListener('click', openProfileMenu);
+        document.getElementById('profile-menu-close').addEventListener('click', closeProfileMenu);
+        profileMenu.addEventListener('click', e => { if (e.target === profileMenu) closeProfileMenu(); });
+        document.getElementById('profile-search-action').addEventListener('click', searchInCurrentChat);
+        document.getElementById('profile-media-action').addEventListener('click', showSharedMedia);
+        chatBottomBtn.addEventListener('click', () => goToBottom(true));
 
         document.getElementById('theme-toggle').addEventListener('change', e => {
             const theme = e.target.checked ? 'dark' : 'light';
