@@ -344,6 +344,7 @@
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
+            overflow-anchor: none;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -1429,17 +1430,29 @@
             }
         }
 
+        // «Прилипание» к низу: пока пользователь сам не прокрутил вверх, чат всегда держится в конце
+        let stickBottom = true, ignoreScrollUntil = 0;
+
+        function scrollToEnd() { messagesList.scrollTop = messagesList.scrollHeight; }
+        function stickIfNeeded() { if (stickBottom) scrollToEnd(); }
+
         function snapToBottomRobust() {
-            messagesList.scrollTop = messagesList.scrollHeight;
+            stickBottom = true;
+            ignoreScrollUntil = performance.now() + 250;
+            scrollToEnd();
             requestAnimationFrame(() => {
-                messagesList.scrollTop = messagesList.scrollHeight;
-                requestAnimationFrame(() => { messagesList.scrollTop = messagesList.scrollHeight; });
+                scrollToEnd();
+                requestAnimationFrame(scrollToEnd);
             });
-            [60, 200, 500, 900].forEach(t => setTimeout(() => {
-                const distance = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight;
-                if (distance < 400) messagesList.scrollTop = messagesList.scrollHeight;
-            }, t));
+            [60, 200, 500, 900, 1500].forEach(t => setTimeout(stickIfNeeded, t));
         }
+
+        // Картинки/аудио догружаются позже и растягивают чат — досдвигаем вниз
+        ['load', 'loadedmetadata'].forEach(ev =>
+            messagesList.addEventListener(ev, stickIfNeeded, true));
+        // Изменение размеров области (клавиатура, поле ввода, поворот экрана)
+        if (window.ResizeObserver) new ResizeObserver(stickIfNeeded).observe(messagesList);
+        window.addEventListener('resize', stickIfNeeded);
 
         function subscribeMessages(chatId) {
             if (messagesUnsub) messagesUnsub();
@@ -1496,7 +1509,7 @@
                     hasMoreMessages = false;
                 }
 
-                const nearBottom = first || messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight < 150;
+                const nearBottom = first || stickBottom || messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight < 150;
                 const prevTop = messagesList.scrollTop;
                 let ownAdded = false, incoming = false;
 
@@ -1506,6 +1519,7 @@
                     else if (!first && !ch.doc.metadata.hasPendingWrites) incoming = true;
                 });
 
+                ignoreScrollUntil = performance.now() + 250;
                 messagesList.innerHTML = ''; 
                 messagesCache = new Map();
 
@@ -1521,6 +1535,7 @@
                     snapToBottomRobust();
                 } else {
                     messagesList.scrollTop = prevTop;
+                    stickBottom = false;
                 }
                 const distanceAfterRender = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight;
                 chatBottomBtn.classList.toggle('show', distanceAfterRender > 220);
@@ -1645,10 +1660,7 @@
             const media = div.querySelector('img.message-image, audio');
             if (media) {
                 const evt = media.tagName === 'AUDIO' ? 'loadedmetadata' : 'load';
-                media.addEventListener(evt, () => {
-                    const distance = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight;
-                    if (distance < 400) messagesList.scrollTop = messagesList.scrollHeight;
-                }, { once: true });
+                media.addEventListener(evt, stickIfNeeded, { once: true });
             }
         }
 
@@ -1656,6 +1668,8 @@
             closeMsgMenu();
             const distance = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight;
             chatBottomBtn.classList.toggle('show', distance > 220);
+            if (performance.now() < ignoreScrollUntil) return; // программная прокрутка/перерисовка
+            stickBottom = distance < 80;
             if (messagesList.scrollTop <= 40) {
                 loadMoreMessages();
             }
@@ -1717,13 +1731,14 @@
             cancelEdit(); closeMsgMenu();
             watchUser(otherUid); watchPresence(otherUid);
             refreshChatHeader();
+            stickBottom = true;
+            ignoreScrollUntil = performance.now() + 400;
             showScreen(chatScreen);
             subscribeMessages(chatId);
             subscribeTyping(chatId);
             document.fonts?.ready?.then(() => {
                 if (chatId !== currentChatId) return;
-                const distance = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight;
-                if (distance < 400) messagesList.scrollTop = messagesList.scrollHeight;
+                stickIfNeeded();
             });
             await markChatRead(chatId);
             renderChats();
@@ -1865,6 +1880,7 @@
         function closeProfileMenu() { profileMenu.classList.add('hidden'); }
 
         function goToBottom(smooth = true) {
+            stickBottom = true;
             messagesList.scrollTo({ top: messagesList.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
         }
 
