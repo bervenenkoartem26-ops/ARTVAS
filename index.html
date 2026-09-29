@@ -46,16 +46,21 @@
             font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        html, body {
+        :root { --safe-bottom: min(env(safe-area-inset-bottom, 0px), 10px); }
+        html {
             height: 100%;
             overscroll-behavior: none;
+            background: var(--bg-color);
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
+            position: fixed;
+            top: 0; left: 0; right: 0;
             height: 100vh;
             height: 100dvh;
+            height: var(--app-h, 100dvh);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -344,6 +349,22 @@
             gap: 10px;
         }
 
+        .date-sep {
+            align-self: center;
+            flex-shrink: 0;
+            margin: 6px 0 2px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .2px;
+            color: var(--text-secondary);
+            background: color-mix(in srgb, var(--surface-color) 88%, transparent);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            user-select: none; -webkit-user-select: none;
+            pointer-events: none;
+        }
+
         .message {
             max-width: 78%;
             padding: 10px 14px;
@@ -397,7 +418,7 @@
         @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-3px); opacity: 1; } }
 
         .chat-input-panel {
-            padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+            padding: 10px 12px calc(10px + var(--safe-bottom));
             background: color-mix(in srgb, var(--surface-color) 92%, transparent);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
@@ -499,21 +520,23 @@
         .hidden { display: none !important; }
 
         .image-viewer {
-            position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.92);
+            position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.94);
             display: flex; align-items: center; justify-content: center; overflow: hidden;
-            touch-action: none; cursor: grab;
+            touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
+            -webkit-touch-callout: none; overscroll-behavior: none;
             animation: viewerFade .18s ease;
         }
         @keyframes viewerFade { from { opacity: 0; } to { opacity: 1; } }
         .image-viewer:active { cursor: grabbing; }
         .image-viewer img {
-            max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px;
-            transform-origin: center; transition: transform 0.05s ease-out; will-change: transform;
-            animation: viewerImgIn .25s cubic-bezier(.34,1.56,.64,1);
+            max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0;
+            transform-origin: center center; will-change: transform;
+            -webkit-user-drag: none; user-select: none; pointer-events: none;
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
         }
-        @keyframes viewerImgIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+        .image-viewer img.smooth { transition: transform .22s cubic-bezier(.22,.61,.36,1); }
         .image-viewer-close {
-            position: absolute; top: 20px; right: 20px; width: 40px; height: 40px;
+            position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); right: calc(16px + env(safe-area-inset-right, 0px)); width: 44px; height: 44px;
             background: rgba(255,255,255,0.15); border: none; border-radius: 50%; color: #fff;
             font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1001;
         }
@@ -595,7 +618,7 @@
         .profile-menu-list .profile-menu-action{display:flex;align-items:center;gap:12px}
         .profile-menu-action-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
         .profile-menu-list .profile-menu-about{padding:8px 10px 6px;font-size:14px}
-        .bottom-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--surface-color) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border-color);flex-shrink:0}
+        .bottom-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 16px calc(8px + var(--safe-bottom));background:color-mix(in srgb,var(--surface-color) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border-color);flex-shrink:0}
         .bottom-nav-group{display:flex;align-items:center;gap:4px;background:var(--surface-color);border:1px solid var(--border-color);border-radius:22px;padding:6px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
         .bottom-nav-btn{position:relative;width:44px;height:44px;border-radius:14px;border:none;background:transparent;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,color .15s,transform .1s}
         .bottom-nav-btn:hover{background:var(--surface-hover)}
@@ -1406,6 +1429,18 @@
             }
         }
 
+        function snapToBottomRobust() {
+            messagesList.scrollTop = messagesList.scrollHeight;
+            requestAnimationFrame(() => {
+                messagesList.scrollTop = messagesList.scrollHeight;
+                requestAnimationFrame(() => { messagesList.scrollTop = messagesList.scrollHeight; });
+            });
+            [60, 200, 500, 900].forEach(t => setTimeout(() => {
+                const distance = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight;
+                if (distance < 400) messagesList.scrollTop = messagesList.scrollHeight;
+            }, t));
+        }
+
         function subscribeMessages(chatId) {
             if (messagesUnsub) messagesUnsub();
             if (chatDetailsUnsub) chatDetailsUnsub();
@@ -1480,9 +1515,10 @@
                     lastMessageId = snap.id; 
                     renderMessage(snap.id, snap.data());
                 });
+                rebuildDateSeparators();
 
                 if (first || nearBottom || ownAdded) {
-                    messagesList.scrollTop = messagesList.scrollHeight;
+                    snapToBottomRobust();
                 } else {
                     messagesList.scrollTop = prevTop;
                 }
@@ -1523,8 +1559,8 @@
                     hasMoreMessages = false;
                 }
 
-                const oldScrollHeight = messagesList.scrollHeight;
-                const oldScrollTop = messagesList.scrollTop;
+                const anchorEl = messagesList.querySelector('.message');
+                const anchorTop = anchorEl ? anchorEl.getBoundingClientRect().top : 0;
 
                 const olderDocs = snapshot.docs.slice().reverse();
                 const tempContainer = document.createDocumentFragment();
@@ -1535,12 +1571,50 @@
                 });
 
                 messagesList.insertBefore(tempContainer, messagesList.firstChild);
-                messagesList.scrollTop = messagesList.scrollHeight - oldScrollHeight + oldScrollTop;
+                rebuildDateSeparators();
+                if (anchorEl) messagesList.scrollTop += anchorEl.getBoundingClientRect().top - anchorTop;
             } catch (error) {
                 console.error('Ошибка пагинации сообщений:', error);
             } finally {
                 isLoadingMoreMessages = false;
             }
+        }
+
+        function messageDate(msg) {
+            const t = msg && msg.createdAt;
+            if (!t) return new Date(); // ещё не подтверждено сервером — считаем «сейчас»
+            const d = t.toDate ? t.toDate() : new Date(t);
+            return isNaN(d.getTime()) ? new Date() : d;
+        }
+
+        function formatDayLabel(d) {
+            const now = new Date();
+            const startOf = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+            const diffDays = Math.round((startOf(now) - startOf(d)) / 86400000);
+            if (diffDays === 0) return 'Сегодня';
+            if (diffDays === 1) return 'Вчера';
+            const opts = { day: 'numeric', month: 'long' };
+            if (d.getFullYear() !== now.getFullYear()) opts.year = 'numeric';
+            return d.toLocaleDateString('ru-RU', opts);
+        }
+
+        // Расставляет плашки «Сегодня / Вчера / 27 сентября» между сообщениями разных дней
+        function rebuildDateSeparators() {
+            messagesList.querySelectorAll('.date-sep').forEach(el => el.remove());
+            let prevKey = null;
+            Array.from(messagesList.querySelectorAll('.message')).forEach(el => {
+                const msg = messagesCache.get(el.dataset.id);
+                if (!msg) return;
+                const d = messageDate(msg);
+                const key = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+                if (key !== prevKey) {
+                    const sep = document.createElement('div');
+                    sep.className = 'date-sep';
+                    sep.textContent = formatDayLabel(d);
+                    messagesList.insertBefore(sep, el);
+                    prevKey = key;
+                }
+            });
         }
 
         function createMessageElement(id, msg) {
@@ -1568,6 +1642,14 @@
         function renderMessage(id, msg) {
             const div = createMessageElement(id, msg);
             messagesList.appendChild(div);
+            const media = div.querySelector('img.message-image, audio');
+            if (media) {
+                const evt = media.tagName === 'AUDIO' ? 'loadedmetadata' : 'load';
+                media.addEventListener(evt, () => {
+                    const distance = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight;
+                    if (distance < 400) messagesList.scrollTop = messagesList.scrollHeight;
+                }, { once: true });
+            }
         }
 
         messagesList.addEventListener('scroll', () => {
@@ -1638,6 +1720,11 @@
             showScreen(chatScreen);
             subscribeMessages(chatId);
             subscribeTyping(chatId);
+            document.fonts?.ready?.then(() => {
+                if (chatId !== currentChatId) return;
+                const distance = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight;
+                if (distance < 400) messagesList.scrollTop = messagesList.scrollHeight;
+            });
             await markChatRead(chatId);
             renderChats();
         }
@@ -2085,82 +2172,172 @@
             try { await signOut(auth); } catch (e) { showToast('Ошибка выхода: ' + e.message); }
         });
 
-        let currentScale = 1, panX = 0, panY = 0, isDragging = false, startX = 0, startY = 0;
-        let initialPinchDist = null;
+        // ===== Просмотр фото: плавный зум (щипок, двойной тап, колесо), панорамирование =====
+        // Точная высота окна (убирает пустую полосу снизу в мобильных браузерах/WebView)
+        (function fitAppHeight() {
+            const root = document.documentElement;
+            const apply = () => {
+                const vv = window.visualViewport;
+                const h = Math.round(vv ? vv.height : window.innerHeight);
+                root.style.setProperty('--app-h', h + 'px');
+                if (vv && vv.offsetTop) window.scrollTo(0, 0);
+            };
+            apply();
+            window.addEventListener('resize', apply);
+            window.addEventListener('orientationchange', () => setTimeout(apply, 250));
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', apply);
+                window.visualViewport.addEventListener('scroll', apply);
+            }
+        })();
 
-        function updateImageViewerTransform() {
-            imageViewerImg.style.transform = `translate(${panX}px, ${panY}px) scale(${currentScale})`;
+        let currentScale = 1, panX = 0, panY = 0;
+        const MAX_SCALE = 6;
+        const vPointers = new Map();
+        let vGesture = null, vRaf = 0, vLastTap = { t: 0, x: 0, y: 0 }, vTapCandidate = null;
+
+        function vApply() {
+            vRaf = 0;
+            imageViewerImg.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${currentScale})`;
+        }
+        function updateImageViewerTransform() { if (!vRaf) vRaf = requestAnimationFrame(vApply); }
+
+        function vClamp(allowOver) {
+            const vw = imageViewer.clientWidth, vh = imageViewer.clientHeight;
+            const w = imageViewerImg.offsetWidth * currentScale, h = imageViewerImg.offsetHeight * currentScale;
+            const mx = Math.max(0, (w - vw) / 2), my = Math.max(0, (h - vh) / 2);
+            const slack = allowOver ? 60 : 0;
+            panX = Math.max(-mx - slack, Math.min(mx + slack, panX));
+            panY = Math.max(-my - slack, Math.min(my + slack, panY));
         }
 
         function resetImageViewer() {
             currentScale = 1; panX = 0; panY = 0;
-            updateImageViewerTransform();
+            vPointers.clear(); vGesture = null;
+            imageViewerImg.classList.remove('smooth');
+            vApply();
         }
-
-        document.querySelectorAll('.image-viewer-close').forEach(el => el.addEventListener('click', () => {
+        function closeImageViewer() {
             imageViewer.classList.add('hidden');
             resetImageViewer();
-        }));
-        imageViewer.addEventListener('click', e => {
-            if (e.target === imageViewer) {
-                imageViewer.classList.add('hidden');
-                resetImageViewer();
-            }
-        });
+        }
+
+        // зум с сохранением точки под пальцем/курсором
+        function vZoomAt(newScale, cx, cy) {
+            const r = imageViewer.getBoundingClientRect();
+            const px = cx - r.left - r.width / 2, py = cy - r.top - r.height / 2;
+            newScale = Math.max(1, Math.min(MAX_SCALE, newScale));
+            const k = newScale / currentScale;
+            panX = px - (px - panX) * k;
+            panY = py - (py - panY) * k;
+            currentScale = newScale;
+            if (currentScale === 1) { panX = 0; panY = 0; }
+        }
+
+        document.querySelectorAll('.image-viewer-close').forEach(el => el.addEventListener('click', closeImageViewer));
 
         imageViewer.addEventListener('wheel', e => {
             e.preventDefault();
-            const zoomFactor = 1.15;
-            if (e.deltaY < 0) {
-                currentScale = Math.min(currentScale * zoomFactor, 5);
-            } else {
-                currentScale = Math.max(currentScale / zoomFactor, 1);
-                if (currentScale === 1) { panX = 0; panY = 0; }
-            }
+            const speed = e.ctrlKey ? 0.01 : 0.0018;
+            const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+            imageViewerImg.classList.remove('smooth');
+            vZoomAt(currentScale * Math.exp(-dy * speed), e.clientX, e.clientY);
+            vClamp(false);
             updateImageViewerTransform();
         }, { passive: false });
 
+        function vStartGesture() {
+            const pts = [...vPointers.values()];
+            if (pts.length >= 2) {
+                const [a, b] = pts;
+                vGesture = {
+                    type: 'pinch',
+                    dist: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+                    scale: currentScale, panX, panY,
+                    mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2
+                };
+            } else if (pts.length === 1) {
+                vGesture = { type: 'pan', x: pts[0].x, y: pts[0].y, panX, panY };
+            } else vGesture = null;
+        }
+
         imageViewer.addEventListener('pointerdown', e => {
-            if (e.target === document.getElementById('image-viewer-close')) return;
-            isDragging = true;
-            startX = e.clientX - panX;
-            startY = e.clientY - panY;
-            imageViewer.setPointerCapture(e.pointerId);
+            if (e.target.closest('.image-viewer-close')) return;
+            imageViewerImg.classList.remove('smooth');
+            vPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            try { imageViewer.setPointerCapture(e.pointerId); } catch (_) {}
+            vTapCandidate = vPointers.size === 1
+                ? { x: e.clientX, y: e.clientY, t: performance.now(), onBg: e.target === imageViewer, moved: false }
+                : null;
+            vStartGesture();
         });
 
         imageViewer.addEventListener('pointermove', e => {
-            if (!isDragging) return;
-            if (currentScale > 1) {
-                panX = e.clientX - startX;
-                panY = e.clientY - startY;
+            const pt = vPointers.get(e.pointerId);
+            if (!pt) return;
+            pt.x = e.clientX; pt.y = e.clientY;
+            if (vTapCandidate && Math.hypot(e.clientX - vTapCandidate.x, e.clientY - vTapCandidate.y) > 8) vTapCandidate.moved = true;
+            if (!vGesture) return;
+            if (vGesture.type === 'pinch' && vPointers.size >= 2) {
+                const [a, b] = [...vPointers.values()];
+                const dist = Math.hypot(a.x - b.x, a.y - b.y);
+                const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+                const r = imageViewer.getBoundingClientRect();
+                const ns = Math.max(0.8, Math.min(MAX_SCALE * 1.15, vGesture.scale * dist / vGesture.dist));
+                const k = ns / vGesture.scale;
+                const p0x = vGesture.mx - r.left - r.width / 2, p0y = vGesture.my - r.top - r.height / 2;
+                const p1x = mx - r.left - r.width / 2, p1y = my - r.top - r.height / 2;
+                currentScale = ns;
+                panX = p1x - (p0x - vGesture.panX) * k;
+                panY = p1y - (p0y - vGesture.panY) * k;
+                vClamp(true);
+                updateImageViewerTransform();
+            } else if (vGesture.type === 'pan' && currentScale > 1) {
+                panX = vGesture.panX + (e.clientX - vGesture.x);
+                panY = vGesture.panY + (e.clientY - vGesture.y);
+                vClamp(true);
                 updateImageViewerTransform();
             }
         });
 
-        imageViewer.addEventListener('pointerup', e => { isDragging = false; });
-        imageViewer.addEventListener('pointercancel', e => { isDragging = false; });
+        function vEnd(e) {
+            if (!vPointers.has(e.pointerId)) return;
+            vPointers.delete(e.pointerId);
+            try { imageViewer.releasePointerCapture(e.pointerId); } catch (_) {}
 
-        imageViewer.addEventListener('touchstart', e => {
-            if (e.touches.length === 2) {
-                initialPinchDist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
+            // тап: закрытие по фону / двойной тап для зума
+            if (e.type === 'pointerup' && vTapCandidate && !vTapCandidate.moved && vPointers.size === 0 &&
+                performance.now() - vTapCandidate.t < 300) {
+                const now = performance.now();
+                const isDouble = now - vLastTap.t < 320 && Math.hypot(e.clientX - vLastTap.x, e.clientY - vLastTap.y) < 30;
+                if (isDouble) {
+                    vLastTap.t = 0;
+                    imageViewerImg.classList.add('smooth');
+                    vZoomAt(currentScale > 1.05 ? 1 : 2.5, e.clientX, e.clientY);
+                    vClamp(false);
+                    updateImageViewerTransform();
+                } else {
+                    vLastTap = { t: now, x: e.clientX, y: e.clientY };
+                    if (vTapCandidate.onBg && currentScale <= 1.05) closeImageViewer();
+                }
             }
-        }, { passive: true });
+            vTapCandidate = null;
 
-        imageViewer.addEventListener('touchmove', e => {
-            if (e.touches.length === 2 && initialPinchDist) {
-                const dist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                const factor = dist / initialPinchDist;
-                currentScale = Math.max(1, Math.min(5, currentScale * (factor > 1 ? 1.05 : 0.95)));
-                initialPinchDist = dist;
+            // возврат из «перетяжки» / слишком малого масштаба
+            if (vPointers.size === 0) {
+                if (currentScale < 1.02) { currentScale = 1; panX = 0; panY = 0; }
+                else if (currentScale > MAX_SCALE) currentScale = MAX_SCALE;
+                imageViewerImg.classList.add('smooth');
+                vClamp(false);
                 updateImageViewerTransform();
+                vGesture = null;
+            } else {
+                vStartGesture(); // остался один палец — продолжаем панорамирование без скачка
             }
-        }, { passive: true });
+        }
+        imageViewer.addEventListener('pointerup', vEnd);
+        imageViewer.addEventListener('pointercancel', vEnd);
+        imageViewer.addEventListener('dblclick', e => e.preventDefault());
 
         let pressTimer = null, suppressClickUntil = 0;
         messagesList.addEventListener('click', e => {
