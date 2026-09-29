@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>Telegram Style Messenger</title>
-    <meta name="theme-color" content="#3390ec">
+    <title>C Messenger</title>
+    <meta name="theme-color" content="#0f0f11">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="C Messenger">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="icon" href="icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #0f0f11;
@@ -40,7 +43,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         html, body {
@@ -188,7 +191,7 @@
             background: var(--surface-color);
             border: 1px solid var(--border-color);
             border-radius: 30px;
-            margin: 12px 16px 6px;
+            margin: calc(12px + env(safe-area-inset-top, 0px)) 16px 6px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             flex-shrink: 0;
             z-index: 10;
@@ -534,326 +537,48 @@
         .profile-menu-action:hover{background:var(--surface-hover)}
         .profile-menu-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border:1px solid var(--border-color);border-radius:50%;background:var(--surface-color);color:var(--text-primary);font-size:20px;cursor:pointer}
         .about-hint{font-size:11px;color:var(--text-secondary);margin-top:5px}
-        .chat-bottom-btn{position:absolute;right:16px;bottom:92px;width:44px;height:44px;border-radius:50%;border:1px solid var(--border-color);background:var(--surface-color);color:var(--text-primary);box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:12;opacity:0;transform:translateY(8px);pointer-events:none;transition:.18s}
+        .chat-bottom-btn{position:absolute;right:18px;bottom:96px;width:46px;height:46px;border-radius:50%;border:none;background:var(--accent);color:#fff;box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 55%,transparent);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:12;opacity:0;transform:translateY(8px) scale(.9);pointer-events:none;transition:.18s}
         .chat-bottom-btn.show{opacity:1;transform:none;pointer-events:auto}
-        .chat-bottom-btn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .chat-bottom-btn:active{transform:scale(.9)}
+        .chat-bottom-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
         .profile-actions{display:flex;flex-direction:column;gap:8px;flex:1;min-width:180px}
         .status-picker{display:flex;flex-direction:column;gap:8px}
         .status-picker button{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface-color);border:1px solid var(--border-color);border-radius:12px;color:var(--text-primary);font-size:14px;cursor:pointer}
         .status-picker button.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface-color))}
+        .status-switch{position:relative;display:inline-block;width:40px;height:22px;border-radius:20px;background:var(--surface-hover);border:1px solid var(--border-color);flex-shrink:0;transition:background .2s,border-color .2s}
+        .status-switch::after{content:'';position:absolute;top:1px;left:1px;width:18px;height:18px;border-radius:50%;background:#8b8b93;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .2s,background .2s}
+        .status-switch.online{background:color-mix(in srgb,#22c55e 30%,var(--surface-hover));border-color:#22c55e}
+        .status-switch.online::after{background:#22c55e;transform:translateX(18px)}
+        .status-switch.away{background:color-mix(in srgb,#eab308 30%,var(--surface-hover));border-color:#eab308}
+        .status-switch.away::after{background:#eab308;transform:translateX(18px)}
+        .status-switch.dnd{background:color-mix(in srgb,#ef4444 30%,var(--surface-hover));border-color:#ef4444}
+        .status-switch.dnd::after{background:#ef4444;transform:translateX(18px)}
+        .status-switch.offline::after{background:#71717a;transform:translateX(0)}
+        .status-switch.sm{width:30px;height:17px}
+        .status-switch.sm::after{width:13px;height:13px}
+        .status-switch.sm.online::after,.status-switch.sm.away::after,.status-switch.sm.dnd::after{transform:translateX(13px)}
+        .status-picker button .status-switch{margin-right:2px}
+        .chat-status-row{display:flex;align-items:center;gap:6px;margin-top:2px}
+        .profile-menu-status-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:5px}
+        .profile-menu-list{background:color-mix(in srgb,var(--accent) 14%,var(--surface-color));border-radius:16px;padding:6px;display:flex;flex-direction:column;gap:2px}
+        .profile-menu-list .profile-menu-action{display:flex;align-items:center;gap:12px}
+        .profile-menu-action-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+        .profile-menu-list .profile-menu-about{padding:8px 10px 6px;font-size:14px}
+        .bottom-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--surface-color) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border-color);flex-shrink:0}
+        .bottom-nav-group{display:flex;align-items:center;gap:4px;background:var(--surface-color);border:1px solid var(--border-color);border-radius:30px;padding:6px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+        .bottom-nav-btn{width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,color .15s}
+        .bottom-nav-btn:hover{background:var(--surface-hover)}
+        .bottom-nav-btn.active{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+        .bottom-nav-btn svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .bottom-nav-avatar{width:32px;height:32px;font-size:13px}
+        .bottom-nav-add{width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 50%,transparent);transition:transform .15s}
+        .bottom-nav-add:active{transform:scale(.92)}
+        .bottom-nav-add svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 
         @media (max-width: 520px) {
             .auth-card { padding: 28px 22px; }
             .message { max-width: 88%; }
         }
-    
-/* ================= TELEGRAM STYLE ================= */
-:root {
-  --bg-color: #e7ebf0;
-  --surface-color: #ffffff;
-  --surface-hover: #f0f2f5;
-  --border-color: #e1e5e9;
-  --text-primary: #222;
-  --text-secondary: #707579;
-  --accent: #3390ec;
-  --accent-hover: #2b7dcc;
-  --danger: #e53935;
-  --bubble-me: #effdde;
-  --bubble-other: #ffffff;
-}
-
-:root[data-theme="light"] {
-  --bg-color: #e7ebf0;
-  --surface-color: #ffffff;
-  --surface-hover: #f0f2f5;
-  --border-color: #e1e5e9;
-  --text-primary: #222;
-  --text-secondary: #707579;
-  --accent: #3390ec;
-  --accent-hover: #2b7dcc;
-  --bubble-me: #effdde;
-  --bubble-other: #ffffff;
-}
-
-:root[data-theme="dark"] {
-  --bg-color: #0e1621;
-  --surface-color: #17212b;
-  --surface-hover: #202b36;
-  --border-color: #263544;
-  --text-primary: #f5f5f5;
-  --text-secondary: #8c9aa8;
-  --accent: #3390ec;
-  --accent-hover: #2b7dcc;
-  --bubble-me: #2b5278;
-  --bubble-other: #182533;
-}
-
-* { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-
-body {
-  background: var(--bg-color);
-}
-
-.app-shell {
-  max-width: 1100px;
-  border: 0;
-  box-shadow: 0 0 25px rgba(0,0,0,.08);
-}
-
-.top-bar {
-  min-height: 60px;
-  padding: 8px 12px;
-  background: var(--surface-color);
-  border-bottom: 1px solid var(--border-color);
-  backdrop-filter: none;
-}
-
-.top-bar-title {
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0;
-}
-
-.semi-circle-nav {
-  margin: 0;
-  padding: 8px 10px;
-  border: 0;
-  border-radius: 0;
-  background: var(--surface-color);
-  box-shadow: none;
-  gap: 8px;
-}
-
-.nav-tab-chats {
-  display: none;
-}
-
-.nav-search-input {
-  background: var(--surface-hover);
-  border: 0;
-  border-radius: 10px;
-  padding: 9px 14px;
-}
-
-.icon-btn:hover,
-.icon-btn:active {
-  background: var(--surface-hover);
-}
-
-.avatar {
-  width: 50px;
-  height: 50px;
-  font-size: 19px;
-}
-
-.chats-list {
-  background: var(--surface-color);
-}
-
-.chat-item {
-  gap: 12px;
-  padding: 9px 12px;
-  border-bottom: 0;
-  min-height: 70px;
-}
-
-.chat-item:hover,
-.chat-item:active {
-  background: var(--surface-hover);
-}
-
-.chat-item-name {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.chat-item-last {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.chat-item-time {
-  font-size: 11px;
-}
-
-.unread-badge {
-  background: var(--accent);
-  color: white;
-}
-
-.top-bar + .pinned-banner,
-.pinned-banner {
-  background: var(--surface-color);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.messages-list {
-  padding: 12px 14px 10px;
-  gap: 3px;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(255,255,255,.28) 0 1px, transparent 1px),
-    radial-gradient(circle at 80% 70%, rgba(255,255,255,.18) 0 1px, transparent 1px),
-    var(--bg-color);
-  background-size: 24px 24px, 31px 31px, auto;
-}
-
-.message {
-  max-width: min(72%, 620px);
-  padding: 7px 10px 5px;
-  border-radius: 10px;
-  font-size: 15px;
-  line-height: 1.35;
-  box-shadow: 0 1px 1px rgba(0,0,0,.08);
-}
-
-.message.me {
-  background: var(--bubble-me);
-  color: var(--text-primary);
-  border-bottom-right-radius: 3px;
-  border: 0;
-}
-
-.message.other {
-  background: var(--bubble-other);
-  color: var(--text-primary);
-  border-bottom-left-radius: 3px;
-  border: 0;
-}
-
-.msg-meta {
-  margin-top: 2px;
-  gap: 4px;
-}
-
-.msg-time {
-  font-size: 10px;
-  color: var(--text-secondary);
-}
-
-.message.me .msg-time {
-  color: #70a56b;
-}
-
-.ticks.read {
-  color: #3390ec;
-}
-
-.chat-input-panel {
-  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
-  background: var(--surface-color);
-  border-top: 1px solid var(--border-color);
-  backdrop-filter: none;
-}
-
-.input-row {
-  gap: 7px;
-}
-
-.file-btn,
-.send-btn {
-  width: 42px;
-  height: 42px;
-  border: 0;
-}
-
-.file-btn {
-  background: transparent;
-  color: var(--text-secondary);
-}
-
-.file-btn:hover {
-  background: var(--surface-hover);
-  color: var(--accent);
-}
-
-.chat-input-panel input[type="text"] {
-  background: var(--surface-hover);
-  border: 0;
-  border-radius: 21px;
-  padding: 10px 16px;
-}
-
-.send-btn {
-  background: var(--accent);
-}
-
-.send-btn:hover {
-  background: var(--accent-hover);
-}
-
-.mic-btn.recording {
-  background: var(--danger);
-}
-
-.settings-body {
-  background: var(--bg-color);
-  padding: 16px;
-}
-
-.settings-section > .settings-label {
-  color: var(--text-secondary);
-}
-
-.settings-static,
-.settings-toggle-row,
-.attachment-preview {
-  background: var(--surface-color);
-  border-color: var(--border-color);
-}
-
-.auth-card {
-  border: 0;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0,0,0,.12);
-}
-
-.logo-c {
-  color: var(--accent);
-}
-
-.btn {
-  background: var(--accent);
-  border-radius: 10px;
-}
-
-.profile-menu-card {
-  border-radius: 16px;
-}
-
-.profile-menu-head {
-  background: var(--surface-color);
-}
-
-@media (min-width: 800px) {
-  .app-shell {
-    height: 100vh;
-    border-left: 1px solid var(--border-color);
-    border-right: 1px solid var(--border-color);
-  }
-}
-
-@media (max-width: 700px) {
-  .app-shell {
-    max-width: none;
-    box-shadow: none;
-  }
-  .message {
-    max-width: 82%;
-  }
-}
-
-@media (max-width: 520px) {
-  .top-bar {
-    min-height: 56px;
-  }
-  .chat-item {
-    min-height: 68px;
-  }
-  .message {
-    max-width: 88%;
-  }
-}
-
     </style>
 </head>
 <body>
@@ -881,22 +606,27 @@ body {
         </div>
 
         <div id="chats-screen" class="screen">
-            <div class="top-bar">
-                <div class="top-bar-title">C Messenger</div>
-                <div class="top-bar-actions">
-                    <button id="new-chat-btn" class="icon-btn" title="Новый чат">
-                        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
-                    </button>
-                </div>
-            </div>
             <div class="semi-circle-nav">
                 <div class="nav-tab-chats">Чаты</div>
                 <input id="chats-search-input" class="nav-search-input" type="text" placeholder="Поиск по чатам...">
-                <button id="settings-btn" class="icon-btn" title="Настройки">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9c.69 0 1.31.4 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.2.6-.82 1-1.51 1z"></path></svg>
+                </div>
+            <div id="chats-list" class="chats-list"></div>
+            <div class="bottom-nav">
+                <div class="bottom-nav-group">
+                    <button id="nav-profile-btn" class="bottom-nav-btn" title="Профиль">
+                        <div id="nav-profile-avatar" class="avatar bottom-nav-avatar">C</div>
+                    </button>
+                    <button id="nav-settings-btn" class="bottom-nav-btn" title="Настройки приложения">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9c.69 0 1.31.4 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.2.6-.82 1-1.51 1z"></path></svg>
+                    </button>
+                    <button id="nav-chats-btn" class="bottom-nav-btn active" title="Чаты">
+                        <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    </button>
+                </div>
+                <button id="nav-add-btn" class="bottom-nav-add" title="Новый чат">
+                    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
                 </button>
             </div>
-            <div id="chats-list" class="chats-list"></div>
         </div>
 
         <div id="chat-screen" class="screen">
@@ -908,8 +638,8 @@ body {
                     <div id="chat-avatar" class="avatar">C</div>
                 </button>
                 <div class="chat-title-wrap">
-                    <div class="chat-title-row"><span id="chat-status-dot" class="status-dot offline"></span><div id="chat-title" class="top-bar-title">Чат</div></div>
-                    <div id="chat-status-text" class="chat-status-text"></div>
+                    <div class="chat-title-row"><div id="chat-title" class="top-bar-title">Чат</div></div>
+                    <div class="chat-status-row"><span id="chat-status-text" class="chat-status-text"></span><span id="chat-status-dot" class="status-switch sm offline"></span></div>
                 </div>
             </div>
             <div id="pinned-banner" class="pinned-banner hidden">
@@ -951,16 +681,16 @@ body {
             </div>
         </div>
 
-        <div id="settings-screen" class="screen">
+        <div id="profile-screen" class="screen">
             <div class="top-bar">
-                <button id="back-from-settings" class="icon-btn" title="Назад">
+                <button id="back-from-profile" class="icon-btn" title="Назад">
                     <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
                 </button>
-                <div class="top-bar-title">Настройки</div>
+                <div class="top-bar-title">Профиль</div>
             </div>
             <div class="settings-body">
                 <div class="settings-section">
-                    <label class="settings-label">Профиль</label>
+                    <label class="settings-label">Аватар</label>
                     <div class="profile-card">
                         <div id="settings-avatar" class="avatar avatar-xl">C</div>
                         <div class="profile-actions">
@@ -974,9 +704,9 @@ body {
                 <div class="settings-section">
                     <label class="settings-label">Статус</label>
                     <div class="status-picker" id="status-picker">
-                        <button data-status="online"><span class="status-dot online"></span>В сети</button>
-                        <button data-status="away"><span class="status-dot away"></span>Отошёл</button>
-                        <button data-status="dnd"><span class="status-dot dnd"></span>Не беспокоить</button>
+                        <button data-status="online"><span class="status-switch sm online"></span>В сети</button>
+                        <button data-status="away"><span class="status-switch sm away"></span>Отошёл</button>
+                        <button data-status="dnd"><span class="status-switch sm dnd"></span>Не беспокоить</button>
                     </div>
                 </div>
                 <div class="settings-section">
@@ -996,6 +726,17 @@ body {
                     <label class="settings-label">Email</label>
                     <div class="settings-static" id="settings-email"></div>
                 </div>
+            </div>
+        </div>
+
+        <div id="settings-screen" class="screen">
+            <div class="top-bar">
+                <button id="back-from-settings" class="icon-btn" title="Назад">
+                    <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+                </button>
+                <div class="top-bar-title">Настройки</div>
+            </div>
+            <div class="settings-body">
                 <div class="settings-section settings-toggle-row">
                     <div class="settings-toggle-label">Тёмная тема</div>
                     <label class="switch"><input type="checkbox" id="theme-toggle"><span class="slider"></span></label>
@@ -1025,15 +766,15 @@ body {
             <div class="profile-menu-head">
                 <div id="profile-menu-avatar" class="avatar avatar-xl">C</div>
                 <div id="profile-menu-name" class="profile-menu-name">Пользователь</div>
-                <div id="profile-menu-status" class="profile-menu-status">Не в сети</div>
+                <div class="profile-menu-status-row"><span id="profile-menu-status" class="profile-menu-status">Не в сети</span><span id="profile-menu-status-switch" class="status-switch sm offline"></span></div>
             </div>
             <div class="profile-menu-body">
-                <div class="profile-menu-section">
-                    <div class="profile-menu-label">О себе</div>
-                    <div id="profile-menu-about" class="profile-menu-about">О себе не заполнено</div>
+                <div class="profile-menu-list">
+                    <button id="profile-search-action" class="profile-menu-action"><span class="profile-menu-action-icon">🔎</span>Поиск в переписке</button>
+                    <button id="profile-media-action" class="profile-menu-action"><span class="profile-menu-action-icon">🖼</span>Общие медиа</button>
+                    <button id="profile-about-action" class="profile-menu-action"><span class="profile-menu-action-icon">👤</span>О себе</button>
+                    <div id="profile-menu-about" class="profile-menu-about hidden"></div>
                 </div>
-                <button id="profile-search-action" class="profile-menu-action">🔎 Поиск в переписке</button>
-                <button id="profile-media-action" class="profile-menu-action">🖼 Общие медиа</button>
             </div>
         </div>
     </div>
@@ -1243,7 +984,7 @@ body {
         function refreshChatHeader() {
             if (!currentChatOtherUid) return;
             const s = effectiveStatus(currentChatOtherUid);
-            document.getElementById('chat-status-dot').className = 'status-dot ' + s;
+            document.getElementById('chat-status-dot').className = 'status-switch sm ' + s;
             document.getElementById('chat-status-text').textContent = STATUS_LABELS[s];
             const n = profiles.get(currentChatOtherUid)?.displayName; if (n) chatTitle.textContent = n;
             applyAvatar(chatAvatar, currentChatOtherUid, chatTitle.textContent);
@@ -1251,6 +992,7 @@ body {
         function syncSettingsUI() {
             if (!currentUser) return;
             applyAvatar(document.getElementById('settings-avatar'), currentUser.uid, normalizeName(currentUser));
+            applyAvatar(document.getElementById('nav-profile-avatar'), currentUser.uid, normalizeName(currentUser));
             document.querySelectorAll('#status-picker button').forEach(b => b.classList.toggle('active', b.dataset.status === myStatus));
             document.getElementById('sound-toggle').checked = soundEnabled;
         }
@@ -1431,6 +1173,7 @@ body {
         const chatsScreen = document.getElementById('chats-screen');
         const chatScreen = document.getElementById('chat-screen');
         const settingsScreen = document.getElementById('settings-screen');
+        const profileScreen = document.getElementById('profile-screen');
         const chatsList = document.getElementById('chats-list');
         const messagesList = document.getElementById('messages-list');
         const chatTitle = document.getElementById('chat-title');
@@ -1454,7 +1197,7 @@ body {
         const pinnedTextEl = document.getElementById('pinned-text');
 
         function showScreen(screen) {
-            [authScreen, chatsScreen, chatScreen, settingsScreen].forEach(el => el.classList.remove('active'));
+            [authScreen, chatsScreen, chatScreen, settingsScreen, profileScreen].forEach(el => el.classList.remove('active'));
             screen.classList.add('active');
         }
 
@@ -1943,7 +1686,7 @@ body {
                     <div class="avatar"></div>
                     <div class="chat-item-info">
                         <div class="chat-item-header">
-                            <div class="chat-item-name-row"><span class="status-dot ${st}" title="${STATUS_LABELS[st]}"></span><div class="chat-item-name">${escapeHtml(otherName)}</div></div>
+                            <div class="chat-item-name-row"><span class="status-switch sm ${st}" title="${STATUS_LABELS[st]}"></span><div class="chat-item-name">${escapeHtml(otherName)}</div></div>
                             <div class="chat-item-time">${formatChatTime(chat.lastMessageAt || chat.createdAt)}</div>
                         </div>
                         <div class="chat-item-footer">
@@ -1967,9 +1710,11 @@ body {
             if (!currentChatOtherUid || !currentUser) return;
             const name = displayNameFor(currentChatOtherUid, chatTitle.textContent);
             document.getElementById('profile-menu-name').textContent = name;
-            document.getElementById('profile-menu-status').textContent = STATUS_LABELS[effectiveStatus(currentChatOtherUid)] || 'Не в сети';
-            const about = profiles.get(currentChatOtherUid)?.about?.trim();
-            document.getElementById('profile-menu-about').textContent = about || 'О себе не заполнено';
+            const st = effectiveStatus(currentChatOtherUid);
+            document.getElementById('profile-menu-status').textContent = STATUS_LABELS[st] || 'Не в сети';
+            document.getElementById('profile-menu-status-switch').className = 'status-switch sm ' + st;
+            const aboutEl = document.getElementById('profile-menu-about');
+            aboutEl.textContent = ''; aboutEl.classList.add('hidden');
             applyAvatar(document.getElementById('profile-menu-avatar'), currentChatOtherUid, name);
             profileMenu.classList.remove('hidden');
         }
@@ -2196,16 +1941,23 @@ body {
             }
         });
 
-        document.getElementById('new-chat-btn').addEventListener('click', loadUsersForNewChat);
-        document.getElementById('settings-btn').addEventListener('click', () => {
+        document.getElementById('nav-add-btn').addEventListener('click', loadUsersForNewChat);
+        document.getElementById('nav-chats-btn').addEventListener('click', () => showScreen(chatsScreen));
+        document.getElementById('nav-profile-btn').addEventListener('click', () => {
             if (!currentUser) return;
             document.getElementById('settings-name-input').value = normalizeName(currentUser);
             document.getElementById('settings-about-input').value = profiles.get(currentUser.uid)?.about || '';
             document.getElementById('settings-email').textContent = currentUser.email || '';
+            syncSettingsUI();
+            showScreen(profileScreen);
+        });
+        document.getElementById('nav-settings-btn').addEventListener('click', () => {
             const theme = localStorage.getItem('theme-pref') || 'dark';
             document.getElementById('theme-toggle').checked = theme === 'dark';
+            document.getElementById('sound-toggle').checked = soundEnabled;
             showScreen(settingsScreen);
         });
+        document.getElementById('back-from-profile').addEventListener('click', () => showScreen(chatsScreen));
         document.getElementById('back-from-settings').addEventListener('click', () => showScreen(chatsScreen));
         document.getElementById('back-to-chats').addEventListener('click', () => {
             if (messagesUnsub) messagesUnsub();
@@ -2244,6 +1996,16 @@ body {
         document.getElementById('profile-menu-close').addEventListener('click', closeProfileMenu);
         profileMenu.addEventListener('click', e => { if (e.target === profileMenu) closeProfileMenu(); });
         document.getElementById('profile-search-action').addEventListener('click', searchInCurrentChat);
+        document.getElementById('profile-about-action').addEventListener('click', () => {
+            const el = document.getElementById('profile-menu-about');
+            if (el.classList.contains('hidden')) {
+                const about = profiles.get(currentChatOtherUid)?.about?.trim();
+                el.textContent = about || 'О себе не заполнено';
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        });
         document.getElementById('profile-media-action').addEventListener('click', showSharedMedia);
         chatBottomBtn.addEventListener('click', () => goToBottom(true));
 
