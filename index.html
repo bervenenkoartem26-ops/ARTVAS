@@ -600,6 +600,18 @@
         .cm-btn.primary{background:var(--accent);color:#fff}.cm-btn.danger{background:var(--danger);color:#fff}
         .msg-sender{font-size:12px;font-weight:700;margin-bottom:2px}
         .fwd-label{font-size:12px;opacity:.85;margin-bottom:4px;font-style:italic}
+        .msg-jumbo{font-size:44px;line-height:1.15;padding:2px 0}
+        .message.jumbo-only{background:transparent!important;box-shadow:none!important;border:none!important}
+        .spoiler{background:currentColor;color:transparent;border-radius:4px;cursor:pointer;transition:.2s;-webkit-user-select:none;user-select:none}
+        .spoiler.revealed{background:color-mix(in srgb,currentColor 12%,transparent);color:inherit}
+        .mention{color:var(--accent);font-weight:600}
+        .message.me .mention{color:inherit;text-decoration:underline}
+        .msg-code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;padding:1px 5px;border-radius:5px;background:color-mix(in srgb,currentColor 16%,transparent)}
+        .heart-pop{position:fixed;z-index:2000;font-size:56px;pointer-events:none;animation:heartPop .7s ease-out forwards}
+        @keyframes heartPop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}30%{transform:translate(-50%,-70%) scale(1.2);opacity:1}100%{transform:translate(-50%,-140%) scale(1);opacity:0}}
+        .accent-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+        .accent-dot{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer;padding:0}
+        .accent-dot.on{border-color:var(--text-primary)}
         .profile-card{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
         .profile-menu{position:fixed;inset:0;z-index:1800;background:rgba(0,0,0,.58);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;padding:70px 16px 24px;overflow:auto}
         .profile-menu-card{width:min(440px,100%);background:var(--surface-color);border:1px solid var(--border-color);border-radius:24px;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden;animation:profileIn .18s ease}
@@ -686,6 +698,156 @@
             .input-group { margin-bottom: 10px; }
         }
     </style>
+    <style id="lg-style">
+        /* ===== Liquid Glass ===== */
+        :root {
+            --lg-blur: 26px; --lg-sat: 180%;
+            --bg-color: transparent;
+            --surface-color: rgba(255,255,255,.08);
+            --surface-hover: rgba(255,255,255,.16);
+            --border-color: rgba(255,255,255,.14);
+            --text-secondary: #b9bdd0;
+            --bubble-other: rgba(255,255,255,.11);
+            --glass: rgba(255,255,255,.10);
+            --glass-strong: rgba(255,255,255,.16);
+            --glass-pop: rgba(36,38,54,.62);
+            --glass-edge: rgba(255,255,255,.26);
+            --glass-hi: inset 0 1.5px 0 rgba(255,255,255,.42), inset 0 -1px 0 rgba(255,255,255,.08), inset 1px 0 0 rgba(255,255,255,.12), inset 0 0 22px rgba(255,255,255,.05);
+            --glass-shadow: 0 12px 32px rgba(0,0,0,.34), 0 2px 8px rgba(0,0,0,.2);
+            --spring: cubic-bezier(.34,1.56,.64,1);
+        }
+        :root[data-theme="light"] {
+            --surface-color: rgba(255,255,255,.55);
+            --surface-hover: rgba(255,255,255,.8);
+            --border-color: rgba(255,255,255,.7);
+            --text-secondary: #5b6075;
+            --bubble-other: rgba(255,255,255,.62);
+            --glass: rgba(255,255,255,.5);
+            --glass-strong: rgba(255,255,255,.72);
+            --glass-pop: rgba(255,255,255,.72);
+            --glass-edge: rgba(255,255,255,.9);
+            --glass-hi: inset 0 1.5px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(255,255,255,.5), inset 0 0 22px rgba(255,255,255,.35);
+            --glass-shadow: 0 12px 30px rgba(60,70,120,.18), 0 2px 8px rgba(60,70,120,.1);
+        }
+        html { background: #06070d; }
+        :root[data-theme="light"] { background: #e9edfa; }
+        body::before {
+            content: ''; position: fixed; inset: -25%; z-index: -1; pointer-events: none;
+            background:
+                radial-gradient(55% 42% at 18% 14%, color-mix(in srgb, var(--accent) 72%, transparent), transparent 72%),
+                radial-gradient(48% 38% at 90% 30%, rgba(236,72,153,.46), transparent 72%),
+                radial-gradient(60% 46% at 70% 88%, rgba(6,182,212,.46), transparent 72%),
+                radial-gradient(46% 38% at 6% 62%, rgba(16,185,129,.34), transparent 72%);
+            animation: lgDrift 28s ease-in-out infinite alternate;
+        }
+        :root[data-theme="light"] body::before { opacity: .55; }
+        @keyframes lgDrift { 0% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(3%,-2%,0) scale(1.06) rotate(2deg); } 100% { transform: translate3d(-3%,3%,0) scale(1.02) rotate(-2deg); } }
+        .app-shell, .screen, .chats-list, .messages-list, .settings-body { background: transparent !important; }
+        .app-shell { border-color: transparent; }
+
+        /* стеклянные панели */
+        .top-bar, .semi-circle-nav, .bottom-nav-group, .chat-item, .input-row, .auth-card, .chat-bottom-btn, .toast, .date-sep, .edit-banner, .attachment-preview {
+            background: var(--glass) !important;
+            -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+            backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+            border: 1px solid var(--glass-edge) !important;
+            box-shadow: var(--glass-hi), var(--glass-shadow) !important;
+        }
+        .top-bar { margin: calc(8px + env(safe-area-inset-top, 0px)) 10px 4px; border-radius: 28px; padding-top: 8px; padding-bottom: 8px; }
+        .semi-circle-nav { margin-left: 10px; margin-right: 10px; }
+        .top-bar, .semi-circle-nav, .bottom-nav-group, .chat-item, .input-row, .auth-card { position: relative; overflow: hidden; }
+        /* блик жидкого стекла */
+        .top-bar::before, .semi-circle-nav::before, .bottom-nav-group::before, .chat-item::before, .input-row::before, .auth-card::before {
+            content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+            background: linear-gradient(120deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.04) 28%, transparent 55%, rgba(255,255,255,.07) 100%);
+        }
+        .top-bar > *, .chat-item > *, .bottom-nav-group > *, .input-row > * { position: relative; }
+
+        /* список чатов */
+        .chats-list { padding: 6px 0 12px; }
+        .chat-item { margin: 7px 12px; border-radius: 26px; padding: 12px 16px; transition: transform .4s var(--spring), background .2s; }
+        .chat-item:hover { background: var(--glass-strong) !important; }
+        .chat-item:active { transform: scale(.975); }
+        .chat-item.has-unread .unread-badge { box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 70%, transparent); }
+
+        /* нижняя навигация */
+        .bottom-nav { background: transparent !important; border-top: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; padding-top: 6px; }
+        .bottom-nav-group { border-radius: 30px; padding: 6px; }
+        .bottom-nav-btn { transition: background .25s, color .25s, transform .4s var(--spring); }
+        .bottom-nav-btn:active { transform: scale(.88); }
+        .bottom-nav-btn.active { background: var(--glass-strong); box-shadow: var(--glass-hi); color: var(--text-primary); }
+        .bottom-nav-btn.active::after { background: var(--accent); }
+        .bottom-nav-add, .btn, .send-btn {
+            background: linear-gradient(150deg, color-mix(in srgb, var(--accent) 82%, white 18%), color-mix(in srgb, var(--accent) 88%, black)) !important;
+            border: 1px solid rgba(255,255,255,.35) !important;
+            box-shadow: inset 0 1.5px 0 rgba(255,255,255,.55), inset 0 -6px 12px rgba(0,0,0,.14), 0 8px 22px color-mix(in srgb, var(--accent) 45%, transparent) !important;
+            color: #fff;
+        }
+        .bottom-nav-add { transition: transform .4s var(--spring); }
+        .bottom-nav-add:active, .send-btn:active, .btn:active { transform: scale(.92); }
+
+        /* сообщения */
+        .message { border-radius: 22px; padding: 10px 15px; }
+        .message.me {
+            background: linear-gradient(155deg, color-mix(in srgb, var(--accent) 84%, white 16%), color-mix(in srgb, var(--accent) 86%, black)) !important;
+            border-bottom-right-radius: 7px; border: 1px solid rgba(255,255,255,.3);
+            box-shadow: inset 0 1.5px 0 rgba(255,255,255,.5), inset 0 -8px 16px rgba(0,0,0,.12), 0 6px 18px color-mix(in srgb, var(--accent) 32%, transparent);
+        }
+        .message.other {
+            background: var(--glass-strong) !important; border: 1px solid var(--glass-edge); border-bottom-left-radius: 7px;
+            -webkit-backdrop-filter: blur(18px) saturate(170%); backdrop-filter: blur(18px) saturate(170%);
+            box-shadow: var(--glass-hi), 0 4px 14px rgba(0,0,0,.14);
+        }
+        .message.jumbo-only { background: transparent !important; box-shadow: none !important; border: none !important; backdrop-filter: none !important; }
+        .date-sep { box-shadow: var(--glass-hi) !important; }
+
+        /* поле ввода */
+        .chat-input-panel { background: transparent !important; border-top: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+        .input-row { border-radius: 30px; padding: 5px 6px 5px 10px; overflow: visible; }
+        .input-row::before { overflow: hidden; }
+        #message-input { background: transparent !important; border: none !important; box-shadow: none !important; }
+        .edit-banner, .attachment-preview { border-radius: 18px; }
+        ::placeholder { color: color-mix(in srgb, var(--text-primary) 55%, transparent) !important; opacity: 1; }
+        .semi-circle-nav input { box-shadow: none; }
+        .nav-tab-chats { color: var(--text-primary); }
+
+        /* всплывающие окна */
+        .cm-card, .msg-menu, .profile-menu-card {
+            background: var(--glass-pop) !important; border: 1px solid var(--glass-edge) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(200%); backdrop-filter: blur(40px) saturate(200%);
+            box-shadow: var(--glass-hi), 0 24px 60px rgba(0,0,0,.45) !important; border-radius: 28px;
+        }
+        .msg-menu { border-radius: 24px; }
+        .cm-overlay, .profile-menu { background: rgba(5,6,12,.38) !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+        .cm-row:hover, .cm-row.sel, .msg-menu-item:hover, .profile-menu-action:hover { background: var(--glass-strong); }
+        .cm-btn { background: var(--glass-strong); border: 1px solid var(--glass-edge); box-shadow: var(--glass-hi); transition: transform .35s var(--spring); }
+        .cm-btn:active { transform: scale(.94); }
+        .cm-btn.primary { background: linear-gradient(150deg, color-mix(in srgb, var(--accent) 82%, white 18%), color-mix(in srgb, var(--accent) 88%, black)); }
+
+        /* поля ввода и настройки */
+        input:not(#message-input), textarea, select {
+            background: var(--glass) !important; border: 1px solid var(--glass-edge) !important; border-radius: 16px;
+            -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: var(--glass-hi);
+        }
+        input:focus:not(#message-input) { box-shadow: var(--glass-hi), 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+        .settings-static, .profile-menu-list { background: var(--glass) !important; border: 1px solid var(--glass-edge); box-shadow: var(--glass-hi); border-radius: 20px; }
+        .icon-btn:hover, .icon-btn:active { background: var(--glass-strong); }
+        .switch .slider { background: var(--glass-strong); box-shadow: var(--glass-hi); }
+        .switch input:checked + .slider { background: var(--accent); }
+        .avatar { box-shadow: inset 0 1.5px 0 rgba(255,255,255,.45), 0 4px 12px rgba(0,0,0,.25); }
+
+        /* без поддержки размытия или при «уменьшить прозрачность» — плотнее */
+        @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+            :root { --glass: rgba(40,42,60,.88); --glass-strong: rgba(58,60,82,.92); --glass-pop: rgba(36,38,54,.97); }
+            :root[data-theme="light"] { --glass: rgba(255,255,255,.92); --glass-strong: #fff; --glass-pop: #fff; }
+        }
+        @media (prefers-reduced-transparency: reduce) {
+            :root { --glass: rgba(40,42,60,.94); --glass-strong: rgba(58,60,82,.96); --glass-pop: rgba(36,38,54,.98); }
+            :root[data-theme="light"] { --glass: rgba(255,255,255,.96); --glass-strong: #fff; --glass-pop: #fff; }
+        }
+        @media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
+    </style>
+    <script>try{if(localStorage.getItem('lg')==='0')document.getElementById('lg-style').disabled=true}catch(e){}</script>
 </head>
 <body>
     <div class="app-shell">
@@ -829,6 +991,14 @@
                     <p style="font-size:12px;color:var(--text-secondary);margin-top:6px">По нему вас смогут найти. 3–20 символов: латиница, цифры и _, начинается с буквы.</p>
                 </div>
                 <div class="settings-section">
+                    <label class="settings-label">QR-код</label>
+                    <div class="settings-row">
+                        <button id="qr-show" class="btn">Мой QR-код</button>
+                        <button id="qr-scan" class="btn">Сканировать</button>
+                    </div>
+                    <p style="font-size:12px;color:var(--text-secondary);margin-top:6px">Покажите код другу или отсканируйте его код, чтобы сразу открыть чат.</p>
+                </div>
+                <div class="settings-section">
                     <label class="settings-label">Имя</label>
                     <div class="settings-row">
                         <input type="text" id="settings-name-input" placeholder="Ваше имя">
@@ -859,6 +1029,17 @@
                 <div class="settings-section settings-toggle-row">
                     <div class="settings-toggle-label">Тёмная тема</div>
                     <label class="switch"><input type="checkbox" id="theme-toggle"><span class="slider"></span></label>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-toggle-row">
+                        <div class="settings-toggle-label">✨ Liquid Glass</div>
+                        <label class="switch"><input type="checkbox" id="lg-toggle"><span class="slider"></span></label>
+                    </div>
+                    <div class="settings-toggle-hint">Стеклянное оформление с размытием. Если телефон тормозит — выключите.</div>
+                </div>
+                <div class="settings-section">
+                    <label class="settings-label">Цвет акцента</label>
+                    <div class="accent-row" id="accent-row"></div>
                 </div>
                 <div class="settings-section">
                     <div class="settings-toggle-row">
@@ -1457,18 +1638,32 @@
                 ta.remove();
             }
         }
-        // Текст → безопасный HTML с кликабельными ссылками
+        // Форматирование: *жирный* _курсив_ ~зачёркнутый~ `код` ||спойлер|| @упоминание
+        function fmtInline(h) {
+            return h
+                .replace(/\|\|([^|\n]+)\|\|/g, '<span class="spoiler">$1</span>')
+                .replace(/(^|[\s(])\*([^*\n]+)\*(?=$|[\s.,!?:;)])/g, '$1<b>$2</b>')
+                .replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s.,!?:;)])/g, '$1<i>$2</i>')
+                .replace(/(^|[\s(])~([^~\n]+)~(?=$|[\s.,!?:;)])/g, '$1<s>$2</s>')
+                .replace(/(^|[\s(])@([a-zA-Z][a-zA-Z0-9_]{2,19})/g, '$1<span class="mention">@$2</span>');
+        }
+        function fmtText(raw) {
+            return escapeHtml(raw).split(/(`[^`\n]+`)/).map((part, i) =>
+                i % 2 ? `<span class="msg-code">${part.slice(1, -1)}</span>` : fmtInline(part)).join('');
+        }
+        // Текст → безопасный HTML со ссылками и форматированием
         function linkify(text) {
             const re = /((?:https?:\/\/|www\.)[^\s<]+[^\s<.,;:!?)\]}'"»])/gi;
             let out = '', last = 0, m;
             while ((m = re.exec(text))) {
-                out += escapeHtml(text.slice(last, m.index));
+                out += fmtText(text.slice(last, m.index));
                 const url = m[0], href = /^www\./i.test(url) ? 'https://' + url : url;
                 out += `<a class="msg-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer nofollow">${escapeHtml(url)}</a>`;
                 last = m.index + url.length;
             }
-            return (out + escapeHtml(text.slice(last))).replace(/\n/g, '<br>');
+            return (out + fmtText(text.slice(last))).replace(/\n/g, '<br>');
         }
+        const JUMBO_RE = /^(?:\p{Extended_Pictographic}(?:\uFE0F|\u200D|\p{Emoji_Modifier})*){1,3}$/u;
 
         function startEdit(id) {
             cancelReply();
@@ -1994,7 +2189,8 @@
                     const qAuthor = authorLabel(src ? src.senderId : msg.replyAuthorId);
                     html += `<div class="reply-quote" data-reply="${escapeHtml(msg.replyTo)}"><b>${escapeHtml(qAuthor)}</b><span>${escapeHtml(qText.slice(0, 140))}</span></div>`;
                 }
-                if (msg.text) html += `<div>${linkify(msg.text)}</div>`;
+                const jumbo = msg.text && !msg.replyTo && !msg.forwardedFrom && !msg.imageUrl && JUMBO_RE.test(msg.text.trim());
+                if (msg.text) html += jumbo ? `<div class="msg-jumbo">${escapeHtml(msg.text.trim())}</div>` : `<div>${linkify(msg.text)}</div>`;
                 if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image">`;
                 if (msg.audioUrl) html += `<audio controls src="${escapeHtml(msg.audioUrl)}"></audio>`;
                 const counts = {};
@@ -2173,6 +2369,7 @@
             };
         }
 
+        function getPins() { try { return JSON.parse(localStorage.getItem('pinned-chats') || '[]'); } catch (_) { return []; } }
         function renderChats() {
             chatsList.innerHTML = '';
             
@@ -2192,6 +2389,8 @@
                 return;
             }
             
+            const pins = getPins();
+            filteredChats = [...filteredChats].sort((x, y) => pins.includes(y.id) - pins.includes(x.id));
             filteredChats.forEach(chat => {
                 const isG = !!chat.isGroup;
                 const { uid: uid0, name: rawName } = getOtherUserInfo(chat, currentUser.uid);
@@ -2217,7 +2416,19 @@
                     </div>
                 `;
                 applyAvatar(item.querySelector('.avatar'), otherUid || chat.id, otherName);
-                item.addEventListener('click', () => openChat(chat.id, otherUid, otherName));
+                if (pins.includes(chat.id)) item.querySelector('.chat-item-time')?.prepend('📌 ');
+                let lpTimer = 0, lpFired = false;
+                const togglePin = () => {
+                    lpFired = true; const p = getPins(), i = p.indexOf(chat.id);
+                    i >= 0 ? p.splice(i, 1) : p.unshift(chat.id);
+                    try { localStorage.setItem('pinned-chats', JSON.stringify(p)); } catch (_) {}
+                    if (navigator.vibrate) navigator.vibrate(15);
+                    showToast(i >= 0 ? 'Чат откреплён' : 'Чат закреплён', false); renderChats();
+                };
+                item.addEventListener('touchstart', () => { lpFired = false; lpTimer = setTimeout(togglePin, 550); }, { passive: true });
+                ['touchend', 'touchmove', 'touchcancel'].forEach(ev => item.addEventListener(ev, () => clearTimeout(lpTimer), { passive: true }));
+                item.addEventListener('contextmenu', e => { e.preventDefault(); togglePin(); });
+                item.addEventListener('click', () => { if (lpFired) { lpFired = false; return; } openChat(chat.id, otherUid, otherName); });
                 chatsList.appendChild(item);
             });
         }
@@ -2823,6 +3034,7 @@
         let pressTimer = null, suppressClickUntil = 0;
         messagesList.addEventListener('click', e => {
             if (e.target.closest('.msg-link')) return; // открываем ссылку, меню не показываем
+            const sp = e.target.closest('.spoiler'); if (sp) { sp.classList.toggle('revealed'); return; }
             const quote = e.target.closest('.reply-quote');
             if (quote) { jumpToMessage(quote.dataset.reply); return; }
             const chip = e.target.closest('.reaction-chip');
@@ -2848,6 +3060,130 @@
         messageInput.addEventListener('keydown', e => { if (e.key === 'Escape') cancelEdit(); });
         document.getElementById('cancel-edit').addEventListener('click', cancelEdit);
         document.getElementById('cancel-reply').addEventListener('click', cancelReply);
+
+        // ===== QR-код профиля =====
+        const QR_GEN = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+        const QR_READ = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+        const loadScript = src => new Promise((ok, no) => {
+            if (document.querySelector(`script[src="${src}"]`)) return ok();
+            const el = document.createElement('script'); el.src = src; el.onload = ok;
+            el.onerror = () => no(new Error('Не удалось загрузить библиотеку QR — проверьте интернет'));
+            document.head.appendChild(el);
+        });
+        const profileLink = u => location.origin + location.pathname + '?u=' + encodeURIComponent(u);
+
+        async function openChatByUsername(name) {
+            name = String(name).toLowerCase();
+            const snap = await getDoc(doc(db, 'usernames', name));
+            if (!snap.exists()) { showToast('Пользователь @' + name + ' не найден'); return; }
+            const uid = snap.data().uid;
+            if (uid === currentUser.uid) { showToast('Это ваш собственный код', false); return; }
+            const d = (await getDoc(doc(db, 'users', uid))).data() || {};
+            await createOrOpenChat(uid, d.displayName || d.email || name);
+        }
+        async function openFromQr(text) {
+            let name = null;
+            try { name = new URL(text).searchParams.get('u'); } catch (_) {}
+            if (!name) { const m = /^@?([a-zA-Z][a-zA-Z0-9_]{2,19})$/.exec(text.trim()); name = m && m[1]; }
+            if (!name) { showToast('Это не QR-код мессенджера'); return; }
+            try { await openChatByUsername(name); } catch (e) { showToast('Ошибка: ' + e.message); }
+        }
+        function handleDeepLink() {
+            const u = new URLSearchParams(location.search).get('u'); if (!u) return;
+            history.replaceState(null, '', location.pathname + location.hash);
+            setTimeout(() => openChatByUsername(u).catch(e => showToast('Ошибка: ' + e.message)), 800);
+        }
+
+        document.getElementById('qr-show').addEventListener('click', async () => {
+            const uname = profiles.get(currentUser?.uid)?.username;
+            if (!uname) { showToast('Сначала придумайте юзернейм выше'); return; }
+            try { await loadScript(QR_GEN); } catch (e) { showToast(e.message); return; }
+            const qr = qrcode(0, 'M'); qr.addData(profileLink(uname)); qr.make();
+            const o = cmModal(`<h3 style="text-align:center">Мой QR-код</h3><div class="qr-box" style="background:#fff;padding:14px;border-radius:16px;width:min(260px,100%);margin:0 auto"></div><p style="text-align:center;color:var(--text-primary)"><b>${escapeHtml(normalizeName(currentUser))}</b><br>@${escapeHtml(uname)}</p><p style="text-align:center">Друг может отсканировать код в мессенджере или обычной камерой телефона.</p><div class="cm-actions"><button class="cm-btn" data-x="copy">Копировать ссылку</button><button class="cm-btn primary" data-x="close">Закрыть</button></div>`);
+            const box = o.querySelector('.qr-box'); box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+            const svg = box.querySelector('svg');
+            if (svg) { if (!svg.getAttribute('viewBox') && svg.getAttribute('width')) svg.setAttribute('viewBox', `0 0 ${parseFloat(svg.getAttribute('width'))} ${parseFloat(svg.getAttribute('height'))}`); svg.removeAttribute('width'); svg.removeAttribute('height'); svg.style.cssText = 'width:100%;height:auto;display:block'; }
+            o.addEventListener('click', e => {
+                const x = e.target.closest('[data-x]')?.dataset.x;
+                if (e.target === o || x === 'close') o.remove(); else if (x === 'copy') copyText(profileLink(uname));
+            });
+        });
+
+        document.getElementById('qr-scan').addEventListener('click', async () => {
+            try { await loadScript(QR_READ); } catch (e) { showToast(e.message); return; }
+            const o = cmModal('<h3>Сканировать QR-код</h3><video playsinline muted style="width:100%;border-radius:14px;background:#000;aspect-ratio:1;object-fit:cover"></video><p>Наведите камеру на QR-код друга</p><div class="cm-actions"><label class="cm-btn" style="cursor:pointer">Из фото<input type="file" accept="image/*" hidden></label><button class="cm-btn" data-x="close">Закрыть</button></div>');
+            const video = o.querySelector('video'); let stream = null, stopped = false, timer = 0;
+            const stop = () => { stopped = true; clearTimeout(timer); stream?.getTracks().forEach(t => t.stop()); o.remove(); };
+            const found = text => { stop(); openFromQr(text); };
+            o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-x="close"]')) stop(); });
+            o.querySelector('input').addEventListener('change', async e => {
+                const f = e.target.files[0]; if (!f) return;
+                try {
+                    const img = await createImageBitmap(f), k = Math.min(1, 1000 / Math.max(img.width, img.height));
+                    const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+                    const x = c.getContext('2d'); x.drawImage(img, 0, 0, c.width, c.height);
+                    const d = x.getImageData(0, 0, c.width, c.height), r = jsQR(d.data, d.width, d.height);
+                    r?.data ? found(r.data) : showToast('QR-код на фото не найден');
+                } catch (err) { showToast('Не удалось прочитать фото'); }
+            });
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = stream; await video.play();
+                const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
+                const tick = () => {
+                    if (stopped) return;
+                    if (video.videoWidth) {
+                        const k = Math.min(1, 640 / video.videoWidth);
+                        c.width = Math.round(video.videoWidth * k); c.height = Math.round(video.videoHeight * k);
+                        x.drawImage(video, 0, 0, c.width, c.height);
+                        const d = x.getImageData(0, 0, c.width, c.height), r = jsQR(d.data, d.width, d.height, { inversionAttempts: 'dontInvert' });
+                        if (r?.data) return found(r.data);
+                    }
+                    timer = setTimeout(tick, 120);
+                };
+                tick();
+            } catch (err) { showToast('Нет доступа к камере — можно выбрать фото с QR-кодом'); }
+        });
+
+        // ===== Двойной тап по сообщению = ❤️ =====
+        messagesList.addEventListener('dblclick', e => {
+            const b = e.target.closest('.message'); if (!b || b.classList.contains('deleted') || e.target.closest('a,.reaction-chip')) return;
+            e.preventDefault(); getSelection()?.removeAllRanges();
+            const id = b.dataset.id, msg = messagesCache.get(id); if (!msg || msg.deleted) return;
+            if (msg.reactions?.[currentUser.uid] !== '❤️') {
+                toggleReaction(id, '❤️');
+                const h = document.createElement('div'); h.className = 'heart-pop'; h.textContent = '❤️';
+                h.style.left = e.clientX + 'px'; h.style.top = e.clientY + 'px';
+                document.body.appendChild(h); setTimeout(() => h.remove(), 750);
+                if (navigator.vibrate) navigator.vibrate(15);
+            }
+        });
+
+        // ===== Liquid Glass вкл/выкл =====
+        (function () {
+            const st = document.getElementById('lg-style'), t = document.getElementById('lg-toggle');
+            let on = true; try { on = localStorage.getItem('lg') !== '0'; } catch (_) {}
+            t.checked = on; st.disabled = !on;
+            t.addEventListener('change', () => { st.disabled = !t.checked; try { localStorage.setItem('lg', t.checked ? '1' : '0'); } catch (_) {} });
+        })();
+
+        // ===== Цвет акцента =====
+        (function () {
+            const colors = ['#6366f1', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6'];
+            const shade = c => `color-mix(in srgb, ${c} 82%, black)`;
+            const apply = c => { document.documentElement.style.setProperty('--accent', c); document.documentElement.style.setProperty('--accent-hover', shade(c)); };
+            let cur = '#6366f1'; try { cur = localStorage.getItem('accent') || cur; } catch (_) {}
+            apply(cur);
+            const row = document.getElementById('accent-row');
+            colors.forEach(c => {
+                const b = document.createElement('button'); b.className = 'accent-dot' + (c === cur ? ' on' : ''); b.style.background = c; b.title = c;
+                b.addEventListener('click', () => {
+                    apply(c); try { localStorage.setItem('accent', c); } catch (_) {}
+                    row.querySelectorAll('.accent-dot').forEach(x => x.classList.toggle('on', x === b));
+                });
+                row.appendChild(b);
+            });
+        })();
 
         // ===== Черновики: недописанный текст сохраняется отдельно для каждого чата =====
         const draftKey = id => 'draft:' + id;
@@ -2969,6 +3305,7 @@
                 subscribeChats();
                 showScreen(chatsScreen);
                 syncSettingsUI();
+                handleDeepLink();
                 const notifPref = localStorage.getItem('notif-pref');
                 if (notifPref !== '0') {
                     document.getElementById('notif-toggle').checked = true;
