@@ -1415,6 +1415,7 @@
                 if (msg.text && otherUid) { const e = await encryptFor(otherUid, { text: msg.text, rp: '' }); if (e) { payload.e2e = e; payload.text = ''; preview = '🔒 Сообщение'; } }
                 await addDoc(collection(db, 'messages'), payload);
                 await updateChatSummary(chat.id, preview, otherUid);
+                sendPush(chat.id, preview);
                 showToast('Переслано', false);
             } catch (e) { showToast('Не удалось переслать: ' + e.message); }
         }
@@ -1692,12 +1693,39 @@
                 cancelReply();
                 clearDraft(currentChatId);
                 await updateChatSummary(currentChatId, lastPreview, currentChatOtherUid);
+                sendPush(currentChatId, lastPreview);
             } catch (error) {
                 console.error(error);
                 showToast('Не удалось отправить: ' + (error.message || error));
             } finally {
                 sendBtn.disabled = false;
             }
+        }
+
+        // Пуш-уведомление собеседникам через Supabase Edge Function "push"
+        async function sendPush(chatId, body) {
+            try {
+                const chat = allChatsCache.find(c => c.id === chatId); if (!chat || !currentUser) return;
+                const targets = (chat.members || chat.participants || []).filter(u => u !== currentUser.uid);
+                const tokens = [];
+                for (const u of targets) {
+                    let t = profiles.get(u)?.fcmToken;
+                    if (t === undefined) { try { t = (await getDoc(doc(db, 'users', u))).data()?.fcmToken; } catch (_) {} }
+                    if (t) tokens.push(t);
+                }
+                if (!tokens.length) return;
+                const me = normalizeName(currentUser);
+                fetch(SUPABASE_URL + '/functions/v1/dynamic-responder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-firebase-token': await currentUser.getIdToken() },
+                    body: JSON.stringify({
+                        tokens,
+                        title: chat.isGroup ? (chat.title || 'Группа') : me,
+                        body: chat.isGroup ? me + ': ' + body : body,
+                        link: location.href.split('#')[0].split('?')[0]
+                    })
+                }).catch(() => {});
+            } catch (_) {}
         }
 
         async function updateChatSummary(chatId, lastText, recipientUid) {
