@@ -821,6 +821,14 @@
                     </div>
                 </div>
                 <div class="settings-section">
+                    <label class="settings-label">Юзернейм</label>
+                    <div class="settings-row">
+                        <input type="text" id="settings-username-input" placeholder="@username" maxlength="20" autocapitalize="none" autocorrect="off" spellcheck="false">
+                        <button id="settings-username-save" class="btn">Сохранить</button>
+                    </div>
+                    <p style="font-size:12px;color:var(--text-secondary);margin-top:6px">По нему вас смогут найти. 3–20 символов: латиница, цифры и _, начинается с буквы.</p>
+                </div>
+                <div class="settings-section">
                     <label class="settings-label">Имя</label>
                     <div class="settings-row">
                         <input type="text" id="settings-name-input" placeholder="Ваше имя">
@@ -920,7 +928,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, orderBy, limit, startAfter, getDocs, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteField, writeBatch, increment, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, orderBy, limit, startAfter, getDocs, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteField, writeBatch, runTransaction, increment, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDatabase, ref as rtdbRef, onValue, onDisconnect, set as rtdbSet, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
@@ -2269,29 +2277,70 @@
             });
         }
 
+        // Поиск пользователей строго по @username (общий список не показывается)
+        async function searchByUsername(q) {
+            q = q.trim().replace(/^@/, '').toLowerCase();
+            if (q.length < 2) return [];
+            const snap = await getDocs(query(collection(db, 'users'), where('username', '>=', q), where('username', '<=', q + '\uf8ff'), limit(10)));
+            const out = [];
+            snap.forEach(d => { if (d.id !== currentUser.uid) { const u = d.data(); usersDirectory.set(d.id, u.displayName || u.username); out.push({ uid: d.id, username: u.username, name: u.displayName || u.username }); } });
+            return out;
+        }
+        function openUserSearch({ title, multi = false, nameField = '', okLabel = 'Готово', extra = '' }) {
+            return new Promise(res => {
+                const o = cmModal(`<h3>${escapeHtml(title)}</h3>${extra ? `<button class="cm-btn" data-x="extra">${escapeHtml(extra)}</button>` : ''}${nameField ? `<input class="pk-name" placeholder="${escapeHtml(nameField)}" maxlength="60">` : ''}<input class="pk-q" placeholder="Введите @юзернейм" autocapitalize="none" autocorrect="off" spellcheck="false"><div class="cm-chosen"></div><div class="cm-list"><p>Введите юзернейм собеседника (минимум 2 символа)</p></div><div class="cm-actions"><button class="cm-btn" data-x="cancel">Отмена</button>${multi ? `<button class="cm-btn primary" data-x="ok">${escapeHtml(okLabel)}</button>` : ''}</div>`);
+                const list = o.querySelector('.cm-list'), chosenEl = o.querySelector('.cm-chosen'), inp = o.querySelector('.pk-q');
+                const chosen = new Map(); let found = [], timer = 0, seq = 0;
+                chosenEl.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px';
+                const drawChosen = () => { chosenEl.innerHTML = [...chosen.values()].map(u => `<button class="cm-btn" data-rm="${escapeHtml(u.uid)}" style="padding:5px 10px;font-size:13px">@${escapeHtml(u.username)} ✕</button>`).join(''); };
+                const drawFound = () => {
+                    list.innerHTML = found.map(u => `<div class="cm-row${chosen.has(u.uid) ? ' sel' : ''}" data-uid="${escapeHtml(u.uid)}"><span>${escapeHtml(u.name)} <span style="opacity:.6">@${escapeHtml(u.username)}</span></span><span class="chk">✓</span></div>`).join('') || `<p>${inp.value.trim().length < 2 ? 'Введите юзернейм собеседника (минимум 2 символа)' : 'Никого не нашли. Проверьте юзернейм.'}</p>`;
+                };
+                inp.focus();
+                inp.addEventListener('input', () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(async () => {
+                        const my = ++seq;
+                        try { const r = await searchByUsername(inp.value); if (my === seq) { found = r; drawFound(); } }
+                        catch (e) { list.innerHTML = '<p>Ошибка поиска: ' + escapeHtml(e.message) + '</p>'; }
+                    }, 300);
+                });
+                const done = v => { o.remove(); res(v); };
+                o.addEventListener('click', e => {
+                    if (e.target === o) return done(null);
+                    const rm = e.target.closest('[data-rm]'), row = e.target.closest('.cm-row[data-uid]'), x = e.target.closest('[data-x]')?.dataset.x;
+                    if (rm) { chosen.delete(rm.dataset.rm); drawChosen(); drawFound(); }
+                    else if (row) {
+                        const u = found.find(f => f.uid === row.dataset.uid); if (!u) return;
+                        if (!multi) return done({ users: [u] });
+                        chosen.has(u.uid) ? chosen.delete(u.uid) : chosen.set(u.uid, u); drawChosen(); drawFound();
+                    } else if (x === 'cancel') done(null);
+                    else if (x === 'extra') done({ extra: true });
+                    else if (x === 'ok') {
+                        const name = o.querySelector('.pk-name')?.value.trim() || '';
+                        if (nameField && !name) { showToast('Введите название'); return; }
+                        if (!chosen.size) { showToast('Добавьте хотя бы одного участника'); return; }
+                        done({ users: [...chosen.values()], name });
+                    }
+                });
+            });
+        }
         async function loadUsersForNewChat() {
             if (!currentUser) return;
             try {
-                const snapshot = await getDocs(collection(db, 'users'));
-                const users = [];
-                snapshot.forEach(snap => {
-                    if (snap.id !== currentUser.uid) { users.push({ uid: snap.id, ...snap.data() }); usersDirectory.set(snap.id, snap.data().displayName || snap.data().email || 'Пользователь'); }
-                });
-                users.sort((a, b) => String(a.displayName || a.email || '').localeCompare(String(b.displayName || b.email || ''), 'ru'));
-                if (!users.length) { showToast('Других пользователей пока нет', false); return; }
-                const items = users.map(u => ({ id: u.uid, label: u.displayName || u.email || 'Пользователь' }));
-                const r = await openPicker({ title: 'Новый чат', items, extra: '👥 Новая группа' });
+                if (!profiles.get(currentUser.uid)?.username) showToast('Придумайте себе юзернейм в настройках — по нему вас смогут найти', false);
+                const r = await openUserSearch({ title: 'Найти пользователя', extra: '👥 Новая группа' });
                 if (!r) return;
                 if (r.extra) {
-                    const g = await openPicker({ title: 'Новая группа', items, multi: true, nameField: 'Название группы', okLabel: 'Создать' });
-                    if (g) await createGroup(g.ids, g.name);
+                    const g = await openUserSearch({ title: 'Новая группа', multi: true, nameField: 'Название группы', okLabel: 'Создать' });
+                    if (g) { g.users.forEach(u => usersDirectory.set(u.uid, u.name)); await createGroup(g.users.map(u => u.uid), g.name); }
                     return;
                 }
-                const user = users.find(u => u.uid === r.ids[0]);
-                if (user) await createOrOpenChat(user.uid, user.displayName || user.email || 'Пользователь');
+                const u = r.users[0];
+                await createOrOpenChat(u.uid, u.name);
             } catch (e) {
                 console.error(e);
-                showToast('Не удалось получить список пользователей: ' + e.message);
+                showToast('Ошибка поиска: ' + e.message);
             }
         }
 
@@ -2440,6 +2489,7 @@
         document.getElementById('nav-profile-btn').addEventListener('click', () => {
             if (!currentUser) return;
             document.getElementById('settings-name-input').value = normalizeName(currentUser);
+            document.getElementById('settings-username-input').value = profiles.get(currentUser.uid)?.username ? '@' + profiles.get(currentUser.uid).username : '';
             document.getElementById('settings-about-input').value = profiles.get(currentUser.uid)?.about || '';
             document.getElementById('settings-email').textContent = currentUser.email || '';
             syncSettingsUI();
@@ -2479,6 +2529,26 @@
             } catch (e) {
                 showToast('Не удалось сохранить имя: ' + e.message);
             }
+        });
+
+        const USERNAME_RE = /^[a-z][a-z0-9_]{2,19}$/;
+        document.getElementById('settings-username-save').addEventListener('click', async () => {
+            if (!currentUser) return;
+            const name = document.getElementById('settings-username-input').value.trim().replace(/^@/, '').toLowerCase();
+            if (!USERNAME_RE.test(name)) { showToast('Юзернейм: 3–20 символов, латиница, цифры и _, первая — буква.'); return; }
+            const uid = currentUser.uid, old = profiles.get(uid)?.username || '';
+            if (name === old) { showToast('Это уже ваш юзернейм', false); return; }
+            try {
+                await runTransaction(db, async tx => {
+                    const ref = doc(db, 'usernames', name), snap = await tx.get(ref);
+                    if (snap.exists() && snap.data().uid !== uid) throw new Error('Этот юзернейм уже занят');
+                    tx.set(ref, { uid });
+                    tx.set(doc(db, 'users', uid), { username: name }, { merge: true });
+                    if (old) tx.delete(doc(db, 'usernames', old));
+                });
+                document.getElementById('settings-username-input').value = '@' + name;
+                showToast('Юзернейм сохранён: @' + name, false);
+            } catch (e) { showToast(e.message.includes('занят') ? e.message : 'Не удалось сохранить: ' + e.message); }
         });
 
         document.getElementById('settings-about-save').addEventListener('click', async () => {
