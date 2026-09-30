@@ -866,6 +866,7 @@
                         <label class="switch"><input type="checkbox" id="notif-toggle"><span class="slider"></span></label>
                     </div>
                     <div class="settings-toggle-hint">Работают в фоновом режиме через Firebase Cloud Messaging.</div>
+                    <button id="notif-diagnose" class="btn" style="margin-top:8px">🔔 Проверить уведомления</button>
                 </div>
                 <div class="settings-section">
                     <div class="settings-toggle-row">
@@ -2394,10 +2395,44 @@
                 }
             } catch (error) {
                 console.error('Ошибка настройки пушей:', error);
-                showToast('Не удалось включить уведомления');
+                showToast('Не удалось включить уведомления: ' + (error.message || error));
                 document.getElementById('notif-toggle').checked = false;
             }
         }
+
+        // Пошаговая диагностика уведомлений: показывает, на каком звене цепочки обрыв
+        document.getElementById('notif-diagnose').addEventListener('click', async () => {
+            const o = cmModal('<h3>🔔 Проверка уведомлений</h3><div class="cm-list" id="diag-out" style="gap:6px;font-size:14px;user-select:text"></div><div class="cm-actions"><button class="cm-btn" data-x="close">Закрыть</button></div>');
+            o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-x="close"]')) o.remove(); });
+            const out = o.querySelector('#diag-out');
+            const log = (ok, t) => { const d = document.createElement('div'); d.textContent = (ok === null ? 'ℹ️ ' : ok ? '✅ ' : '❌ ') + t; d.style.wordBreak = 'break-word'; out.appendChild(d); };
+            try {
+                log(null, 'Режим: ' + (matchMedia('(display-mode: standalone)').matches ? 'установленное приложение' : 'вкладка браузера'));
+                log('Notification' in window, 'Поддержка уведомлений в этом браузере');
+                if (!('Notification' in window)) return;
+                log(Notification.permission === 'granted', 'Разрешение: ' + Notification.permission);
+                if (Notification.permission !== 'granted') { log(null, 'Включите переключатель уведомлений выше и разрешите их.'); return; }
+                const sw = await fetch('/ARTVAS/firebase-messaging-sw.js', { cache: 'no-store' });
+                log(sw.ok, 'Файл firebase-messaging-sw.js на сайте: HTTP ' + sw.status);
+                if (!sw.ok) return;
+                const reg = await navigator.serviceWorker.register('/ARTVAS/firebase-messaging-sw.js');
+                const token = await getToken(messaging, { vapidKey: 'BIwFmsxByzTiIH3-sNMnhmp-tZDo99NBN2Z9YWMCDDxi7KWm0v_XmXr6DuerrV5wN6_ro8rIiYNBRAY1kcbil0Q', serviceWorkerRegistration: reg });
+                log(!!token, 'Токен устройства получен');
+                if (!token) return;
+                await setDoc(doc(db, 'users', currentUser.uid), { fcmToken: token }, { merge: true });
+                log(true, 'Токен сохранён в профиль');
+                const r = await fetch(SUPABASE_URL + '/functions/v1/dynamic-responder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-firebase-token': await currentUser.getIdToken() },
+                    body: JSON.stringify({ tokens: [token], title: 'Тест', body: 'Если видите это — уведомления работают 🎉', link: location.href.split('#')[0].split('?')[0] })
+                });
+                const txt = await r.text();
+                let j = {}; try { j = JSON.parse(txt); } catch (_) {}
+                log(r.ok && j.sent > 0, 'Сервер уведомлений: HTTP ' + r.status + ' ' + txt.slice(0, 300));
+                if (r.ok && j.sent > 0) log(null, 'Тест отправлен. Сверните приложение — через пару секунд придёт уведомление. Если в открытом окне — оно покажется всплывающей плашкой внутри приложения.');
+                else if (j.invalid?.length) log(null, 'Firebase отклонил токен. Выключите и включите уведомления и проверьте ключ/VAPID.');
+            } catch (e) { log(false, 'Ошибка: ' + (e.message || e)); }
+        });
 
         document.getElementById('notif-toggle').addEventListener('change', (e) => {
             if (e.target.checked) {
