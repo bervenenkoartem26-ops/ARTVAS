@@ -574,6 +574,32 @@
         .edit-banner-text b{color:var(--accent)}
         .edit-banner-text span{color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .chat-input-panel.editing .file-btn{opacity:.35;pointer-events:none}
+        .msg-menu{min-width:220px}
+        .msg-menu-reactions{padding-bottom:4px}
+        .react-btn{width:40px;height:40px;font-size:22px}
+        .reply-quote{display:flex;flex-direction:column;gap:1px;margin:-2px 0 6px;padding:5px 8px;border-left:3px solid currentColor;border-radius:6px;background:color-mix(in srgb,currentColor 14%,transparent);font-size:13px;cursor:pointer;max-width:100%}
+        .reply-quote b{font-size:12px;opacity:.95}
+        .reply-quote span{opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .msg-link{color:inherit;text-decoration:underline;text-underline-offset:2px;word-break:break-all}
+        .message.swiping{transition:none}
+        .message.swipe-back{transition:transform .2s ease}
+        .swipe-reply-icon{position:fixed;z-index:900;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-size:15px;opacity:0;pointer-events:none;z-index:2}
+        .offline-banner{position:fixed;top:0;left:0;right:0;z-index:3000;padding:calc(6px + env(safe-area-inset-top,0px)) 12px 6px;text-align:center;font-size:13px;font-weight:600;background:#b45309;color:#fff;transform:translateY(-110%);transition:transform .25s ease;pointer-events:none}
+        .offline-banner.show{transform:none}
+        .cm-overlay{position:fixed;inset:0;z-index:2600;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px}
+        .cm-card{width:min(420px,100%);max-height:85dvh;display:flex;flex-direction:column;gap:10px;padding:18px;background:var(--surface-color);color:var(--text-primary);border:1px solid var(--border-color);border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.5)}
+        .cm-card h3{font-size:18px}
+        .cm-card p{font-size:13px;color:var(--text-secondary);line-height:1.4}
+        .cm-card input{width:100%;padding:11px 14px;border-radius:12px;font-size:16px}
+        .cm-list{overflow:auto;display:flex;flex-direction:column;gap:2px;min-height:60px}
+        .cm-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;font-size:15px}
+        .cm-row:hover,.cm-row.sel{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+        .cm-row .chk{margin-left:auto;opacity:0}.cm-row.sel .chk{opacity:1;color:var(--accent)}
+        .cm-actions{display:flex;gap:8px;justify-content:flex-end}
+        .cm-btn{padding:10px 16px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;background:var(--surface-hover);color:var(--text-primary)}
+        .cm-btn.primary{background:var(--accent);color:#fff}.cm-btn.danger{background:var(--danger);color:#fff}
+        .msg-sender{font-size:12px;font-weight:700;margin-bottom:2px}
+        .fwd-label{font-size:12px;opacity:.85;margin-bottom:4px;font-style:italic}
         .profile-card{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
         .profile-menu{position:fixed;inset:0;z-index:1800;background:rgba(0,0,0,.58);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;padding:70px 16px 24px;overflow:auto}
         .profile-menu-card{width:min(440px,100%);background:var(--surface-color);border:1px solid var(--border-color);border-radius:24px;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden;animation:profileIn .18s ease}
@@ -740,6 +766,10 @@
                     <div class="edit-banner-text"><b>Редактирование</b><span id="edit-banner-preview"></span></div>
                     <button id="cancel-edit" class="remove-attachment" title="Отмена">✕</button>
                 </div>
+                <div id="reply-banner" class="edit-banner hidden">
+                    <div class="edit-banner-text"><b id="reply-banner-author"></b><span id="reply-banner-preview"></span></div>
+                    <button id="cancel-reply" class="remove-attachment" title="Отмена">✕</button>
+                </div>
                 <div id="attachment-preview" class="attachment-preview hidden">
                     <div id="attachment-thumb" class="attachment-thumb"></div>
                     <div id="attachment-info" class="attachment-info"></div>
@@ -761,6 +791,7 @@
             </div>
         </div>
 
+        <div id="offline-banner" class="offline-banner">Нет соединения — сообщения отправятся, когда сеть появится</div>
         <div id="profile-screen" class="screen">
             <div class="top-bar">
                 <button id="back-from-profile" class="icon-btn" title="Назад">
@@ -889,7 +920,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, orderBy, limit, startAfter, getDocs, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteField, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, orderBy, limit, startAfter, getDocs, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteField, writeBatch, increment, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDatabase, ref as rtdbRef, onValue, onDisconnect, set as rtdbSet, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
@@ -1019,7 +1050,7 @@
         let editingMessageId = null, messagesCache = new Map(), lastMessageId = null, readAttempted = new Set();
         let menuEl = null, peopleRaf = 0, lastSoundAt = 0, audioCtx = null;
         let currentSearchQuery = '';
-        const REACTIONS = ['👍', '🔥', '❤️'];
+        const REACTIONS = ['👍', '❤️', '🔥', '😂', '😮', '🙏'];
         const STATUS_LABELS = { online: 'В сети', away: 'Отошёл', dnd: 'Не беспокоить', offline: 'Не в сети' };
         const TICK1 = '<svg viewBox="0 0 18 11"><path d="M1 5.8l3.6 3.6L11.4 1.6"/></svg>';
         const TICK2 = '<svg viewBox="0 0 18 11"><path d="M1 5.8l3.6 3.6L11.4 1.6"/><path d="M7.2 8.6l.8.8 8.4-7.8"/></svg>';
@@ -1145,6 +1176,9 @@
             const isPinned = msg.pinned;
             menuEl = document.createElement('div'); menuEl.className = 'msg-menu';
             menuEl.innerHTML = `<div class="msg-menu-reactions">${REACTIONS.map(e => `<button class="react-btn${myReact === e ? ' active' : ''}" data-emoji="${e}">${e}</button>`).join('')}</div>` +
+                `<button class="msg-menu-item" data-act="reply">↩️ Ответить</button>` +
+                `<button class="msg-menu-item" data-act="forward">↪️ Переслать</button>` +
+                (msg.text ? `<button class="msg-menu-item" data-act="copy">📋 Копировать</button>` : '') +
                 `<button class="msg-menu-item" data-act="pin">${isPinned ? '📌 Открепить' : '📌 Закрепить'}</button>` +
                 (mine ? `${msg.text ? '<button class="msg-menu-item" data-act="edit">✏️ Редактировать</button>' : ''}<button class="msg-menu-item danger" data-act="delete">🗑 Удалить</button>` : '');
             document.body.appendChild(menuEl);
@@ -1156,6 +1190,9 @@
                 const rb = e.target.closest('.react-btn'), it = e.target.closest('[data-act]');
                 closeMsgMenu();
                 if (rb) toggleReaction(id, rb.dataset.emoji);
+                else if (it?.dataset.act === 'reply') startReply(id);
+                else if (it?.dataset.act === 'forward') forwardMessage(id);
+                else if (it?.dataset.act === 'copy') copyText(msg.text);
                 else if (it?.dataset.act === 'pin') togglePinMessage(id, !isPinned);
                 else if (it?.dataset.act === 'edit') startEdit(id);
                 else if (it?.dataset.act === 'delete') deleteMessage(id);
@@ -1187,7 +1224,244 @@
             try { await updateDoc(doc(db, 'messages', id), { [`reactions.${currentUser.uid}`]: same ? deleteField() : emoji }); }
             catch (e) { showToast('Не удалось поставить реакцию: ' + e.message); }
         }
+        // ===== Простые модальные окна =====
+        function cmModal(html) {
+            const o = document.createElement('div'); o.className = 'cm-overlay';
+            o.innerHTML = '<div class="cm-card">' + html + '</div>';
+            document.body.appendChild(o);
+            return o;
+        }
+        function askText({ title, text, ph, ok = 'OK', skip = 'Отмена', password = true }) {
+            return new Promise(res => {
+                const o = cmModal(`<h3>${escapeHtml(title)}</h3><p>${escapeHtml(text || '')}</p><input type="${password ? 'password' : 'text'}" placeholder="${escapeHtml(ph || '')}" autocomplete="off"><div class="cm-actions"><button class="cm-btn" data-x="skip">${escapeHtml(skip)}</button><button class="cm-btn primary" data-x="ok">${escapeHtml(ok)}</button></div>`);
+                const inp = o.querySelector('input'); inp.focus();
+                const done = v => { o.remove(); res(v); };
+                o.addEventListener('click', e => { const x = e.target.closest('[data-x]')?.dataset.x; if (x === 'ok') done(inp.value); else if (x === 'skip') done(null); });
+                inp.addEventListener('keydown', e => { if (e.key === 'Enter') done(inp.value); });
+            });
+        }
+        // Выбор из списка: один/несколько, поиск, необязательное имя группы, необязательная верхняя кнопка
+        function openPicker({ title, items, multi = false, nameField = '', okLabel = 'Выбрать', extra = '' }) {
+            return new Promise(res => {
+                const o = cmModal(`<h3>${escapeHtml(title)}</h3>${extra ? `<button class="cm-btn" data-x="extra">${escapeHtml(extra)}</button>` : ''}${nameField ? `<input class="pk-name" placeholder="${escapeHtml(nameField)}" maxlength="60">` : ''}<input class="pk-q" placeholder="Поиск…"><div class="cm-list"></div><div class="cm-actions"><button class="cm-btn" data-x="cancel">Отмена</button>${multi ? `<button class="cm-btn primary" data-x="ok">${escapeHtml(okLabel)}</button>` : ''}</div>`);
+                const list = o.querySelector('.cm-list'), sel = new Set();
+                const draw = () => {
+                    const q = o.querySelector('.pk-q').value.trim().toLowerCase();
+                    list.innerHTML = items.filter(i => i.label.toLowerCase().includes(q)).map(i => `<div class="cm-row${sel.has(i.id) ? ' sel' : ''}" data-id="${escapeHtml(i.id)}"><span>${escapeHtml(i.label)}</span><span class="chk">✓</span></div>`).join('') || '<p>Ничего не найдено</p>';
+                };
+                draw();
+                o.querySelector('.pk-q').addEventListener('input', draw);
+                const done = v => { o.remove(); res(v); };
+                o.addEventListener('click', e => {
+                    if (e.target === o) return done(null);
+                    const row = e.target.closest('.cm-row'), x = e.target.closest('[data-x]')?.dataset.x;
+                    if (row) {
+                        const id = row.dataset.id;
+                        if (!multi) return done({ ids: [id] });
+                        sel.has(id) ? sel.delete(id) : sel.add(id); draw();
+                    } else if (x === 'cancel') done(null);
+                    else if (x === 'extra') done({ extra: true });
+                    else if (x === 'ok') {
+                        const name = o.querySelector('.pk-name')?.value.trim() || '';
+                        if (nameField && !name) { showToast('Введите название'); return; }
+                        if (!sel.size) { showToast('Выберите хотя бы одного участника'); return; }
+                        done({ ids: [...sel], name });
+                    }
+                });
+            });
+        }
+
+        // ===== Сквозное шифрование (ECDH P-256 + AES-GCM), ключи только на устройстве =====
+        const E2E = { priv: null, pub: null, ready: false, initPromise: null, keys: new Map() };
+        const ECDH = { name: 'ECDH', namedCurve: 'P-256' };
+        const enc8 = new TextEncoder(), dec8 = new TextDecoder();
+        const b64 = buf => { let t = ''; new Uint8Array(buf).forEach(c => t += String.fromCharCode(c)); return btoa(t); };
+        const unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
+        const idbOpen = () => new Promise((ok, no) => { const r = indexedDB.open('cm-e2ee', 1); r.onupgradeneeded = () => r.result.createObjectStore('k'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+        async function idbGet(k) { const d = await idbOpen(); return new Promise((ok, no) => { const q = d.transaction('k').objectStore('k').get(k); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); }
+        async function idbSet(k, v) { const d = await idbOpen(); return new Promise((ok, no) => { const t = d.transaction('k', 'readwrite'); t.objectStore('k').put(v, k); t.oncomplete = ok; t.onerror = () => no(t.error); }); }
+        async function passKey(pass, salt, iter) {
+            const base = await crypto.subtle.importKey('raw', enc8.encode(pass), 'PBKDF2', false, ['deriveKey']);
+            return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+        }
+        function ensureE2EE() { if (!E2E.initPromise) E2E.initPromise = initE2EE(); return E2E.initPromise; }
+        async function initE2EE() {
+            if (!currentUser || !crypto?.subtle) return;
+            const uid = currentUser.uid, uref = doc(db, 'users', uid);
+            try {
+                const d = (await getDoc(uref)).data() || {};
+                const local = await idbGet('id:' + uid);
+                if (local && d.e2eePub && local.pub.x === d.e2eePub.x && local.pub.y === d.e2eePub.y) {
+                    Object.assign(E2E, { priv: local.priv, pub: local.pub, ready: true }); return;
+                }
+                if (d.e2eeBackup && d.e2eePub) { // новое устройство: восстановление ключа по паролю
+                    for (let i = 0; i < 3; i++) {
+                        const pass = await askText({ title: '🔒 Ключ шифрования', text: 'Введите пароль шифрования, чтобы читать переписку на этом устройстве.', ph: 'Пароль шифрования', ok: 'Открыть', skip: 'Не сейчас' });
+                        if (pass === null) return;
+                        try {
+                            const b = d.e2eeBackup;
+                            const pk8 = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(b.iv) }, await passKey(pass, unb64(b.salt), b.iter), unb64(b.ct));
+                            const priv = await crypto.subtle.importKey('pkcs8', pk8, ECDH, false, ['deriveBits']);
+                            await idbSet('id:' + uid, { priv, pub: d.e2eePub });
+                            Object.assign(E2E, { priv, pub: d.e2eePub, ready: true }); showToast('Ключ восстановлен', false); return;
+                        } catch (_) { showToast('Неверный пароль'); }
+                    }
+                    return;
+                }
+                const kp = await crypto.subtle.generateKey(ECDH, true, ['deriveBits']);
+                const j = await crypto.subtle.exportKey('jwk', kp.publicKey), pub = { kty: j.kty, crv: j.crv, x: j.x, y: j.y };
+                const pk8 = await crypto.subtle.exportKey('pkcs8', kp.privateKey);
+                const pass = await askText({ title: '🔒 Сквозное шифрование', text: 'Придумайте пароль шифрования (от 6 символов): по нему ключ восстанавливается на другом устройстве. Сервер пароль не знает — если забудете, старые сообщения на новом устройстве не прочитать.', ph: 'Пароль шифрования', ok: 'Включить', skip: 'Без резервной копии' });
+                const data = { e2eePub: pub };
+                if (pass && pass.length >= 6) {
+                    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)), iter = 250000;
+                    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await passKey(pass, salt, iter), pk8);
+                    data.e2eeBackup = { salt: b64(salt), iv: b64(iv), ct: b64(ct), iter };
+                } else if (pass) showToast('Пароль короче 6 символов — резервная копия не создана');
+                const priv = await crypto.subtle.importKey('pkcs8', pk8, ECDH, false, ['deriveBits']);
+                await setDoc(uref, data, { merge: true });
+                await idbSet('id:' + uid, { priv, pub });
+                Object.assign(E2E, { priv, pub, ready: true });
+            } catch (e) { console.error(e); showToast('Шифрование недоступно: ' + e.message); }
+        }
+        async function peerPub(uid) {
+            let p = profiles.get(uid)?.e2eePub;
+            if (!p) { try { p = (await getDoc(doc(db, 'users', uid))).data()?.e2eePub; } catch (_) {} }
+            if (p) { // предупреждение, если ключ собеседника сменился
+                try { const seen = localStorage.getItem('pk:' + uid); if (seen && seen !== p.x) showToast('⚠️ Ключ шифрования собеседника изменился — сверьте код безопасности', true); localStorage.setItem('pk:' + uid, p.x); } catch (_) {}
+            }
+            return p || null;
+        }
+        async function chatKeyWith(uid) {
+            await ensureE2EE(); if (!E2E.ready || !uid) return null;
+            const p = await peerPub(uid); if (!p) return null;
+            const ck = uid + ':' + p.x + p.y; if (E2E.keys.has(ck)) return E2E.keys.get(ck);
+            const pub = await crypto.subtle.importKey('jwk', { ...p, ext: true }, ECDH, false, []);
+            const bits = await crypto.subtle.deriveBits({ name: 'ECDH', public: pub }, E2E.priv, 256);
+            const hk = await crypto.subtle.importKey('raw', bits, 'HKDF', false, ['deriveKey']);
+            const key = await crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(32), info: enc8.encode('cm-e2ee-v1') }, hk, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+            E2E.keys.set(ck, key); return key;
+        }
+        async function encryptFor(uid, obj) {
+            const key = await chatKeyWith(uid); if (!key) return null;
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc8.encode(JSON.stringify(obj)));
+            return { iv: b64(iv), ct: b64(ct) };
+        }
+        async function decryptMsg(data) {
+            if (!data.e2e) return data;
+            try {
+                const other = data.senderId === currentUser.uid ? data.receiverId : data.senderId;
+                const key = await chatKeyWith(other); if (!key) throw 0;
+                const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.e2e.iv) }, key, unb64(data.e2e.ct));
+                const o = JSON.parse(dec8.decode(pt));
+                return { ...data, text: o.text || '', replyPreview: o.rp || data.replyPreview };
+            } catch (_) { return { ...data, text: '🔒 Не удалось расшифровать', locked: true }; }
+        }
+        async function securityInfo(uid) { // код безопасности для сверки с собеседником
+            await ensureE2EE(); const p = await peerPub(uid);
+            if (!E2E.ready) return '🔓 Шифрование на этом устройстве не активно';
+            if (!p) return '🔓 Собеседник ещё не включил шифрование — сообщения идут без него';
+            const h = new Uint8Array(await crypto.subtle.digest('SHA-256', enc8.encode([E2E.pub.x + E2E.pub.y, p.x + p.y].sort().join('|'))));
+            const hex = [...h].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 30);
+            return '🔒 Сквозное шифрование включено. Код безопасности (у вас и собеседника должен совпасть): ' + hex.match(/.{5}/g).join(' ');
+        }
+
+        // ===== Группы =====
+        const getCurrentChat = () => allChatsCache.find(c => c.id === currentChatId);
+        async function createGroup(ids, name) {
+            const members = [...new Set([currentUser.uid, ...ids])], memberNames = {};
+            members.forEach(u => { memberNames[u] = u === currentUser.uid ? normalizeName(currentUser) : displayNameFor(u, usersDirectory.get(u)); });
+            const ref = doc(collection(db, 'chats'));
+            await setDoc(ref, { isGroup: true, title: name, members, participants: members, memberNames, admins: [currentUser.uid], createdBy: currentUser.uid, lastMessage: 'Группа создана', lastMessageAt: serverTimestamp(), createdAt: serverTimestamp() });
+            openChat(ref.id, null, name);
+        }
+        function openGroupInfo() {
+            const c = getCurrentChat(); if (!c) return;
+            const o = cmModal(`<h3>👥 ${escapeHtml(c.title || 'Группа')}</h3><p>Участников: ${(c.members || []).length}</p><div class="cm-list">${(c.members || []).map(u => `<div class="cm-row"><span>${escapeHtml(displayNameFor(u, c.memberNames?.[u]))}${u === currentUser.uid ? ' (вы)' : ''}${(c.admins || []).includes(u) ? ' ★' : ''}</span></div>`).join('')}</div><div class="cm-actions"><button class="cm-btn danger" data-x="leave">Выйти из группы</button><button class="cm-btn" data-x="close">Закрыть</button></div><p>Сообщения в группах пока не шифруются сквозным шифрованием.</p>`);
+            o.addEventListener('click', async e => {
+                const x = e.target.closest('[data-x]')?.dataset.x;
+                if (e.target === o || x === 'close') o.remove();
+                else if (x === 'leave' && confirm('Выйти из группы?')) {
+                    try { await updateDoc(doc(db, 'chats', c.id), { members: arrayRemove(currentUser.uid), participants: arrayRemove(currentUser.uid) }); o.remove(); document.getElementById('back-to-chats').click(); }
+                    catch (err) { showToast('Не удалось выйти: ' + err.message); }
+                }
+            });
+        }
+        const usersDirectory = new Map();
+
+        // ===== Пересылка =====
+        async function forwardMessage(id) {
+            const msg = messagesCache.get(id); if (!msg || msg.deleted) return;
+            const items = allChatsCache.map(c => ({ id: c.id, label: c.isGroup ? '👥 ' + (c.title || 'Группа') : (() => { const i = getOtherUserInfo(c, currentUser.uid); return displayNameFor(i.uid, i.name); })() }));
+            if (!items.length) { showToast('Нет чатов для пересылки'); return; }
+            const r = await openPicker({ title: 'Переслать в…', items });
+            if (!r) return;
+            const chat = allChatsCache.find(c => c.id === r.ids[0]); if (!chat) return;
+            try {
+                const otherUid = chat.isGroup ? null : getOtherUserInfo(chat, currentUser.uid).uid;
+                const from = msg.forwardedFrom || (msg.senderId === currentUser.uid ? normalizeName(currentUser) : (msg.senderName || displayNameFor(msg.senderId, chatTitle.textContent)));
+                const payload = { senderId: currentUser.uid, receiverId: otherUid, text: msg.text || '', imageUrl: msg.imageUrl || null, audioUrl: msg.audioUrl || null, chatId: chat.id, read: false, createdAt: serverTimestamp(), forwardedFrom: from };
+                if (chat.isGroup) payload.senderName = normalizeName(currentUser);
+                let preview = msg.text || (msg.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
+                if (msg.text && otherUid) { const e = await encryptFor(otherUid, { text: msg.text, rp: '' }); if (e) { payload.e2e = e; payload.text = ''; preview = '🔒 Сообщение'; } }
+                await addDoc(collection(db, 'messages'), payload);
+                await updateChatSummary(chat.id, preview, otherUid);
+                showToast('Переслано', false);
+            } catch (e) { showToast('Не удалось переслать: ' + e.message); }
+        }
+
+        // ===== Ответ на сообщение =====
+        function previewOf(msg) {
+            return msg.text || (msg.imageUrl ? '📷 Фото' : msg.audioUrl ? '🎤 Голосовое сообщение' : 'Сообщение');
+        }
+        function authorLabel(uid) { return uid === currentUser?.uid ? 'Вы' : (chatTitle.textContent || 'Собеседник'); }
+        function startReply(id) {
+            const msg = messagesCache.get(id); if (!msg || msg.deleted) return;
+            cancelEdit();
+            replyingTo = { id, text: previewOf(msg).slice(0, 140), senderId: msg.senderId };
+            document.getElementById('reply-banner-author').textContent = 'Ответ: ' + authorLabel(msg.senderId);
+            document.getElementById('reply-banner-preview').textContent = replyingTo.text;
+            document.getElementById('reply-banner').classList.remove('hidden');
+            messageInput.focus();
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+        function cancelReply() {
+            replyingTo = null;
+            document.getElementById('reply-banner').classList.add('hidden');
+        }
+        function jumpToMessage(id) {
+            const el = messagesList.querySelector(`[data-id="${CSS.escape(id)}"]`);
+            if (!el) { showToast('Сообщение находится выше в истории', false); return; }
+            stickBottom = false;
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('highlight');
+            setTimeout(() => el.classList.remove('highlight'), 1500);
+        }
+        async function copyText(text) {
+            try { await navigator.clipboard.writeText(text); showToast('Скопировано', false); }
+            catch (_) {
+                const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+                document.body.appendChild(ta); ta.select();
+                try { document.execCommand('copy'); showToast('Скопировано', false); } catch (e) { showToast('Не удалось скопировать'); }
+                ta.remove();
+            }
+        }
+        // Текст → безопасный HTML с кликабельными ссылками
+        function linkify(text) {
+            const re = /((?:https?:\/\/|www\.)[^\s<]+[^\s<.,;:!?)\]}'"»])/gi;
+            let out = '', last = 0, m;
+            while ((m = re.exec(text))) {
+                out += escapeHtml(text.slice(last, m.index));
+                const url = m[0], href = /^www\./i.test(url) ? 'https://' + url : url;
+                out += `<a class="msg-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer nofollow">${escapeHtml(url)}</a>`;
+                last = m.index + url.length;
+            }
+            return (out + escapeHtml(text.slice(last))).replace(/\n/g, '<br>');
+        }
+
         function startEdit(id) {
+            cancelReply();
             const msg = messagesCache.get(id); if (!msg) return;
             clearAttachment(); editingMessageId = id;
             messageInput.value = msg.text || '';
@@ -1208,8 +1482,15 @@
             if (!text) { showToast('Текст не может быть пустым. Чтобы убрать сообщение, удалите его.'); return; }
             if (old && text === old.text) { cancelEdit(); return; }
             try {
-                await updateDoc(doc(db, 'messages', id), { text, edited: true, editedAt: serverTimestamp() });
-                if (id === lastMessageId) await updateChatLastText(currentChatId, text);
+                const upd = { edited: true, editedAt: serverTimestamp() };
+                let preview = text;
+                if (old?.e2e) {
+                    const e = await encryptFor(old.receiverId, { text, rp: old.replyPreview || '' });
+                    if (!e) throw new Error('нет ключа шифрования');
+                    upd.e2e = e; upd.text = ''; preview = '🔒 Сообщение';
+                } else upd.text = text;
+                await updateDoc(doc(db, 'messages', id), upd);
+                if (id === lastMessageId) await updateChatLastText(currentChatId, preview);
                 cancelEdit();
             } catch (e) { showToast('Не удалось изменить: ' + e.message); }
         }
@@ -1387,12 +1668,22 @@
                 };
                 if (replyingTo?.id) {
                     payload.replyTo = replyingTo.id;
+                    payload.replyPreview = replyingTo.text || '';
+                    payload.replyAuthorId = replyingTo.senderId || null;
+                }
+                let lastPreview = text || (imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
+                const cc = getCurrentChat();
+                if (cc?.isGroup) payload.senderName = normalizeName(currentUser);
+                else if (text && currentChatOtherUid) {
+                    const e = await encryptFor(currentChatOtherUid, { text, rp: replyingTo?.text || '' });
+                    if (e) { payload.e2e = e; payload.text = ''; delete payload.replyPreview; lastPreview = '🔒 Сообщение'; }
                 }
                 await addDoc(collection(db, 'messages'), payload);
                 messageInput.value = '';
                 clearAttachment();
-                replyingTo = null;
-                await updateChatSummary(currentChatId, text || (imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение'), currentChatOtherUid);
+                cancelReply();
+                clearDraft(currentChatId);
+                await updateChatSummary(currentChatId, lastPreview, currentChatOtherUid);
             } catch (error) {
                 console.error(error);
                 showToast('Не удалось отправить: ' + (error.message || error));
@@ -1402,6 +1693,13 @@
         }
 
         async function updateChatSummary(chatId, lastText, recipientUid) {
+            const gc = allChatsCache.find(x => x.id === chatId);
+            if (gc?.isGroup) {
+                const upd = { lastMessage: lastText, lastSenderId: currentUser.uid, lastMessageAt: serverTimestamp() };
+                (gc.members || []).forEach(u => { if (u !== currentUser.uid) upd[`unread_${u}`] = increment(1); });
+                try { await updateDoc(doc(db, 'chats', chatId), upd); } catch (e) { console.error(e); }
+                return;
+            }
             try {
                 const chatRef = doc(db, 'chats', chatId);
                 const chatSnap = await getDoc(chatRef);
@@ -1499,7 +1797,8 @@
                 limit(PAGE_SIZE)
             );
 
-            messagesUnsub = onSnapshot(q, snapshot => {
+            let msgSeq = 0;
+            messagesUnsub = onSnapshot(q, async snapshot => {
                 if (snapshot.docs.length > 0) {
                     lastVisibleMessageDoc = snapshot.docs[snapshot.docs.length - 1];
                     if (snapshot.docs.length < PAGE_SIZE) {
@@ -1519,15 +1818,20 @@
                     else if (!first && !ch.doc.metadata.hasPendingWrites) incoming = true;
                 });
 
+                const seq = ++msgSeq;
+                const plainList = await Promise.all(snapshot.docs.map(d => decryptMsg(d.data())));
+                if (seq !== msgSeq || chatId !== currentChatId) return;
+                const plain = new Map(snapshot.docs.map((d, i) => [d.id, plainList[i]]));
+
                 ignoreScrollUntil = performance.now() + 250;
                 messagesList.innerHTML = ''; 
                 messagesCache = new Map();
 
                 const docsReversed = snapshot.docs.slice().reverse();
                 docsReversed.forEach(snap => {
-                    messagesCache.set(snap.id, snap.data());
+                    messagesCache.set(snap.id, plain.get(snap.id));
                     lastMessageId = snap.id; 
-                    renderMessage(snap.id, snap.data());
+                    renderMessage(snap.id, plain.get(snap.id));
                 });
                 rebuildDateSeparators();
 
@@ -1578,10 +1882,11 @@
                 const anchorTop = anchorEl ? anchorEl.getBoundingClientRect().top : 0;
 
                 const olderDocs = snapshot.docs.slice().reverse();
+                const olderPlain = new Map(await Promise.all(olderDocs.map(async d => [d.id, await decryptMsg(d.data())])));
                 const tempContainer = document.createDocumentFragment();
                 olderDocs.forEach(snap => {
-                    messagesCache.set(snap.id, snap.data());
-                    const div = createMessageElement(snap.id, snap.data());
+                    messagesCache.set(snap.id, olderPlain.get(snap.id));
+                    const div = createMessageElement(snap.id, olderPlain.get(snap.id));
                     tempContainer.appendChild(div);
                 });
 
@@ -1641,7 +1946,18 @@
             if (msg.deleted) {
                 html += '<div class="msg-deleted">🚫 Сообщение удалено</div>';
             } else {
-                if (msg.text) html += `<div>${escapeHtml(msg.text).replace(/\n/g, '<br>')}</div>`;
+                if (!mine && msg.senderName && getCurrentChat()?.isGroup) {
+                    let h = 0; for (const ch of msg.senderId) h = (h * 31 + ch.charCodeAt(0)) % 360;
+                    html += `<div class="msg-sender" style="color:hsl(${h} 70% 62%)">${escapeHtml(msg.senderName)}</div>`;
+                }
+                if (msg.forwardedFrom) html += `<div class="fwd-label">↪️ Переслано от ${escapeHtml(msg.forwardedFrom)}</div>`;
+                if (msg.replyTo) {
+                    const src = messagesCache.get(msg.replyTo);
+                    const qText = src ? (src.deleted ? '🚫 Сообщение удалено' : previewOf(src)) : (msg.replyPreview || 'Сообщение');
+                    const qAuthor = authorLabel(src ? src.senderId : msg.replyAuthorId);
+                    html += `<div class="reply-quote" data-reply="${escapeHtml(msg.replyTo)}"><b>${escapeHtml(qAuthor)}</b><span>${escapeHtml(qText.slice(0, 140))}</span></div>`;
+                }
+                if (msg.text) html += `<div>${linkify(msg.text)}</div>`;
                 if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image">`;
                 if (msg.audioUrl) html += `<audio controls src="${escapeHtml(msg.audioUrl)}"></audio>`;
                 const counts = {};
@@ -1728,12 +2044,20 @@
             currentChatId = chatId;
             currentChatOtherUid = otherUid;
             chatTitle.textContent = otherName || 'Чат';
-            cancelEdit(); closeMsgMenu();
+            cancelEdit(); cancelReply(); closeMsgMenu();
+            restoreDraft(chatId);
             watchUser(otherUid); watchPresence(otherUid);
             refreshChatHeader();
             stickBottom = true;
             ignoreScrollUntil = performance.now() + 400;
             showScreen(chatScreen);
+            const gc0 = allChatsCache.find(c => c.id === chatId);
+            if (gc0?.isGroup) {
+                document.getElementById('chat-status-text').textContent = (gc0.members || []).length + ' участн.';
+                document.getElementById('chat-status-dot').className = 'status-switch sm hidden';
+                applyAvatar(chatAvatar, chatId, otherName || 'Группа');
+            }
+            ensureE2EE();
             subscribeMessages(chatId);
             subscribeTyping(chatId);
             document.fonts?.ready?.then(() => {
@@ -1820,7 +2144,7 @@
                 const queryStr = currentSearchQuery.trim().toLowerCase();
                 filteredChats = allChatsCache.filter(chat => {
                     const { name } = getOtherUserInfo(chat, currentUser.uid);
-                    const otherName = displayNameFor(getOtherUserInfo(chat, currentUser.uid).uid, name).toLowerCase();
+                    const otherName = (chat.isGroup ? (chat.title || '') : displayNameFor(getOtherUserInfo(chat, currentUser.uid).uid, name)).toLowerCase();
                     const lastMsg = (chat.lastMessage || '').toLowerCase();
                     return otherName.includes(queryStr) || lastMsg.includes(queryStr);
                 });
@@ -1832,9 +2156,11 @@
             }
             
             filteredChats.forEach(chat => {
-                const { uid: otherUid, name: rawName } = getOtherUserInfo(chat, currentUser.uid);
-                watchUser(otherUid); watchPresence(otherUid);
-                const otherName = displayNameFor(otherUid, rawName), st = effectiveStatus(otherUid);
+                const isG = !!chat.isGroup;
+                const { uid: uid0, name: rawName } = getOtherUserInfo(chat, currentUser.uid);
+                const otherUid = isG ? null : uid0;
+                if (otherUid) { watchUser(otherUid); watchPresence(otherUid); }
+                const otherName = isG ? (chat.title || 'Группа') : displayNameFor(otherUid, rawName), st = otherUid ? effectiveStatus(otherUid) : 'offline';
                 
                 const unreadCount = currentUser ? (chat[`unread_${currentUser.uid}`] || 0) : 0;
                 
@@ -1844,7 +2170,7 @@
                     <div class="avatar"></div>
                     <div class="chat-item-info">
                         <div class="chat-item-header">
-                            <div class="chat-item-name-row"><span class="status-switch sm ${st}" title="${STATUS_LABELS[st]}"></span><div class="chat-item-name">${escapeHtml(otherName)}</div></div>
+                            <div class="chat-item-name-row">${isG ? '<span>👥</span>' : `<span class="status-switch sm ${st}" title="${STATUS_LABELS[st]}"></span>`}<div class="chat-item-name">${escapeHtml(otherName)}</div></div>
                             <div class="chat-item-time">${formatChatTime(chat.lastMessageAt || chat.createdAt)}</div>
                         </div>
                         <div class="chat-item-footer">
@@ -1853,7 +2179,7 @@
                         </div>
                     </div>
                 `;
-                applyAvatar(item.querySelector('.avatar'), otherUid, otherName);
+                applyAvatar(item.querySelector('.avatar'), otherUid || chat.id, otherName);
                 item.addEventListener('click', () => openChat(chat.id, otherUid, otherName));
                 chatsList.appendChild(item);
             });
@@ -1865,6 +2191,7 @@
         });
 
         function openProfileMenu() {
+            if (getCurrentChat()?.isGroup) return openGroupInfo();
             if (!currentChatOtherUid || !currentUser) return;
             const name = displayNameFor(currentChatOtherUid, chatTitle.textContent);
             document.getElementById('profile-menu-name').textContent = name;
@@ -1873,6 +2200,8 @@
             document.getElementById('profile-menu-status-switch').className = 'status-switch sm ' + st;
             const aboutEl = document.getElementById('profile-menu-about');
             aboutEl.textContent = ''; aboutEl.classList.add('hidden');
+            const forUid = currentChatOtherUid;
+            securityInfo(forUid).then(t => { if (forUid === currentChatOtherUid) { aboutEl.textContent = t; aboutEl.classList.remove('hidden'); } }).catch(() => {});
             applyAvatar(document.getElementById('profile-menu-avatar'), currentChatOtherUid, name);
             profileMenu.classList.remove('hidden');
         }
@@ -1910,6 +2239,7 @@
 
         function subscribeTyping(chatId) {
             if (typingUnsub) typingUnsub();
+            if (!currentChatOtherUid) { typingIndicator.innerHTML = ''; return; }
             const typingRef = rtdbRef(rtdb, `typing/${chatId}/${currentChatOtherUid}`);
             typingUnsub = onValue(typingRef, snap => {
                 if (snap.val()) {
@@ -1945,19 +2275,20 @@
                 const snapshot = await getDocs(collection(db, 'users'));
                 const users = [];
                 snapshot.forEach(snap => {
-                    if (snap.id !== currentUser.uid) users.push({ uid: snap.id, ...snap.data() });
+                    if (snap.id !== currentUser.uid) { users.push({ uid: snap.id, ...snap.data() }); usersDirectory.set(snap.id, snap.data().displayName || snap.data().email || 'Пользователь'); }
                 });
-                users.sort((a,b) => String(a.displayName || a.email || '').localeCompare(String(b.displayName || b.email || ''), 'ru'));
-                if (!users.length) {
-                    showToast('Других пользователей пока нет', false);
+                users.sort((a, b) => String(a.displayName || a.email || '').localeCompare(String(b.displayName || b.email || ''), 'ru'));
+                if (!users.length) { showToast('Других пользователей пока нет', false); return; }
+                const items = users.map(u => ({ id: u.uid, label: u.displayName || u.email || 'Пользователь' }));
+                const r = await openPicker({ title: 'Новый чат', items, extra: '👥 Новая группа' });
+                if (!r) return;
+                if (r.extra) {
+                    const g = await openPicker({ title: 'Новая группа', items, multi: true, nameField: 'Название группы', okLabel: 'Создать' });
+                    if (g) await createGroup(g.ids, g.name);
                     return;
                 }
-                const names = users.map((u, i) => `${i+1}. ${u.displayName || u.email || 'Пользователь'}`).join('\n');
-                const choice = prompt('Выберите пользователя:\n\n' + names + '\n\nВведите номер:');
-                const index = Number(choice) - 1;
-                if (!Number.isInteger(index) || !users[index]) return;
-                const user = users[index];
-                await createOrOpenChat(user.uid, user.displayName || user.email || 'Пользователь');
+                const user = users.find(u => u.uid === r.ids[0]);
+                if (user) await createOrOpenChat(user.uid, user.displayName || user.email || 'Пользователь');
             } catch (e) {
                 console.error(e);
                 showToast('Не удалось получить список пользователей: ' + e.message);
@@ -2126,7 +2457,8 @@
             if (messagesUnsub) messagesUnsub();
             if (chatDetailsUnsub) chatDetailsUnsub();
             if (typingUnsub) typingUnsub();
-            cancelEdit(); closeMsgMenu(); closeProfileMenu();
+            saveDraft();
+            cancelEdit(); cancelReply(); closeMsgMenu(); closeProfileMenu();
             chatBottomBtn.classList.remove('show');
             currentChatId = null;
             currentChatOtherUid = null;
@@ -2357,6 +2689,9 @@
 
         let pressTimer = null, suppressClickUntil = 0;
         messagesList.addEventListener('click', e => {
+            if (e.target.closest('.msg-link')) return; // открываем ссылку, меню не показываем
+            const quote = e.target.closest('.reply-quote');
+            if (quote) { jumpToMessage(quote.dataset.reply); return; }
             const chip = e.target.closest('.reaction-chip');
             if (chip) { toggleReaction(chip.closest('.message').dataset.id, chip.dataset.emoji); return; }
             const img = e.target.closest('.message-image');
@@ -2379,6 +2714,90 @@
         document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMsgMenu(); imageViewer.classList.add('hidden'); resetImageViewer(); } });
         messageInput.addEventListener('keydown', e => { if (e.key === 'Escape') cancelEdit(); });
         document.getElementById('cancel-edit').addEventListener('click', cancelEdit);
+        document.getElementById('cancel-reply').addEventListener('click', cancelReply);
+
+        // ===== Черновики: недописанный текст сохраняется отдельно для каждого чата =====
+        const draftKey = id => 'draft:' + id;
+        function saveDraft() {
+            if (!currentChatId || editingMessageId) return;
+            try {
+                const v = messageInput.value;
+                if (v.trim()) localStorage.setItem(draftKey(currentChatId), v);
+                else localStorage.removeItem(draftKey(currentChatId));
+            } catch (_) {}
+        }
+        function clearDraft(id) { try { localStorage.removeItem(draftKey(id)); } catch (_) {} }
+        function restoreDraft(id) {
+            try { messageInput.value = localStorage.getItem(draftKey(id)) || ''; } catch (_) { messageInput.value = ''; }
+        }
+        messageInput.addEventListener('input', saveDraft);
+
+        // ===== Вставка фото из буфера обмена (Ctrl+V / долгий тап → Вставить) =====
+        messageInput.addEventListener('paste', e => {
+            const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+            if (!item || editingMessageId) return;
+            const file = item.getAsFile();
+            if (file) { e.preventDefault(); setPendingImage(file); }
+        });
+
+        // ===== Индикатор отсутствия сети =====
+        (function () {
+            const banner = document.getElementById('offline-banner');
+            const update = () => banner.classList.toggle('show', !navigator.onLine);
+            window.addEventListener('online', update);
+            window.addEventListener('offline', update);
+            update();
+        })();
+
+        // ===== Свайп сообщения вправо/влево = ответить =====
+        (function () {
+            let el = null, sx = 0, sy = 0, dx = 0, active = false, decided = false, icon = null;
+            const TH = 64;
+            messagesList.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) return;
+                const b = e.target.closest('.message');
+                if (!b || b.classList.contains('deleted')) return;
+                el = b; sx = e.touches[0].clientX; sy = e.touches[0].clientY; dx = 0; active = false; decided = false;
+            }, { passive: true });
+            messagesList.addEventListener('touchmove', e => {
+                if (!el) return;
+                const t = e.touches[0], mx = t.clientX - sx, my = t.clientY - sy;
+                if (!decided) {
+                    if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
+                    decided = true;
+                    active = Math.abs(mx) > Math.abs(my) * 1.5;
+                    if (active) {
+                        el.classList.add('swiping');
+                        icon = document.createElement('div'); icon.className = 'swipe-reply-icon'; icon.textContent = '↩';
+                        const br = el.getBoundingClientRect();
+                        icon.style.top = (br.top + br.height / 2 - 14) + 'px';
+                        document.body.appendChild(icon);
+                    }
+                }
+                if (!active) { el = null; return; }
+                dx = Math.max(-110, Math.min(110, mx));
+                const eased = dx * 0.7;
+                el.style.transform = `translateX(${eased}px)`;
+                const p = Math.min(1, Math.abs(dx) / TH);
+                icon.style.opacity = p;
+                icon.style.transform = `scale(${0.6 + 0.4 * p})`;
+                const lr = messagesList.getBoundingClientRect();
+                icon.style.left = dx > 0 ? (lr.left + 12) + 'px' : 'auto';
+                icon.style.right = dx < 0 ? (innerWidth - lr.right + 12) + 'px' : 'auto';
+            }, { passive: true });
+            const end = () => {
+                if (!el) return;
+                const target = el, trigger = active && Math.abs(dx) >= TH;
+                target.classList.remove('swiping'); target.classList.add('swipe-back');
+                target.style.transform = '';
+                icon?.remove(); icon = null;
+                setTimeout(() => target.classList.remove('swipe-back'), 220);
+                if (trigger) { suppressClickUntil = Date.now() + 500; startReply(target.dataset.id); }
+                el = null; active = false;
+            };
+            messagesList.addEventListener('touchend', end, { passive: true });
+            messagesList.addEventListener('touchcancel', end, { passive: true });
+        })();
 
         document.getElementById('status-picker').addEventListener('click', e => {
             const b = e.target.closest('button[data-status]'); if (!b) return;
@@ -2408,6 +2827,7 @@
         document.getElementById('avatar-reset-btn').addEventListener('click', () => saveProfile({ avatar: deleteField(), avatarGradient: deleteField() }));
 
         onAuthStateChanged(auth, user => {
+            Object.assign(E2E, { priv: null, pub: null, ready: false, initPromise: null }); E2E.keys.clear();
             currentUser = user;
             teardownWatchers();
             if (user) {
