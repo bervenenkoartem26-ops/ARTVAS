@@ -954,6 +954,23 @@
         .msg-menu,.cm-card,.profile-menu-card{background:var(--surface-color);border:none}
         .profile-menu-head{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 22%,var(--surface-color)),var(--surface-color))}
         .profile-menu-list{background:var(--field)}
+
+        /* --- фон профиля --- */
+        .banner-preview{height:110px;border-radius:14px;background-color:var(--field);background-size:cover;background-position:center;
+                  display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:13px;margin-bottom:12px;overflow:hidden}
+        .banner-actions{display:flex;gap:8px;flex-wrap:wrap}
+        .banner-actions .btn{flex:1;min-width:130px}
+        #banner-colors{margin-top:12px}
+        .profile-menu{overflow:hidden;align-items:flex-start;background:transparent!important}
+        .profile-menu-bg{position:fixed;inset:-40px;z-index:0;background-color:#0b0b0e;background-size:cover;background-position:center;
+                  filter:blur(28px) saturate(1.2);pointer-events:none}
+        .profile-menu-bg::after{content:'';position:absolute;inset:0;background:rgba(5,6,12,.58)}
+        .profile-menu-card{position:relative;z-index:1;max-height:100%;overflow:auto}
+        .profile-menu-close{z-index:2}
+        .profile-menu-head{background-size:cover;background-position:center}
+        .profile-menu-head.has-banner{padding-top:96px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.55)}
+        .profile-menu-head.has-banner .profile-menu-status{color:rgba(255,255,255,.88)}
+        .profile-menu-head.has-banner .avatar-xl{box-shadow:0 0 0 5px var(--surface-color);text-shadow:none}
     </style>
 </head>
 <body>
@@ -1100,6 +1117,17 @@
                     <input type="file" id="avatar-input" accept="image/*" class="hidden">
                 </div>
                 <div class="settings-section">
+                    <label class="settings-label">Фон профиля</label>
+                    <div id="banner-preview" class="banner-preview">Фон не выбран</div>
+                    <div class="banner-actions">
+                        <button id="banner-upload-btn" class="btn btn-secondary">🖼 Загрузить фон</button>
+                        <button id="banner-reset-btn" class="btn btn-secondary">Сбросить</button>
+                    </div>
+                    <div class="accent-row" id="banner-colors"></div>
+                    <input type="file" id="banner-input" accept="image/*" class="hidden">
+                    <p style="font-size:12px;color:var(--text-secondary);margin-top:8px">Этот фон увидят люди, открывшие ваш профиль. Можно выбрать картинку или цвет.</p>
+                </div>
+                <div class="settings-section">
                     <label class="settings-label">Статус</label>
                     <div class="status-picker" id="status-picker">
                         <button data-status="online"><span class="status-switch sm online"></span>В сети</button>
@@ -1197,9 +1225,10 @@
     </div>
 
     <div id="profile-menu" class="profile-menu hidden" role="dialog" aria-modal="true">
+        <div id="profile-menu-bg" class="profile-menu-bg"></div>
         <button id="profile-menu-close" class="profile-menu-close" title="Закрыть">✕</button>
         <div class="profile-menu-card">
-            <div class="profile-menu-head">
+            <div id="profile-menu-head" class="profile-menu-head">
                 <div id="profile-menu-avatar" class="avatar avatar-xl">C</div>
                 <div id="profile-menu-name" class="profile-menu-name">Пользователь</div>
                 <div class="profile-menu-status-row"><span id="profile-menu-status" class="profile-menu-status">Не в сети</span><span id="profile-menu-status-switch" class="status-switch sm offline"></span></div>
@@ -1429,6 +1458,11 @@
             if (!currentUser) return;
             applyAvatar(document.getElementById('settings-avatar'), currentUser.uid, normalizeName(currentUser));
             applyAvatar(document.getElementById('nav-profile-avatar'), currentUser.uid, normalizeName(currentUser));
+            const bp = document.getElementById('banner-preview');
+            if (bp) {
+                const css = bannerCss(profiles.get(currentUser.uid));
+                bp.style.backgroundImage = css; bp.textContent = css ? '' : 'Фон не выбран';
+            }
             const ubName = document.getElementById('user-bar-name');
             if (ubName) {
                 ubName.textContent = displayNameFor(currentUser.uid, normalizeName(currentUser));
@@ -1479,6 +1513,30 @@
                 showToast('Не удалось сохранить профиль: ' + e.message);
                 return false;
             }
+        }
+        function bannerCss(p) {
+            if (p && typeof p.banner === 'string' && p.banner.startsWith('data:image/')) return `url("${p.banner}")`;
+            if (p && typeof p.bannerColor === 'string' && /^#[0-9a-f]{6}$/i.test(p.bannerColor))
+                return `linear-gradient(135deg, ${p.bannerColor}, color-mix(in srgb, ${p.bannerColor} 55%, black))`;
+            return '';
+        }
+        function fileToBanner(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Не удалось прочитать файл'));
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('Не удалось открыть изображение'));
+                    img.onload = () => {
+                        const W = 720, H = 360, c = document.createElement('canvas'); c.width = W; c.height = H;
+                        const k = Math.max(W / img.width, H / img.height), w = W / k, h = H / k;
+                        c.getContext('2d').drawImage(img, (img.width - w) / 2, (img.height - h) / 2, w, h, 0, 0, W, H);
+                        resolve(c.toDataURL('image/jpeg', 0.8));
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
         }
         function fileToAvatar(file) {
             return new Promise((resolve, reject) => {
@@ -2689,6 +2747,11 @@
             const forUid = currentChatOtherUid;
             securityInfo(forUid).then(t => { if (forUid === currentChatOtherUid) { aboutEl.textContent = t; aboutEl.classList.remove('hidden'); } }).catch(() => {});
             applyAvatar(document.getElementById('profile-menu-avatar'), currentChatOtherUid, name);
+            const bcss = bannerCss(profiles.get(currentChatOtherUid));
+            const headEl = document.getElementById('profile-menu-head');
+            headEl.classList.toggle('has-banner', !!bcss);
+            headEl.style.backgroundImage = bcss ? `linear-gradient(to top, rgba(0,0,0,.5), rgba(0,0,0,0) 65%), ${bcss}` : '';
+            document.getElementById('profile-menu-bg').style.backgroundImage = bcss;
             profileMenu.classList.remove('hidden');
         }
 
@@ -3569,6 +3632,34 @@
             const h = Math.floor(Math.random() * 360);
             saveProfile({ avatarGradient: [h, (h + 40 + Math.floor(Math.random() * 80)) % 360, Math.floor(Math.random() * 360)], avatar: deleteField() });
         });
+        document.getElementById('banner-upload-btn').addEventListener('click', () => document.getElementById('banner-input').click());
+        document.getElementById('banner-input').addEventListener('change', async e => {
+            const f = e.target.files?.[0]; e.target.value = '';
+            if (!f) return;
+            if (!f.type.startsWith('image/')) { showToast('Выберите изображение.'); return; }
+            try {
+                const b = await fileToBanner(f);
+                if (await saveProfile({ banner: b, bannerColor: deleteField() })) showToast('Фон профиля обновлён', false);
+            } catch (err) { showToast(err.message); }
+        });
+        document.getElementById('banner-reset-btn').addEventListener('click', async () => {
+            if (await saveProfile({ banner: deleteField(), bannerColor: deleteField() })) {
+                const cur = profiles.get(currentUser.uid) || {}; delete cur.banner; delete cur.bannerColor; // deleteField не должен остаться в кэше
+                onPeopleChanged(); showToast('Фон сброшен', false);
+            }
+        });
+        (function () {
+            const row = document.getElementById('banner-colors');
+            ['#5865f2', '#3390ec', '#8b5cf6', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#2b2d31'].forEach(c => {
+                const b = document.createElement('button'); b.className = 'accent-dot'; b.style.background = c; b.title = c;
+                b.addEventListener('click', async () => {
+                    if (await saveProfile({ bannerColor: c, banner: deleteField() })) {
+                        const cur = profiles.get(currentUser.uid) || {}; delete cur.banner; onPeopleChanged();
+                    }
+                });
+                row.appendChild(b);
+            });
+        })();
         document.getElementById('avatar-reset-btn').addEventListener('click', () => saveProfile({ avatar: deleteField(), avatarGradient: deleteField() }));
 
         onAuthStateChanged(auth, user => {
