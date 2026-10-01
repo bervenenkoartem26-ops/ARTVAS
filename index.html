@@ -57,16 +57,17 @@
             background-color: var(--bg-color);
             color: var(--text-primary);
             position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 100vh;
-            height: 100dvh;
-            height: var(--app-h, 100dvh);
+            top: 0; left: 0; right: 0; bottom: 0;
+            height: auto;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
         }
+
+        /* Высота задаётся вручную только когда открыта клавиатура (iOS) */
+        body.kb-open { bottom: auto; height: var(--app-h); }
 
         .app-shell {
             flex: 1;
@@ -657,20 +658,20 @@
         .profile-menu-list .profile-menu-action{display:flex;align-items:center;gap:12px}
         .profile-menu-action-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
         .profile-menu-list .profile-menu-about{padding:8px 10px 6px;font-size:14px}
-        .bottom-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 16px calc(8px + var(--safe-bottom));background:color-mix(in srgb,var(--surface-color) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border-color);flex-shrink:0}
-        .bottom-nav-group{display:flex;align-items:center;gap:4px;background:var(--surface-color);border:1px solid var(--border-color);border-radius:22px;padding:6px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
-        .bottom-nav-btn{position:relative;width:44px;height:44px;border-radius:14px;border:none;background:transparent;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,color .15s,transform .1s}
+        .bottom-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(10px + var(--safe-bottom));background:color-mix(in srgb,var(--surface-color) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border-color);flex-shrink:0}
+        .bottom-nav-group{display:flex;align-items:center;gap:6px;background:var(--surface-color);border:1px solid var(--border-color);border-radius:30px;padding:7px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+        .bottom-nav-btn{position:relative;width:60px;height:60px;border-radius:22px;border:none;background:transparent;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,color .15s,transform .1s}
         .bottom-nav-btn:hover{background:var(--surface-hover)}
         .bottom-nav-btn:active{transform:scale(.92)}
         .bottom-nav-btn.active{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
-        .bottom-nav-btn.active::after{content:'';position:absolute;bottom:4px;left:50%;width:4px;height:4px;border-radius:50%;background:var(--accent);transform:translateX(-50%);animation:dotPop .2s ease}
+        .bottom-nav-btn.active::after{content:'';position:absolute;bottom:5px;left:50%;width:4px;height:4px;border-radius:50%;background:var(--accent);transform:translateX(-50%);animation:dotPop .2s ease}
         @keyframes dotPop{from{transform:translateX(-50%) scale(0)}to{transform:translateX(-50%) scale(1)}}
-        .bottom-nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-        .bottom-nav-avatar{width:30px;height:30px;font-size:12px;border:1.5px solid var(--border-color);transition:border-color .15s}
+        .bottom-nav-btn svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .bottom-nav-avatar{width:40px;height:40px;font-size:15px;border:1.5px solid var(--border-color);transition:border-color .15s}
         .bottom-nav-btn.active .bottom-nav-avatar{border-color:var(--accent)}
-        .bottom-nav-add{width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 50%,transparent);transition:transform .15s}
+        .bottom-nav-add{width:68px;height:68px;border-radius:50%;border:none;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 50%,transparent);transition:transform .15s}
         .bottom-nav-add:active{transform:scale(.9)}
-        .bottom-nav-add svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s ease}
+        .bottom-nav-add svg{width:32px;height:32px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s ease}
         .bottom-nav-add:hover svg{transform:rotate(90deg)}
 
         @media (max-width: 520px) {
@@ -678,8 +679,8 @@
             .message { max-width: 88%; }
             .top-bar { gap: 8px; }
             .top-bar-title { font-size: 18px; }
-            .bottom-nav-group { gap: 2px; padding: 5px; }
-            .bottom-nav-btn { width: 42px; height: 42px; }
+            .bottom-nav-group { gap: 4px; padding: 6px; }
+            .bottom-nav-btn { width: 56px; height: 56px; }
         }
         @media (max-width: 380px) {
             .avatar { width: 44px; height: 44px; font-size: 16px; }
@@ -689,7 +690,7 @@
             .messages-list { padding: 12px; }
             .message { max-width: 92%; padding: 9px 12px; }
             .bottom-nav { padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); gap: 8px; }
-            .bottom-nav-add { width: 48px; height: 48px; }
+            .bottom-nav-add { width: 62px; height: 62px; }
         }
         @media (max-height: 640px) {
             .auth-card { padding: 22px 20px; }
@@ -697,6 +698,26 @@
             .auth-title { margin-bottom: 14px; }
             .input-group { margin-bottom: 10px; }
         }
+
+        /* ===== Меню сообщения: размытый фон, видно только сообщение и действия ===== */
+        .message { -webkit-touch-callout: none; }
+        .message.msg-hidden { visibility: hidden; }
+        .msg-overlay { position: fixed; inset: 0; z-index: 1400; }
+        .msg-backdrop { position: absolute; inset: 0; background: rgba(5,6,12,.5); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); animation: mbIn .2s ease; }
+        :root[data-theme="light"] .msg-backdrop { background: rgba(230,234,250,.5); }
+        @keyframes mbIn { from { opacity: 0; } to { opacity: 1; } }
+        .msg-clone { position: fixed !important; z-index: 1450; margin: 0 !important; max-width: none !important; overflow: hidden; pointer-events: none; transform-origin: center; animation: mcPop .26s cubic-bezier(.34,1.56,.64,1); }
+        .msg-clone * { pointer-events: none !important; }
+        @keyframes mcPop { from { transform: scale(.96); } to { transform: scale(1); } }
+        .msg-overlay .msg-menu { z-index: 1500; min-width: 240px; padding: 8px; transform-origin: top center; animation: mmPop .22s cubic-bezier(.34,1.3,.64,1); }
+        @keyframes mmPop { from { opacity: 0; transform: scale(.9) translateY(-6px); } to { opacity: 1; transform: none; } }
+        .msg-overlay .msg-menu-reactions { padding: 2px 2px 8px; margin-bottom: 4px; border-bottom: 1px solid var(--border-color); }
+        .msg-overlay .react-btn { width: 40px; height: 40px; font-size: 23px; }
+        .msg-menu-item { display: flex; align-items: center; gap: 14px; }
+        .msg-menu-item svg { width: 21px; height: 21px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .msg-menu-item.danger svg { stroke: var(--danger); }
+        .swipe-reply-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+        @media (prefers-reduced-motion: reduce) { .msg-backdrop, .msg-clone, .msg-overlay .msg-menu { animation: none; } }
     </style>
     <style id="lg-style">
         /* ===== Liquid Glass ===== */
@@ -731,6 +752,7 @@
         }
         html { background: #06070d; }
         :root[data-theme="light"] { background: #e9edfa; }
+        body { background-color: transparent; }
         body::before {
             content: ''; position: fixed; inset: -25%; z-index: -1; pointer-events: none;
             background:
@@ -772,7 +794,7 @@
 
         /* нижняя навигация */
         .bottom-nav { background: transparent !important; border-top: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; padding-top: 6px; }
-        .bottom-nav-group { border-radius: 30px; padding: 6px; }
+        .bottom-nav-group { border-radius: 34px; padding: 7px; }
         .bottom-nav-btn { transition: background .25s, color .25s, transform .4s var(--spring); }
         .bottom-nav-btn:active { transform: scale(.88); }
         .bottom-nav-btn.active { background: var(--glass-strong); box-shadow: var(--glass-hi); color: var(--text-primary); }
@@ -847,6 +869,85 @@
         }
         @media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
     </style>
+    <style id="nav-style">
+        /* ===== Постоянная нижняя панель + жидкая линза ===== */
+        :root {
+            --nav-h: calc(100px + var(--safe-bottom));
+            --nav-active: color-mix(in srgb, var(--accent) 58%, #fff);
+            --lens-ease: cubic-bezier(.34, 1.42, .5, 1);
+        }
+        :root[data-theme="light"] { --nav-active: var(--accent); }
+
+        .app-shell > .bottom-nav {
+            position: absolute; left: 0; right: 0; bottom: 0; z-index: 30;
+            padding: 16px max(12px, env(safe-area-inset-right, 0px)) calc(10px + var(--safe-bottom)) max(12px, env(safe-area-inset-left, 0px));
+            gap: 12px; pointer-events: none;
+            animation: navIn .42s var(--lens-ease);
+        }
+        .app-shell > .bottom-nav::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+            background: linear-gradient(to top, rgba(6,7,13,.62), rgba(6,7,13,0));
+        }
+        :root[data-theme="light"] .app-shell > .bottom-nav::before { background: linear-gradient(to top, rgba(233,237,250,.8), rgba(233,237,250,0)); }
+        .bottom-nav.nav-hidden, body.kb-open .bottom-nav { display: none !important; }
+        @keyframes navIn { from { opacity: 0; transform: translateY(26px) scale(.96); } to { opacity: 1; transform: none; } }
+        .bottom-nav > * { pointer-events: auto; }
+
+        /* контент уезжает под стекло, но докручивается до конца */
+        #chats-list, .settings-body { padding-bottom: calc(var(--nav-h) + 12px); }
+        #back-from-profile, #back-from-settings { display: none; }
+
+        .bottom-nav .bottom-nav-group {
+            position: relative; overflow: visible;
+            touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+        }
+        .bottom-nav .bottom-nav-btn {
+            position: relative; z-index: 1; background: transparent !important; box-shadow: none !important;
+            color: var(--text-secondary); transition: color .25s; -webkit-tap-highlight-color: transparent;
+        }
+        .bottom-nav .bottom-nav-btn:active { transform: none; }
+        .bottom-nav .bottom-nav-btn::after { display: none !important; }
+        .bottom-nav .bottom-nav-btn.active, .bottom-nav .bottom-nav-btn.lens-over { color: var(--nav-active); }
+        .bottom-nav .bottom-nav-btn > * { transition: transform .45s var(--lens-ease); }
+        .bottom-nav-group.pressing .bottom-nav-btn.lens-over > * { transform: scale(1.16); }
+
+        /* сама линза */
+        .bottom-nav-group > .bottom-nav-lens {
+            position: absolute; top: 0; left: 0; width: 60px; height: 60px; z-index: 0;
+            border-radius: 999px; pointer-events: none; opacity: 0;
+            background:
+                radial-gradient(120% 90% at 30% 8%, rgba(255,255,255,.34), rgba(255,255,255,0) 55%),
+                linear-gradient(160deg, rgba(255,255,255,.2), rgba(255,255,255,.07) 60%, rgba(255,255,255,.14));
+            border: 1px solid rgba(255,255,255,.34);
+            box-shadow:
+                inset 0 1.5px 0 rgba(255,255,255,.65), inset 0 -1.5px 0 rgba(255,255,255,.18),
+                inset 0 0 16px rgba(255,255,255,.14), 0 6px 16px rgba(0,0,0,.26);
+            -webkit-backdrop-filter: blur(2px) saturate(230%) brightness(1.18);
+            backdrop-filter: blur(2px) saturate(230%) brightness(1.18);
+            transform: scale(1);
+            transition: left .55s var(--lens-ease), width .55s var(--lens-ease), top .3s, height .3s,
+                        transform .45s var(--lens-ease), box-shadow .3s, background .3s, opacity .25s;
+        }
+        :root[data-theme="light"] .bottom-nav-group > .bottom-nav-lens {
+            background:
+                radial-gradient(120% 90% at 30% 8%, rgba(255,255,255,.95), rgba(255,255,255,0) 60%),
+                linear-gradient(160deg, rgba(255,255,255,.85), rgba(255,255,255,.5));
+            border-color: rgba(255,255,255,.95);
+            box-shadow: inset 0 1.5px 0 #fff, inset 0 -1px 0 rgba(255,255,255,.6), 0 6px 16px rgba(60,70,120,.22);
+        }
+        .bottom-nav-lens.ready { opacity: 1; }
+        .bottom-nav-lens.pressed { transform: scale(1.16); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.8), inset 0 0 22px rgba(255,255,255,.22), 0 10px 26px rgba(0,0,0,.34), 0 0 0 4px rgba(255,255,255,.07); }
+        .bottom-nav-lens.stretch { transform: scale(1.26, .88); }
+        .bottom-nav-lens.pressed.stretch { transform: scale(1.36, 1); }
+        .bottom-nav-lens.drag { transition: top .3s, height .3s, transform .45s var(--lens-ease), box-shadow .3s, background .3s, opacity .25s; }
+        .bottom-nav-lens.nomove { transition: opacity .25s; }
+
+        @media (max-width: 380px) { .app-shell > .bottom-nav { gap: 8px; } }
+        @media (prefers-reduced-motion: reduce) {
+            .bottom-nav-group > .bottom-nav-lens { transition-duration: .01s; }
+            .app-shell > .bottom-nav { animation: none; }
+        }
+    </style>
     <script>try{if(localStorage.getItem('lg')==='0')document.getElementById('lg-style').disabled=true}catch(e){}</script>
 </head>
 <body>
@@ -879,22 +980,6 @@
                 <input id="chats-search-input" class="nav-search-input" type="text" placeholder="Поиск по чатам...">
                 </div>
             <div id="chats-list" class="chats-list"></div>
-            <div class="bottom-nav">
-                <div class="bottom-nav-group">
-                    <button id="nav-profile-btn" class="bottom-nav-btn" title="Профиль">
-                        <div id="nav-profile-avatar" class="avatar bottom-nav-avatar">C</div>
-                    </button>
-                    <button id="nav-settings-btn" class="bottom-nav-btn" title="Настройки приложения">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9c.69 0 1.31.4 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.2.6-.82 1-1.51 1z"></path></svg>
-                    </button>
-                    <button id="nav-chats-btn" class="bottom-nav-btn active" title="Чаты">
-                        <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                    </button>
-                </div>
-                <button id="nav-add-btn" class="bottom-nav-add" title="Новый чат">
-                    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
-                </button>
-            </div>
         </div>
 
         <div id="chat-screen" class="screen">
@@ -1059,6 +1144,24 @@
                 <button id="settings-logout-btn" class="btn btn-danger btn-block" style="margin-top: 12px;">Выйти из аккаунта</button>
             </div>
         </div>
+
+        <div id="bottom-nav" class="bottom-nav nav-hidden">
+            <div id="bottom-nav-group" class="bottom-nav-group">
+                <span id="bottom-nav-lens" class="bottom-nav-lens" aria-hidden="true"></span>
+                <button id="nav-profile-btn" class="bottom-nav-btn" title="Профиль">
+                    <div id="nav-profile-avatar" class="avatar bottom-nav-avatar">C</div>
+                </button>
+                <button id="nav-settings-btn" class="bottom-nav-btn" title="Настройки приложения">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9c.69 0 1.31.4 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.2.6-.82 1-1.51 1z"></path></svg>
+                </button>
+                <button id="nav-chats-btn" class="bottom-nav-btn active" title="Чаты">
+                    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                </button>
+            </div>
+            <button id="nav-add-btn" class="bottom-nav-add" title="Новый чат">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+            </button>
+        </div>
     </div>
 
     <div id="profile-menu" class="profile-menu hidden" role="dialog" aria-modal="true">
@@ -1071,9 +1174,9 @@
             </div>
             <div class="profile-menu-body">
                 <div class="profile-menu-list">
-                    <button id="profile-search-action" class="profile-menu-action"><span class="profile-menu-action-icon">🔎</span>Поиск в переписке</button>
-                    <button id="profile-media-action" class="profile-menu-action"><span class="profile-menu-action-icon">🖼</span>Общие медиа</button>
-                    <button id="profile-about-action" class="profile-menu-action"><span class="profile-menu-action-icon">👤</span>О себе</button>
+                    <button id="profile-search-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>Поиск в переписке</button>
+                    <button id="profile-media-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span>Общие медиа</button>
+                    <button id="profile-about-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>О себе</button>
                     <div id="profile-menu-about" class="profile-menu-about hidden"></div>
                 </div>
             </div>
@@ -1357,27 +1460,69 @@
             });
         }
 
-        function closeMsgMenu() { if (menuEl) menuEl.remove(); menuEl = null; }
+        const MI = {
+            reply:   '<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v3"/>',
+            forward: '<path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0-6 6v3"/>',
+            copy:    '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+            pin:     '<path d="M12 17v5"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>',
+            unpin:   '<path d="M12 17v5"/><path d="M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17h12"/><path d="M15 9.34V6h1a2 2 0 0 0 0-4H7.89"/><path d="m2 2 20 20"/>',
+            edit:    '<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+            trash:   '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="m19 6-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>'
+        };
+        const miBtn = (act, icon, label, cls = '') =>
+            `<button class="msg-menu-item${cls}" data-act="${act}"><svg viewBox="0 0 24 24">${MI[icon]}</svg><span>${label}</span></button>`;
+
+        let menuBubble = null;
+        function closeMsgMenu() {
+            if (menuEl) menuEl.remove(); menuEl = null;
+            if (menuBubble) menuBubble.classList.remove('msg-hidden'); menuBubble = null;
+        }
         function openMsgMenu(bubble) {
             const id = bubble.dataset.id, msg = messagesCache.get(id);
             if (!msg || msg.deleted) return;
+            if (menuEl && menuEl._id === id) return;           // уже открыто (touch + contextmenu)
             closeMsgMenu();
             const mine = msg.senderId === currentUser.uid, myReact = msg.reactions?.[currentUser.uid];
             const isPinned = msg.pinned;
-            menuEl = document.createElement('div'); menuEl.className = 'msg-menu';
-            menuEl.innerHTML = `<div class="msg-menu-reactions">${REACTIONS.map(e => `<button class="react-btn${myReact === e ? ' active' : ''}" data-emoji="${e}">${e}</button>`).join('')}</div>` +
-                `<button class="msg-menu-item" data-act="reply">↩️ Ответить</button>` +
-                `<button class="msg-menu-item" data-act="forward">↪️ Переслать</button>` +
-                (msg.text ? `<button class="msg-menu-item" data-act="copy">📋 Копировать</button>` : '') +
-                `<button class="msg-menu-item" data-act="pin">${isPinned ? '📌 Открепить' : '📌 Закрепить'}</button>` +
-                (mine ? `${msg.text ? '<button class="msg-menu-item" data-act="edit">✏️ Редактировать</button>' : ''}<button class="msg-menu-item danger" data-act="delete">🗑 Удалить</button>` : '');
-            document.body.appendChild(menuEl);
-            const r = bubble.getBoundingClientRect(), w = menuEl.offsetWidth, h = menuEl.offsetHeight;
-            let top = r.top - h - 6; if (top < 8) top = Math.min(r.bottom + 6, innerHeight - h - 8);
-            let left = mine ? r.right - w : r.left; left = Math.max(8, Math.min(left, innerWidth - w - 8));
-            menuEl.style.top = top + 'px'; menuEl.style.left = left + 'px';
-            menuEl.addEventListener('click', e => {
+            const r = bubble.getBoundingClientRect();
+
+            // оверлей: размытый фон + копия сообщения + меню
+            const overlay = document.createElement('div'); overlay.className = 'msg-overlay'; overlay._id = id;
+            const backdrop = document.createElement('div'); backdrop.className = 'msg-backdrop';
+            const clone = bubble.cloneNode(true);
+            clone.classList.remove('swiping', 'swipe-back', 'msg-hidden'); clone.classList.add('msg-clone');
+            clone.style.transform = ''; clone.removeAttribute('id'); clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+            clone.style.width = r.width + 'px';
+            const menu = document.createElement('div'); menu.className = 'msg-menu';
+            menu.innerHTML = `<div class="msg-menu-reactions">${REACTIONS.map(e => `<button class="react-btn${myReact === e ? ' active' : ''}" data-emoji="${e}">${e}</button>`).join('')}</div>` +
+                miBtn('reply', 'reply', 'Ответить') +
+                miBtn('forward', 'forward', 'Переслать') +
+                (msg.text ? miBtn('copy', 'copy', 'Копировать') : '') +
+                miBtn('pin', isPinned ? 'unpin' : 'pin', isPinned ? 'Открепить' : 'Закрепить') +
+                (mine ? `${msg.text ? miBtn('edit', 'edit', 'Редактировать') : ''}${miBtn('delete', 'trash', 'Удалить', ' danger')}` : '');
+            overlay.append(backdrop, clone, menu);
+            document.body.appendChild(overlay);
+            menuEl = overlay; menuBubble = bubble; bubble.classList.add('msg-hidden');
+
+            // позиционирование: сообщение остаётся на месте, меню под ним; если не влезает — сдвигаем вверх
+            const pad = 16, gap = 10, vh = window.innerHeight;
+            const mw = menu.offsetWidth, mh = menu.offsetHeight;
+            const cloneH = Math.max(40, Math.min(r.height, vh - mh - gap - pad * 2));
+            clone.style.maxHeight = cloneH + 'px';
+            let top = r.top;
+            if (top + cloneH + gap + mh > vh - pad) top = vh - pad - mh - gap - cloneH;
+            top = Math.max(pad, top);
+            clone.style.left = r.left + 'px'; clone.style.top = top + 'px';
+            let left = mine ? r.right - mw : r.left; left = Math.max(8, Math.min(left, innerWidth - mw - 8));
+            menu.style.left = left + 'px'; menu.style.top = (top + cloneH + gap) + 'px';
+            menu.style.transformOrigin = (mine ? 'top right' : 'top left');
+            if (navigator.vibrate) navigator.vibrate(10);
+
+            const openedAt = Date.now();
+            menu.addEventListener('click', e => {
+                if (Date.now() - openedAt < 300) return;        // игнор «отпускания» пальца после долгого нажатия
                 const rb = e.target.closest('.react-btn'), it = e.target.closest('[data-act]');
+                if (!rb && !it) return;
                 closeMsgMenu();
                 if (rb) toggleReaction(id, rb.dataset.emoji);
                 else if (it?.dataset.act === 'reply') startReply(id);
@@ -1765,7 +1910,99 @@
         function showScreen(screen) {
             [authScreen, chatsScreen, chatScreen, settingsScreen, profileScreen].forEach(el => el.classList.remove('active'));
             screen.classList.add('active');
+            // нижняя панель живёт отдельно от экранов: видна на чатах/профиле/настройках, в самом чате и на входе скрыта
+            const showNav = screen === chatsScreen || screen === profileScreen || screen === settingsScreen;
+            const wasHidden = navBar.classList.contains('nav-hidden');
+            navBar.classList.toggle('nav-hidden', !showNav);
+            if (showNav) setNavTab(screen === profileScreen ? 'nav-profile-btn' : screen === settingsScreen ? 'nav-settings-btn' : 'nav-chats-btn', wasHidden);
         }
+
+        /* ===== Нижняя панель: жидкая линза ===== */
+        const navBar = document.getElementById('bottom-nav');
+        const navGroup = document.getElementById('bottom-nav-group');
+        const navLens = document.getElementById('bottom-nav-lens');
+        const navBtns = [...navGroup.querySelectorAll('.bottom-nav-btn')];
+        let navStretchT = 0;
+        const activeNavBtn = () => navBtns.find(b => b.classList.contains('active')) || navBtns[0];
+
+        function placeLens(btn, instant) {
+            if (!btn || navBar.classList.contains('nav-hidden')) return;
+            if (instant) navLens.classList.add('nomove');
+            const moved = Math.abs(navLens.offsetLeft - btn.offsetLeft) > 2;
+            navLens.style.width = btn.offsetWidth + 'px';
+            navLens.style.height = btn.offsetHeight + 'px';
+            navLens.style.top = btn.offsetTop + 'px';
+            navLens.style.left = btn.offsetLeft + 'px';
+            if (instant) { void navLens.offsetWidth; navLens.classList.remove('nomove'); }
+            else if (moved) {
+                navLens.classList.add('stretch');
+                clearTimeout(navStretchT);
+                navStretchT = setTimeout(() => navLens.classList.remove('stretch'), 170);
+            }
+            navLens.classList.add('ready');
+        }
+
+        function setNavTab(id, instant) {
+            navBtns.forEach(b => {
+                b.classList.toggle('active', b.id === id);
+                b.classList.remove('lens-over');
+                b.setAttribute('aria-current', b.id === id ? 'page' : 'false');
+            });
+            placeLens(document.getElementById(id), instant);
+        }
+
+        (function initNavLens() {
+            let down = false, dragged = false, startX = 0, pid = null;
+            const nearest = x => {
+                const gr = navGroup.getBoundingClientRect();
+                const lx = x - gr.left;
+                return navBtns.reduce((best, b) => {
+                    const d = Math.abs(b.offsetLeft + b.offsetWidth / 2 - lx);
+                    return d < best.d ? { b, d } : best;
+                }, { b: navBtns[0], d: Infinity }).b;
+            };
+            const over = btn => navBtns.forEach(b => b.classList.toggle('lens-over', b === btn));
+            const release = (x, cancelled) => {
+                if (!down) return;
+                down = false;
+                navGroup.classList.remove('pressing');
+                navLens.classList.remove('pressed', 'drag');
+                const current = activeNavBtn();
+                const target = cancelled ? current : nearest(x);
+                navBtns.forEach(b => b.classList.remove('lens-over'));
+                try { navGroup.releasePointerCapture(pid); } catch (e) {}
+                placeLens(target);
+                if (target !== current) target.click(); // showScreen поставит active и доедет линзой
+                else placeLens(current);
+            };
+            navGroup.addEventListener('pointerdown', e => {
+                if (e.button > 0 || !e.target.closest('.bottom-nav-btn')) return;
+                down = true; dragged = false; startX = e.clientX; pid = e.pointerId;
+                navGroup.classList.add('pressing');
+                navLens.classList.add('pressed');
+                const b = nearest(e.clientX);
+                over(b); placeLens(b);
+                try { navGroup.setPointerCapture(pid); } catch (err) {}
+            });
+            navGroup.addEventListener('pointermove', e => {
+                if (!down) return;
+                if (!dragged && Math.abs(e.clientX - startX) > 6) { dragged = true; navLens.classList.add('drag'); }
+                const b = nearest(e.clientX);
+                if (dragged) {
+                    const gr = navGroup.getBoundingClientRect();
+                    const w = b.offsetWidth;
+                    const lo = navBtns[0].offsetLeft, hi = navBtns[navBtns.length - 1].offsetLeft;
+                    navLens.style.left = Math.max(lo, Math.min(hi, e.clientX - gr.left - w / 2)) + 'px';
+                } else placeLens(b);
+                over(b);
+            });
+            navGroup.addEventListener('pointerup', e => release(e.clientX, false));
+            navGroup.addEventListener('pointercancel', e => release(e.clientX, true));
+            // нативные клики мыши/пальца гасим (переключаем сами по pointerup); клавиатурные (detail=0) проходят
+            navGroup.addEventListener('click', e => { if (e.detail > 0) { e.stopPropagation(); e.preventDefault(); } }, true);
+            window.addEventListener('resize', () => placeLens(activeNavBtn(), true));
+            window.addEventListener('orientationchange', () => setTimeout(() => placeLens(activeNavBtn(), true), 250));
+        })();
 
         function setAuthError(message) {
             authError.textContent = message || '';
@@ -2871,7 +3108,9 @@
             const apply = () => {
                 const vv = window.visualViewport;
                 const h = Math.round(vv ? vv.height : window.innerHeight);
+                const kb = !!vv && (window.innerHeight - h) > 120;   // клавиатура открыта
                 root.style.setProperty('--app-h', h + 'px');
+                document.body.classList.toggle('kb-open', kb);
                 if (vv && vv.offsetTop) window.scrollTo(0, 0);
             };
             apply();
@@ -3055,7 +3294,7 @@
         }, { passive: true });
         ['touchend', 'touchmove', 'touchcancel'].forEach(ev => messagesList.addEventListener(ev, () => clearTimeout(pressTimer), { passive: true }));
         messagesList.addEventListener('contextmenu', e => { const b = e.target.closest('.message'); if (b) { e.preventDefault(); openMsgMenu(b); } });
-        document.addEventListener('pointerdown', e => { if (menuEl && !menuEl.contains(e.target)) closeMsgMenu(); });
+        document.addEventListener('pointerdown', e => { if (menuEl && !e.target.closest('.msg-menu, .msg-clone')) closeMsgMenu(); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMsgMenu(); imageViewer.classList.add('hidden'); resetImageViewer(); } });
         messageInput.addEventListener('keydown', e => { if (e.key === 'Escape') cancelEdit(); });
         document.getElementById('cancel-edit').addEventListener('click', cancelEdit);
@@ -3237,7 +3476,7 @@
                     active = Math.abs(mx) > Math.abs(my) * 1.5;
                     if (active) {
                         el.classList.add('swiping');
-                        icon = document.createElement('div'); icon.className = 'swipe-reply-icon'; icon.textContent = '↩';
+                        icon = document.createElement('div'); icon.className = 'swipe-reply-icon'; icon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v3"/></svg>';
                         const br = el.getBoundingClientRect();
                         icon.style.top = (br.top + br.height / 2 - 14) + 'px';
                         document.body.appendChild(icon);
