@@ -956,7 +956,55 @@
             .app-shell > .bottom-nav { animation: none; }
         }
     </style>
-    <script>try{if(localStorage.getItem('lg')==='0')document.getElementById('lg-style').disabled=true}catch(e){}</script>
+    <style id="tg-style">
+        /* ===== Тема в стиле Telegram ===== */
+        :root{--bg-color:#0e1621;--surface-color:#17212b;--surface-hover:#202b36;--border-color:#0b121a;--text-primary:#f5f5f5;--text-secondary:#708499;--accent:#3390ec;--bubble-me:color-mix(in srgb,var(--accent) 52%,#0e1621);--bubble-other:#182533;--bubble-me-text:#fff;--wall:#0e1621}
+        :root[data-theme="light"]{--bg-color:#fff;--surface-color:#fff;--surface-hover:#f1f3f4;--border-color:#e7e8ec;--text-primary:#000;--text-secondary:#707579;--bubble-me:color-mix(in srgb,var(--accent) 14%,#fff);--bubble-other:#fff;--bubble-me-text:#000;--wall:#d6e4c9}
+        *{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+        .top-bar{background:var(--surface-color);backdrop-filter:none;-webkit-backdrop-filter:none;padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:8px;border-bottom:1px solid var(--border-color)}
+        .top-bar-title{font-size:16px;font-weight:600;letter-spacing:0}
+        .chat-status-text{color:var(--text-secondary);font-size:13px;margin:0}
+        #chat-avatar-btn{width:42px!important;height:42px!important}
+        #chat-avatar{width:42px;height:42px;font-size:16px}
+        .semi-circle-nav{margin:0;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 6px;border:none;border-radius:0;box-shadow:none;background:var(--surface-color);gap:12px}
+        .nav-tab-chats{background:none;color:var(--text-primary);font-size:20px;padding:0 4px}
+        .nav-search-input{background:var(--surface-hover);border:none;border-radius:20px;padding:9px 16px}
+        .chat-folders{display:flex;gap:4px;padding:0 12px;background:var(--surface-color);border-bottom:1px solid var(--border-color);overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+        .chat-folders button{position:relative;border:0;background:none;color:var(--text-secondary);font-size:14px;font-weight:600;padding:10px 12px;cursor:pointer;white-space:nowrap}
+        .chat-folders button.on{color:var(--accent)}
+        .chat-folders button.on::after{content:'';position:absolute;left:8px;right:8px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--accent)}
+        .chat-item{padding:9px 14px;gap:12px;border-bottom:none}
+        .chat-item .avatar{width:54px;height:54px;font-size:20px}
+        .chat-item-name{font-size:16px;font-weight:600}
+        .chat-item-time{font-size:12px}
+        .unread-badge{border-radius:11px;min-width:22px;height:22px;font-size:13px;font-weight:600}
+        .messages-list{gap:2px;padding:10px 12px;background:radial-gradient(circle at 20% 15%,rgba(255,255,255,.05) 0 2px,transparent 3px) 0 0/46px 46px,linear-gradient(160deg,var(--wall),color-mix(in srgb,var(--wall) 82%,var(--accent)))}
+        .date-sep{background:rgba(0,0,0,.32);color:#fff;border:none;margin:10px 0 6px;font-weight:500}
+        .message{padding:6px 10px 5px;border-radius:12px;font-size:16px;line-height:1.35;max-width:82%;box-shadow:0 1px 1px rgba(0,0,0,.13)}
+        .message.me{background:var(--bubble-me);color:var(--bubble-me-text);border-bottom-right-radius:12px}
+        .message.other{background:var(--bubble-other);border:none;border-bottom-left-radius:12px}
+        .message.me+.message.other,.message.other+.message.me,.date-sep+.message{margin-top:8px}
+        .message.me:not(:has(+.message.me)){border-bottom-right-radius:3px}
+        .message.other:not(:has(+.message.other)){border-bottom-left-radius:3px}
+        .message.me:not(:has(+.message.me))::after,.message.other:not(:has(+.message.other))::after{content:'';position:absolute;bottom:0;width:8px;height:12px}
+        .message.me:not(:has(+.message.me))::after{right:-7px;background:var(--bubble-me);clip-path:path('M0 0V12H8C3.5 11.5 .8 7.5 0 0Z')}
+        .message.other:not(:has(+.message.other))::after{left:-7px;background:var(--bubble-other);clip-path:path('M8 0V12H0C4.5 11.5 7.2 7.5 8 0Z')}
+        .message.jumbo-only::after,.message.deleted::after{display:none}
+        .msg-meta{font-size:11px;margin-top:2px;opacity:.8}
+        .ticks.read{color:#7fd4ff}
+        .message .reply-quote{border-left-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+        .chat-input-panel{background:var(--surface-color);border-top:1px solid var(--border-color);padding-top:6px}
+        .input-row{gap:4px}
+        .chat-input-panel input[type=text]{background:transparent;border:none;border-radius:0;padding:11px 6px}
+        .file-btn,.send-btn{background:transparent;border:none;color:var(--text-secondary);box-shadow:none}
+        .send-btn{color:var(--accent)}.send-btn svg{width:26px;height:26px}
+        .input-row:not(.has-text) .send-btn,.input-row.has-text .mic-btn{display:none}
+        .emoji-panel{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:8px;max-height:190px;overflow:auto;border-bottom:1px solid var(--border-color)}
+        .emoji-panel button{border:0;background:none;font-size:26px;padding:4px;border-radius:8px;cursor:pointer}
+        .emoji-panel button:active{background:var(--surface-hover)}
+        .bottom-nav-group{border-radius:26px}
+    </style>
+    <script>try{if(localStorage.getItem('lg')!=='1')document.getElementById('lg-style').disabled=true}catch(e){}</script>
 </head>
 <body>
     <div class="app-shell">
@@ -987,6 +1035,7 @@
                 <div class="nav-tab-chats">Чаты</div>
                 <input id="chats-search-input" class="nav-search-input" type="text" placeholder="Поиск по чатам...">
                 </div>
+            <div id="chat-folders" class="chat-folders"><button class="on" data-f="all">Все</button><button data-f="unread">Непрочитанные</button><button data-f="groups">Группы</button><button data-f="personal">Личные</button></div>
             <div id="chats-list" class="chats-list"></div>
         </div>
 
@@ -1030,7 +1079,9 @@
                     <div id="attachment-info" class="attachment-info"></div>
                     <button id="remove-attachment" class="remove-attachment" title="Убрать">✕</button>
                 </div>
+                <div id="emoji-panel" class="emoji-panel hidden"></div>
                 <div class="input-row">
+                    <button id="emoji-btn" class="file-btn" title="Эмодзи" type="button" style="font-size:22px">😊</button>
                     <button id="file-btn" class="file-btn" title="Отправить фото">
                         <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </button>
@@ -2618,10 +2669,10 @@
         function renderChats() {
             chatsList.innerHTML = '';
             
-            let filteredChats = allChatsCache;
+            let filteredChats = allChatsCache.filter(window.__folderFilter || (() => true));
             if (currentSearchQuery.trim()) {
                 const queryStr = currentSearchQuery.trim().toLowerCase();
-                filteredChats = allChatsCache.filter(chat => {
+                filteredChats = filteredChats.filter(chat => {
                     const { name } = getOtherUserInfo(chat, currentUser.uid);
                     const otherName = (chat.isGroup ? (chat.title || '') : displayNameFor(getOtherUserInfo(chat, currentUser.uid).uid, name)).toLowerCase();
                     const lastMsg = (chat.lastMessage || '').toLowerCase();
@@ -3392,6 +3443,31 @@
             } catch (err) { showToast('Нет доступа к камере — можно выбрать фото с QR-кодом'); }
         });
 
+
+        // ===== Telegram-доработки: папки чатов, эмодзи, микрофон/отправка =====
+        (function () {
+            let folder = 'all';
+            window.__folderFilter = c => folder === 'all' || (folder === 'unread' ? (c['unread_' + currentUser?.uid] || 0) > 0 : folder === 'groups' ? !!c.isGroup : !c.isGroup);
+            document.getElementById('chat-folders').addEventListener('click', e => {
+                const b = e.target.closest('button[data-f]'); if (!b) return;
+                folder = b.dataset.f;
+                e.currentTarget.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+                renderChats();
+            });
+            const panel = document.getElementById('emoji-panel');
+            panel.innerHTML = '😀😂🥹😍😘😎🤔😢😭😡🥳🤝👍👎👏🙏💪🔥❤️💔🎉✨💯👀🙈😴🤯😅😉🙂🤗😇🤩😬🫡🤌👌✌️🫶💀🤡👋'.match(/\p{Extended_Pictographic}\uFE0F?(\u200D\p{Extended_Pictographic}\uFE0F?)*/gu).map(e => `<button type="button">${e}</button>`).join('');
+            document.getElementById('emoji-btn').addEventListener('click', () => panel.classList.toggle('hidden'));
+            panel.addEventListener('click', e => {
+                const b = e.target.closest('button'); if (!b) return;
+                const i = messageInput, a = i.selectionStart ?? i.value.length, z = i.selectionEnd ?? a;
+                i.value = i.value.slice(0, a) + b.textContent + i.value.slice(z);
+                i.selectionStart = i.selectionEnd = a + b.textContent.length;
+                i.dispatchEvent(new Event('input'));
+            });
+            const row = document.querySelector('.input-row');
+            setInterval(() => row.classList.toggle('has-text', !!(messageInput.value.trim() || pendingImageFile || pendingAudioBlob || editingMessageId)), 150);
+        })();
+
         // ===== Двойной тап по сообщению = ❤️ =====
         messagesList.addEventListener('dblclick', e => {
             const b = e.target.closest('.message'); if (!b || b.classList.contains('deleted') || e.target.closest('a,.reaction-chip')) return;
@@ -3409,17 +3485,17 @@
         // ===== Liquid Glass вкл/выкл =====
         (function () {
             const st = document.getElementById('lg-style'), t = document.getElementById('lg-toggle');
-            let on = true; try { on = localStorage.getItem('lg') !== '0'; } catch (_) {}
+            let on = true; try { on = localStorage.getItem('lg') === '1'; } catch (_) {}
             t.checked = on; st.disabled = !on;
             t.addEventListener('change', () => { st.disabled = !t.checked; try { localStorage.setItem('lg', t.checked ? '1' : '0'); } catch (_) {} });
         })();
 
         // ===== Цвет акцента =====
         (function () {
-            const colors = ['#6366f1', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6'];
+            const colors = ['#3390ec', '#6366f1', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6'];
             const shade = c => `color-mix(in srgb, ${c} 82%, black)`;
             const apply = c => { document.documentElement.style.setProperty('--accent', c); document.documentElement.style.setProperty('--accent-hover', shade(c)); };
-            let cur = '#6366f1'; try { cur = localStorage.getItem('accent') || cur; } catch (_) {}
+            let cur = '#3390ec'; try { cur = localStorage.getItem('accent') || cur; } catch (_) {}
             apply(cur);
             const row = document.getElementById('accent-row');
             colors.forEach(c => {
