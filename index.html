@@ -457,7 +457,7 @@
             background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-secondary);
             width: 44px; height: 44px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+            cursor: pointer; transition: transform .15s, background-color .15s, color .15s, border-color .15s; flex-shrink: 0;
         }
         .file-btn:active { transform: scale(0.9); }
         .file-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -755,7 +755,7 @@
         .tile .av{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:800;color:#fff}
         .tile.cam .av{display:none}
         .tile .nm{position:absolute;left:8px;bottom:6px;font-size:13px;font-weight:700;color:#fff;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:8px}
-        .tile.mute .nm::after{content:" 🔇"}
+        .tile.mute .nm::after{content:"";margin-left:5px;display:inline-block;width:1em;height:1em;vertical-align:-.15em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6%22/%3E%3C/svg%3E") center/contain no-repeat}
         .tile .st{position:absolute;right:8px;top:6px;font-size:12px;color:#fff;background:rgba(0,0,0,.6);padding:2px 8px;border-radius:8px}
         .tile .st:empty{display:none}
         .call-ctl{display:flex;justify-content:center;gap:12px;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface-color)}
@@ -786,7 +786,7 @@
 
         .msg-link{background:color-mix(in srgb,currentColor 15%,transparent);border-radius:6px;padding:0 4px;font-weight:600;text-decoration:underline;text-underline-offset:2px}
         .msg-phone{text-decoration:none;white-space:nowrap;word-break:normal}
-        .msg-phone::before{content:"📞 ";font-size:.9em}
+        .msg-phone::before{content:"";margin-right:4px;font-size:.9em;display:inline-block;width:1em;height:1em;vertical-align:-.15em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z%22/%3E%3C/svg%3E") center/contain no-repeat}
         .msg-link:hover{background:color-mix(in srgb,currentColor 25%,transparent)}
         .in-browser{position:fixed;inset:0;z-index:10001;display:flex;flex-direction:column;background:var(--bg-color,#0f0f11)}
         .in-browser.hidden{display:none}
@@ -1046,8 +1046,69 @@
         .profile-menu-head.has-banner .profile-menu-status{color:rgba(255,255,255,.88)}
         .profile-menu-head.has-banner .avatar-xl{box-shadow:0 0 0 5px var(--surface-color);text-shadow:none}
     </style>
+
+    <style id="polish-style">
+        /* ===== Значки ===== */
+        .ic{width:1.15em;height:1.15em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;flex-shrink:0;pointer-events:none}
+        .btn .ic,.cm-btn .ic{margin-right:2px}
+        .heart-pop .ic{width:1em;height:1em;fill:#ef4444;stroke:#ef4444;vertical-align:top}
+        .toast .ic,.chat-item-last .ic,.pinned-text .ic,.reply-quote .ic{width:1.05em;height:1.05em;vertical-align:-.18em;margin-right:1px}
+        .remove-attachment .ic,.pinned-close .ic{width:18px;height:18px}
+        .file-btn .ic{width:24px;height:24px}
+        .call-round.cc .ic{width:22px;height:22px}
+        .cm-row .chk .ic{width:18px;height:18px}
+        .msg-deleted .ic,.fwd-label .ic{width:1em;height:1em}
+        .audio-icon .ic{width:26px;height:26px}
+        .btn,.cm-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+        .btn{width:100%}
+
+        /* ===== Нижний край: никакой чёрной полосы ===== */
+        :root{--safe-bottom:max(0px,calc(env(safe-area-inset-bottom,0px) - 14px))}
+        html,body{background:var(--bg-color);overscroll-behavior:none}
+        body{height:100vh;height:100dvh}
+        body.kb-open{height:var(--app-h)}
+        .bottom-nav{background:var(--surface-color);padding-top:8px}
+        .chat-input-panel{padding-bottom:calc(8px + var(--safe-bottom))}
+
+        /* ===== Производительность: без размытия фона на лету ===== */
+        .top-bar,.chat-input-panel,.bottom-nav,.cm-overlay,.profile-menu,.msg-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+        .cm-overlay{background:rgba(0,0,0,.66)}
+        .msg-backdrop{background:rgba(5,6,12,.74)}
+        .profile-menu-bg{transform:translateZ(0)}
+        .messages-list,.chats-list,.settings-body,.cm-list{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+        .chat-item{content-visibility:auto;contain-intrinsic-size:auto 76px}
+        .message{contain:layout style}
+
+        /* ===== Ровная вёрстка ===== */
+        .chat-item-last,.chat-item-name,.recent-card-name,.pinned-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .avatar,.avatar-wrap{flex-shrink:0}
+        .msg-meta{display:flex;align-items:center;justify-content:flex-end;gap:5px;line-height:1}
+        .cm-row{align-items:center}
+        button{font-family:inherit}
+
+        /* ===== Анимации (только transform/opacity) ===== */
+        .message.msg-in{animation:msgIn .26s cubic-bezier(.2,.8,.2,1) both}
+        .message.me.msg-in{transform-origin:100% 100%}
+        .message.other.msg-in{transform-origin:0 100%}
+        @keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+        .cm-overlay{animation:viewerFade .18s ease-out}
+        .cm-card{animation:cmCardIn .24s cubic-bezier(.2,.9,.3,1.15)}
+        @keyframes cmCardIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+        .chat-item{transition:background-color .15s,transform .12s}
+        .chat-item:active{transform:scale(.985)}
+        .btn,.cm-btn,.icon-btn,.file-btn,.send-btn,.call-round,.react-btn,.reaction-chip,.recent-card{transition:transform .14s ease,background-color .15s,color .15s,opacity .15s}
+        .btn:active,.cm-btn:active,.icon-btn:active,.call-round:active,.react-btn:active,.reaction-chip:active,.recent-card:active{transform:scale(.94)}
+        .reaction-chip{animation:chipIn .22s cubic-bezier(.2,.9,.3,1.3)}
+        @keyframes chipIn{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+        .bottom-nav-btn svg{transition:transform .22s cubic-bezier(.2,.9,.3,1.3)}
+        .bottom-nav-btn.active svg{transform:translateY(-1px) scale(1.08)}
+        .toast{transition:opacity .2s ease,transform .25s cubic-bezier(.2,.9,.3,1.1)}
+        .heart-pop{will-change:transform,opacity}
+        @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+    </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol><symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/></symbol><symbol id="i-clip" viewBox="0 0 24 24"><path d="m21.4 11.6-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></symbol><symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></symbol><symbol id="i-video" viewBox="0 0 24 24"><path d="m22 8-6 4 6 4z"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol><symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol><symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-mute" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6"/></symbol><symbol id="i-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></symbol><symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-dice" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 8h.01M16 8h.01M8 16h.01M16 16h.01M12 12h.01"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></symbol><symbol id="i-ext" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol><symbol id="i-fwd" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M9 3h6l-1 7 3 3v2H7v-2l3-3z"/></symbol><symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></symbol><symbol id="i-bad" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.6 22 9.6 17 14.5 18.2 21.5 12 18.2 5.8 21.5 7 14.5 2 9.6 8.9 8.6"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol></svg>
     <div class="app-shell">
         <nav id="rail" class="rail nav-hidden" aria-label="Меню">
             <button id="nav-chats-btn" class="rail-btn active" title="Чаты" aria-label="Чаты">
@@ -1135,7 +1196,7 @@
                     <div class="pinned-title">Закрепленное сообщение</div>
                     <div id="pinned-text" class="pinned-text"></div>
                 </div>
-                <button id="pinned-close" class="pinned-close" title="Убрать закрепление">✕</button>
+                <button id="pinned-close" class="pinned-close" title="Убрать закрепление"><svg class="ic"><use href="#i-x"/></svg></button>
             </div>
             <div id="messages-list" class="messages-list"></div>
             <button id="chat-bottom-btn" class="chat-bottom-btn" title="К последнему сообщению" aria-label="К последнему сообщению">
@@ -1145,20 +1206,20 @@
             <div id="chat-panel" class="chat-input-panel">
                 <div id="edit-banner" class="edit-banner hidden">
                     <div class="edit-banner-text"><b>Редактирование</b><span id="edit-banner-preview"></span></div>
-                    <button id="cancel-edit" class="remove-attachment" title="Отмена">✕</button>
+                    <button id="cancel-edit" class="remove-attachment" title="Отмена"><svg class="ic"><use href="#i-x"/></svg></button>
                 </div>
                 <div id="reply-banner" class="edit-banner hidden">
                     <div class="edit-banner-text"><b id="reply-banner-author"></b><span id="reply-banner-preview"></span></div>
-                    <button id="cancel-reply" class="remove-attachment" title="Отмена">✕</button>
+                    <button id="cancel-reply" class="remove-attachment" title="Отмена"><svg class="ic"><use href="#i-x"/></svg></button>
                 </div>
                 <div id="attachment-preview" class="attachment-preview hidden">
                     <div id="attachment-thumb" class="attachment-thumb"></div>
                     <div id="attachment-info" class="attachment-info"></div>
-                    <button id="remove-attachment" class="remove-attachment" title="Убрать">✕</button>
+                    <button id="remove-attachment" class="remove-attachment" title="Убрать"><svg class="ic"><use href="#i-x"/></svg></button>
                 </div>
                 <div id="emoji-panel" class="emoji-panel hidden"></div>
                 <div class="input-row">
-                    <button id="emoji-btn" class="file-btn" title="Эмодзи" type="button" style="font-size:22px">😊</button>
+                    <button id="emoji-btn" class="file-btn" title="Эмодзи" type="button" ><svg class="ic"><use href="#i-smile"/></svg></button>
                     <button id="file-btn" class="file-btn" title="Прикрепить фото или документ">
                         <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </button>
@@ -1178,11 +1239,11 @@
             <div class="call-bar"><div id="call-title" class="t">Звонок</div><button id="call-min" class="icon-btn" title="Свернуть/развернуть"><svg viewBox="0 0 24 24"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg></button><button id="call-hangup" class="icon-btn call-hang" title="Завершить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>
             <div id="call-grid" class="call-grid"></div>
             <div class="call-ctl">
-                <button id="cc-mic" class="call-round cc" title="Микрофон">🎤</button>
-                <button id="cc-cam" class="call-round cc" title="Камера">📷</button>
-                <button id="cc-scr" class="call-round cc" title="Показ экрана">🖥</button>
-                <button id="cc-inv" class="call-round cc" title="Пригласить в комнату">➕</button>
-                <button id="cc-close" class="call-round cc" title="Закрыть комнату для всех">⛔</button>
+                <button id="cc-mic" class="call-round cc" title="Микрофон"><svg class="ic"><use href="#i-mic"/></svg></button>
+                <button id="cc-cam" class="call-round cc" title="Камера"><svg class="ic"><use href="#i-camera"/></svg></button>
+                <button id="cc-scr" class="call-round cc" title="Показ экрана"><svg class="ic"><use href="#i-monitor"/></svg></button>
+                <button id="cc-inv" class="call-round cc" title="Пригласить в комнату"><svg class="ic"><use href="#i-plus"/></svg></button>
+                <button id="cc-close" class="call-round cc" title="Закрыть комнату для всех"><svg class="ic"><use href="#i-ban"/></svg></button>
             </div>
         </div>
         <div id="incoming-call" class="incoming-call"><div class="info"><div id="incoming-name" class="nm"></div><div id="incoming-kind" class="kd"></div></div><button id="incoming-no" class="call-round no" title="Отклонить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button><button id="incoming-yes" class="call-round ok" title="Принять"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>
@@ -1200,8 +1261,8 @@
                     <div class="profile-card">
                         <div id="settings-avatar" class="avatar avatar-xl">C</div>
                         <div class="profile-actions">
-                            <button id="avatar-upload-btn" class="btn btn-secondary">📷 Загрузить фото</button>
-                            <button id="avatar-gradient-btn" class="btn btn-secondary">🎲 Случайный градиент</button>
+                            <button id="avatar-upload-btn" class="btn btn-secondary"><svg class="ic"><use href="#i-camera"/></svg> Загрузить фото</button>
+                            <button id="avatar-gradient-btn" class="btn btn-secondary"><svg class="ic"><use href="#i-dice"/></svg> Случайный градиент</button>
                             <button id="avatar-reset-btn" class="btn btn-secondary">Сбросить</button>
                         </div>
                     </div>
@@ -1211,7 +1272,7 @@
                     <label class="settings-label">Фон профиля</label>
                     <div id="banner-preview" class="banner-preview">Фон не выбран</div>
                     <div class="banner-actions">
-                        <button id="banner-upload-btn" class="btn btn-secondary">🖼 Загрузить фон</button>
+                        <button id="banner-upload-btn" class="btn btn-secondary"><svg class="ic"><use href="#i-image"/></svg> Загрузить фон</button>
                         <button id="banner-reset-btn" class="btn btn-secondary">Сбросить</button>
                     </div>
                     <div class="accent-row" id="banner-colors"></div>
@@ -1284,7 +1345,7 @@
                         <label class="switch"><input type="checkbox" id="notif-toggle"><span class="slider"></span></label>
                     </div>
                     <div class="settings-toggle-hint">Работают в фоновом режиме через Firebase Cloud Messaging.</div>
-                    <button id="notif-diagnose" class="btn" style="margin-top:8px">🔔 Проверить уведомления</button>
+                    <button id="notif-diagnose" class="btn" style="margin-top:8px"><svg class="ic"><use href="#i-bell"/></svg> Проверить уведомления</button>
                 </div>
                 <div class="settings-section">
                     <div class="settings-toggle-row">
@@ -1317,7 +1378,7 @@
 
     <div id="profile-menu" class="profile-menu hidden" role="dialog" aria-modal="true">
         <div id="profile-menu-bg" class="profile-menu-bg"></div>
-        <button id="profile-menu-close" class="profile-menu-close" title="Закрыть">✕</button>
+        <button id="profile-menu-close" class="profile-menu-close" title="Закрыть"><svg class="ic"><use href="#i-x"/></svg></button>
         <div class="profile-menu-card">
             <div id="profile-menu-head" class="profile-menu-head">
                 <div id="profile-menu-avatar" class="avatar avatar-xl">C</div>
@@ -1337,22 +1398,22 @@
 
     <div id="in-browser" class="in-browser hidden">
         <div class="ib-bar">
-            <button id="ib-close" type="button" title="Закрыть">✕</button>
+            <button id="ib-close" type="button" title="Закрыть"><svg class="ic"><use href="#i-x"/></svg></button>
             <input id="ib-url" class="ib-url" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false">
             <button id="ib-reload" type="button" title="Обновить">⟳</button>
             <button id="ib-copy" type="button" title="Копировать ссылку">⧉</button>
-            <button id="ib-ext" class="ib-ext" type="button" title="Открыть в другом браузере">↗ Открыть в браузере</button>
+            <button id="ib-ext" class="ib-ext" type="button" title="Открыть в другом браузере"><svg class="ic"><use href="#i-ext"/></svg> Открыть в браузере</button>
         </div>
         <div id="ib-progress" class="ib-progress"></div>
-        <div id="ib-hint" class="ib-hint"><span>Если страница пустая или не грузится — сайт запрещает встраивание. Откройте её в обычном браузере.</span><button id="ib-hint-open" type="button">Открыть</button><button class="x" id="ib-hint-x" type="button">✕</button></div>
+        <div id="ib-hint" class="ib-hint"><span>Если страница пустая или не грузится — сайт запрещает встраивание. Откройте её в обычном браузере.</span><button id="ib-hint-open" type="button">Открыть</button><button class="x" id="ib-hint-x" type="button"><svg class="ic"><use href="#i-x"/></svg></button></div>
         <iframe id="ib-frame" title="Встроенный браузер" referrerpolicy="no-referrer" allow="clipboard-write; fullscreen" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"></iframe>
     </div>
     <div id="doc-viewer" class="doc-viewer hidden">
-        <div class="doc-viewer-bar"><div id="doc-viewer-title" class="doc-viewer-title"></div><button id="doc-viewer-dl" type="button">⬇ Скачать</button><button id="doc-viewer-close" class="dv-close" type="button">✕</button></div>
+        <div class="doc-viewer-bar"><div id="doc-viewer-title" class="doc-viewer-title"></div><button id="doc-viewer-dl" type="button"><svg class="ic"><use href="#i-download"/></svg> Скачать</button><button id="doc-viewer-close" class="dv-close" type="button"><svg class="ic"><use href="#i-x"/></svg></button></div>
         <div id="doc-viewer-body" class="doc-viewer-body"></div>
     </div>
     <div id="image-viewer" class="image-viewer hidden">
-        <button id="image-viewer-close" class="image-viewer-close">✕</button>
+        <button id="image-viewer-close" class="image-viewer-close"><svg class="ic"><use href="#i-x"/></svg></button>
         <img id="image-viewer-img" src="" alt="фото">
     </div>
 
@@ -1369,12 +1430,12 @@
         }
         window.addEventListener('error', function (e) {
             console.error('Глобальная ошибка:', e.error || e.message);
-            __showGlobalError('⚠️ Ошибка загрузки страницы: ' + (e.message || 'см. консоль браузера (F12)'));
+            __showGlobalError('Ошибка загрузки страницы: ' + (e.message || 'см. консоль браузера (F12)'));
         });
         window.addEventListener('unhandledrejection', function (e) {
             console.error('Необработанная ошибка промиса:', e.reason);
             const text = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
-            __showGlobalError('⚠️ Ошибка: ' + text);
+            __showGlobalError('Ошибка: ' + text);
         });
     </script>
 
@@ -1450,6 +1511,18 @@
             if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
         } catch (e) {}
 
+
+        // ===== Значки вместо эмодзи =====
+        const ICON_FULL = {'📷':'camera','🔒':'lock','🔓':'unlock','🎤':'mic','🎙':'mic','📎':'clip','📞':'phone','📹':'video','⚠':'alert','🚫':'ban','⛔':'ban','🔔':'bell','🔇':'mute','➕':'plus','🖥':'monitor','🖼':'image','🎲':'dice','📌':'pin','✅':'ok','❌':'bad','ℹ':'info','▶':'play','👥':'users'};
+        const ICON_LEAD = /^(📷|🔒|🔓|🎤|📎|🚫|📞|📹)\uFE0F?\s?/;
+        const ICON_FULL_RE = new RegExp('(' + Object.keys(ICON_FULL).join('|') + ')\\uFE0F?', 'g');
+        function ic(n) { return '<svg class="ic"><use href="#i-' + n + '"/></svg>'; }
+        function iconHtml(h) { return String(h).replace(ICON_FULL_RE, (_, e) => ic(ICON_FULL[e])); }
+        function iconText(t) { return iconHtml(escapeHtml(String(t == null ? '' : t))); }
+        function iconLead(t) {
+            t = String(t == null ? '' : t); const m = t.match(ICON_LEAD);
+            return m ? ic(ICON_FULL[m[1]]) + ' ' + escapeHtml(t.slice(m[0].length)) : escapeHtml(t);
+        }
         function showToast(message, isError = true) {
             let toast = document.getElementById('toast');
             if (!toast) {
@@ -1457,7 +1530,7 @@
                 toast.id = 'toast';
                 document.body.appendChild(toast);
             }
-            toast.textContent = message;
+            toast.innerHTML = iconText(message);
             toast.className = 'toast show' + (isError ? ' toast-error' : '');
             clearTimeout(toast._hideTimer);
             toast._hideTimer = setTimeout(() => toast.classList.remove('show'), 4500);
@@ -1466,7 +1539,7 @@
         if (location.protocol === 'file:') {
             const banner = document.createElement('div');
             banner.className = 'file-protocol-banner';
-            banner.textContent = '⚠️ Открыто как локальный файл — вход и отправка файлов могут не работать. Разместите на хостинге (например, GitHub Pages или Firebase Hosting).';
+            banner.textContent = 'Открыто как локальный файл — вход и отправка файлов могут не работать. Разместите на хостинге (например, GitHub Pages или Firebase Hosting).';
             document.body.prepend(banner);
         }
 
@@ -1767,7 +1840,7 @@
         // ===== Простые модальные окна =====
         function cmModal(html) {
             const o = document.createElement('div'); o.className = 'cm-overlay';
-            o.innerHTML = '<div class="cm-card">' + html + '</div>';
+            o.innerHTML = '<div class="cm-card">' + iconHtml(html) + '</div>';
             document.body.appendChild(o);
             return o;
         }
@@ -1783,11 +1856,11 @@
         // Выбор из списка: один/несколько, поиск, необязательное имя группы, необязательная верхняя кнопка
         function openPicker({ title, items, multi = false, nameField = '', okLabel = 'Выбрать', extra = '' }) {
             return new Promise(res => {
-                const o = cmModal(`<h3>${escapeHtml(title)}</h3>${extra ? `<button class="cm-btn" data-x="extra">${escapeHtml(extra)}</button>` : ''}${nameField ? `<input class="pk-name" placeholder="${escapeHtml(nameField)}" maxlength="60">` : ''}<input class="pk-q" placeholder="Поиск…"><div class="cm-list"></div><div class="cm-actions"><button class="cm-btn" data-x="cancel">Отмена</button>${multi ? `<button class="cm-btn primary" data-x="ok">${escapeHtml(okLabel)}</button>` : ''}</div>`);
+                const o = cmModal(`<h3>${escapeHtml(title)}</h3>${extra ? `<button class="cm-btn" data-x="extra">${iconText(extra)}</button>` : ''}${nameField ? `<input class="pk-name" placeholder="${escapeHtml(nameField)}" maxlength="60">` : ''}<input class="pk-q" placeholder="Поиск…"><div class="cm-list"></div><div class="cm-actions"><button class="cm-btn" data-x="cancel">Отмена</button>${multi ? `<button class="cm-btn primary" data-x="ok">${escapeHtml(okLabel)}</button>` : ''}</div>`);
                 const list = o.querySelector('.cm-list'), sel = new Set();
                 const draw = () => {
                     const q = o.querySelector('.pk-q').value.trim().toLowerCase();
-                    list.innerHTML = items.filter(i => i.label.toLowerCase().includes(q)).map(i => `<div class="cm-row${sel.has(i.id) ? ' sel' : ''}" data-id="${escapeHtml(i.id)}"><span>${escapeHtml(i.label)}</span><span class="chk">✓</span></div>`).join('') || '<p>Ничего не найдено</p>';
+                    list.innerHTML = items.filter(i => i.label.toLowerCase().includes(q)).map(i => `<div class="cm-row${sel.has(i.id) ? ' sel' : ''}" data-id="${escapeHtml(i.id)}"><span>${iconText(i.label)}</span><span class="chk"><svg class="ic"><use href="#i-check"/></svg></span></div>`).join('') || '<p>Ничего не найдено</p>';
                 };
                 draw();
                 o.querySelector('.pk-q').addEventListener('input', draw);
@@ -1896,7 +1969,7 @@
                 const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.e2e.iv) }, key, unb64(data.e2e.ct));
                 const o = JSON.parse(dec8.decode(pt));
                 return { ...data, text: o.text || '', replyPreview: o.rp || data.replyPreview };
-            } catch (_) { return { ...data, text: '🔒 Не удалось расшифровать', locked: true }; }
+            } catch (_) { return { ...data, text: 'Не удалось расшифровать', locked: true }; }
         }
         async function securityInfo(uid) { // код безопасности для сверки с собеседником
             await ensureE2EE(); const p = await peerPub(uid);
@@ -1918,7 +1991,7 @@
         }
         function openGroupInfo() {
             const c = getCurrentChat(); if (!c) return;
-            const o = cmModal(`<h3>👥 ${escapeHtml(c.title || 'Группа')}</h3><p>Участников: ${(c.members || []).length}</p><div class="cm-list">${(c.members || []).map(u => `<div class="cm-row"><span>${escapeHtml(displayNameFor(u, c.memberNames?.[u]))}${u === currentUser.uid ? ' (вы)' : ''}${(c.admins || []).includes(u) ? ' ★' : ''}</span></div>`).join('')}</div><div class="cm-actions"><button class="cm-btn danger" data-x="leave">Выйти из группы</button><button class="cm-btn" data-x="close">Закрыть</button></div><p>Сообщения в группах пока не шифруются сквозным шифрованием.</p>`);
+            const o = cmModal(`<h3>👥 ${escapeHtml(c.title || 'Группа')}</h3><p>Участников: ${(c.members || []).length}</p><div class="cm-list">${(c.members || []).map(u => `<div class="cm-row"><span>${escapeHtml(displayNameFor(u, c.memberNames?.[u]))}${u === currentUser.uid ? ' (вы)' : ''}${(c.admins || []).includes(u) ? ' ' + ic('star') : ''}</span></div>`).join('')}</div><div class="cm-actions"><button class="cm-btn danger" data-x="leave">Выйти из группы</button><button class="cm-btn" data-x="close">Закрыть</button></div><p>Сообщения в группах пока не шифруются сквозным шифрованием.</p>`);
             o.addEventListener('click', async e => {
                 const x = e.target.closest('[data-x]')?.dataset.x;
                 if (e.target === o || x === 'close') o.remove();
@@ -2314,7 +2387,7 @@
                 attachmentInfo.innerHTML = `<span>${escapeHtml(pendingDocFile.name)} · ${fmtSize(pendingDocFile.size)}</span>`;
             } else if (pendingAudioBlob) {
                 attachmentPreview.classList.remove('hidden');
-                attachmentThumb.innerHTML = '<div class="audio-icon">🎤</div>';
+                attachmentThumb.innerHTML = '<div class="audio-icon">' + ic('mic') + '</div>';
                 attachmentInfo.innerHTML = '';
                 const audio = document.createElement('audio');
                 audio.controls = true;
@@ -2505,14 +2578,14 @@
                     if (pinnedId && messagesCache.has(pinnedId)) {
                         const pMsg = messagesCache.get(pinnedId);
                         pinnedBanner.classList.remove('hidden');
-                        pinnedTextEl.textContent = pMsg.text || (pMsg.fileUrl ? '📎 ' + (pMsg.fileName || 'Файл') : pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение');
+                        pinnedTextEl.innerHTML = iconLead(pMsg.text || (pMsg.fileUrl ? '📎 ' + (pMsg.fileName || 'Файл') : pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение'));
                         pinnedBanner.dataset.msgId = pinnedId;
                     } else if (pinnedId) {
                         getDoc(doc(db, 'messages', pinnedId)).then(mSnap => {
                             if (mSnap.exists()) {
                                 const pMsg = mSnap.data();
                                 pinnedBanner.classList.remove('hidden');
-                                pinnedTextEl.textContent = pMsg.text || (pMsg.fileUrl ? '📎 ' + (pMsg.fileName || 'Файл') : pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение');
+                                pinnedTextEl.innerHTML = iconLead(pMsg.text || (pMsg.fileUrl ? '📎 ' + (pMsg.fileName || 'Файл') : pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение'));
                                 pinnedBanner.dataset.msgId = pinnedId;
                             } else {
                                 pinnedBanner.classList.add('hidden');
@@ -2561,15 +2634,39 @@
                 const plain = new Map(snapshot.docs.map((d, i) => [d.id, plainList[i]]));
 
                 ignoreScrollUntil = performance.now() + 250;
-                messagesList.innerHTML = ''; 
-                messagesCache = new Map();
-
-                const docsReversed = snapshot.docs.slice().reverse();
-                docsReversed.forEach(snap => {
-                    messagesCache.set(snap.id, plain.get(snap.id));
-                    lastMessageId = snap.id; 
-                    renderMessage(snap.id, plain.get(snap.id));
+                // Обновляем только изменившиеся сообщения, а не перерисовываем весь список
+                messagesCache = new Map(snapshot.docs.map(d => [d.id, plain.get(d.id)]));
+                const oldEls = new Map();
+                messagesList.querySelectorAll('.date-sep').forEach(el => el.remove());
+                messagesList.querySelectorAll('.message').forEach(el => oldEls.set(el.dataset.id, el));
+                const sigOf = (m, pend) => JSON.stringify([m, pend, m.replyTo && messagesCache.get(m.replyTo) ? [messagesCache.get(m.replyTo).text, messagesCache.get(m.replyTo).deleted] : 0], (k, v) => v && typeof v.toMillis === 'function' ? v.toMillis() : v);
+                const want = [];
+                snapshot.docs.slice().reverse().forEach(snap => {
+                    const m = plain.get(snap.id);
+                    lastMessageId = snap.id;
+                    const sig = sigOf(m, snap.metadata.hasPendingWrites);
+                    const old = oldEls.get(snap.id);
+                    if (old && old._sig === sig) { want.push(old); return; }
+                    const el = createMessageElement(snap.id, m);
+                    el._sig = sig;
+                    if (old) el._old = old;
+                    else if (!first) { el.classList.add('msg-in'); el.addEventListener('animationend', () => el.classList.remove('msg-in'), { once: true }); }
+                    const media = el.querySelector('img.message-image, audio');
+                    if (media) media.addEventListener(media.tagName === 'AUDIO' ? 'loadedmetadata' : 'load', stickIfNeeded, { once: true });
+                    want.push(el);
                 });
+                let cur = messagesList.firstChild;
+                for (const el of want) {
+                    const old = el._old;
+                    if (cur === (old || el)) {
+                        if (old) { messagesList.replaceChild(el, old); cur = el.nextSibling; delete el._old; }
+                        else cur = cur.nextSibling;
+                        continue;
+                    }
+                    if (old) { old.remove(); delete el._old; }
+                    messagesList.insertBefore(el, cur);
+                }
+                while (cur) { const n = cur.nextSibling; cur.remove(); cur = n; }
                 rebuildDateSeparators();
 
                 if (first || nearBottom || ownAdded) {
@@ -2681,21 +2778,21 @@
             div.dataset.id = id;
             let html = '';
             if (msg.deleted) {
-                html += '<div class="msg-deleted">🚫 Сообщение удалено</div>';
+                html += '<div class="msg-deleted">' + ic('ban') + ' Сообщение удалено</div>';
             } else {
                 if (!mine && msg.senderName && getCurrentChat()?.isGroup) {
                     let h = 0; for (const ch of msg.senderId) h = (h * 31 + ch.charCodeAt(0)) % 360;
                     html += `<div class="msg-sender" style="color:hsl(${h} 70% 62%)">${escapeHtml(msg.senderName)}</div>`;
                 }
-                if (msg.forwardedFrom) html += `<div class="fwd-label">↪️ Переслано от ${escapeHtml(msg.forwardedFrom)}</div>`;
+                if (msg.forwardedFrom) html += `<div class="fwd-label">${ic('fwd')} Переслано от ${escapeHtml(msg.forwardedFrom)}</div>`;
                 if (msg.replyTo) {
                     const src = messagesCache.get(msg.replyTo);
                     const qText = src ? (src.deleted ? '🚫 Сообщение удалено' : previewOf(src)) : (msg.replyPreview || 'Сообщение');
                     const qAuthor = authorLabel(src ? src.senderId : msg.replyAuthorId);
-                    html += `<div class="reply-quote" data-reply="${escapeHtml(msg.replyTo)}"><b>${escapeHtml(qAuthor)}</b><span>${escapeHtml(qText.slice(0, 140))}</span></div>`;
+                    html += `<div class="reply-quote" data-reply="${escapeHtml(msg.replyTo)}"><b>${escapeHtml(qAuthor)}</b><span>${iconLead(qText.slice(0, 140))}</span></div>`;
                 }
                 const jumbo = msg.text && !msg.replyTo && !msg.forwardedFrom && !msg.imageUrl && !msg.fileUrl && JUMBO_RE.test(msg.text.trim());
-                if (msg.text) html += jumbo ? `<div class="msg-jumbo">${escapeHtml(msg.text.trim())}</div>` : `<div>${linkify(msg.text)}</div>`;
+                if (msg.text) html += jumbo ? `<div class="msg-jumbo">${escapeHtml(msg.text.trim())}</div>` : `<div>${msg.locked ? ic('lock') + ' ' : ''}${linkify(msg.text)}</div>`;
                 if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image">`;
                 if (msg.fileUrl) html += docCardHtml(msg);
                 if (msg.audioUrl) html += `<audio controls src="${escapeHtml(msg.audioUrl)}"></audio>`;
@@ -2948,13 +3045,13 @@
                             <div class="chat-item-time">${formatChatTime(chat.lastMessageAt || chat.createdAt)}</div>
                         </div>
                         <div class="chat-item-footer">
-                            <div class="chat-item-last">${escapeHtml(chat.lastMessage || '')}</div>
+                            <div class="chat-item-last">${iconLead(chat.lastMessage || '')}</div>
                             ${unreadCount > 0 ? `<div class="unread-badge">${unreadCount}</div>` : ''}
                         </div>
                     </div>
                 `;
                 applyAvatar(item.querySelector('.avatar'), otherUid || chat.id, otherName);
-                if (pins.includes(chat.id)) item.querySelector('.chat-item-time')?.prepend('📌 ');
+                if (pins.includes(chat.id)) item.querySelector('.chat-item-time')?.insertAdjacentHTML('afterbegin', ic('pin') + ' ');
                 let lpTimer = 0, lpFired = false;
                 const togglePin = () => {
                     lpFired = true; const p = getPins(), i = p.indexOf(chat.id);
@@ -2987,7 +3084,7 @@
             const aboutEl = document.getElementById('profile-menu-about');
             aboutEl.textContent = ''; aboutEl.classList.add('hidden');
             const forUid = currentChatOtherUid;
-            securityInfo(forUid).then(t => { if (forUid === currentChatOtherUid) { aboutEl.textContent = t; aboutEl.classList.remove('hidden'); } }).catch(() => {});
+            securityInfo(forUid).then(t => { if (forUid === currentChatOtherUid) { aboutEl.innerHTML = iconText(t); aboutEl.classList.remove('hidden'); } }).catch(() => {});
             applyAvatar(document.getElementById('profile-menu-avatar'), currentChatOtherUid, name);
             const bcss = bannerCss(profiles.get(currentChatOtherUid));
             const headEl = document.getElementById('profile-menu-head');
@@ -3071,13 +3168,13 @@
         }
         function openUserSearch({ title, multi = false, nameField = '', okLabel = 'Готово', extra = '' }) {
             return new Promise(res => {
-                const o = cmModal(`<h3>${escapeHtml(title)}</h3>${extra ? `<button class="cm-btn" data-x="extra">${escapeHtml(extra)}</button>` : ''}${nameField ? `<input class="pk-name" placeholder="${escapeHtml(nameField)}" maxlength="60">` : ''}<input class="pk-q" placeholder="Введите @юзернейм" autocapitalize="none" autocorrect="off" spellcheck="false"><div class="cm-chosen"></div><div class="cm-list"><p>Введите юзернейм собеседника (минимум 2 символа)</p></div><div class="cm-actions"><button class="cm-btn" data-x="cancel">Отмена</button>${multi ? `<button class="cm-btn primary" data-x="ok">${escapeHtml(okLabel)}</button>` : ''}</div>`);
+                const o = cmModal(`<h3>${escapeHtml(title)}</h3>${extra ? `<button class="cm-btn" data-x="extra">${iconText(extra)}</button>` : ''}${nameField ? `<input class="pk-name" placeholder="${escapeHtml(nameField)}" maxlength="60">` : ''}<input class="pk-q" placeholder="Введите @юзернейм" autocapitalize="none" autocorrect="off" spellcheck="false"><div class="cm-chosen"></div><div class="cm-list"><p>Введите юзернейм собеседника (минимум 2 символа)</p></div><div class="cm-actions"><button class="cm-btn" data-x="cancel">Отмена</button>${multi ? `<button class="cm-btn primary" data-x="ok">${escapeHtml(okLabel)}</button>` : ''}</div>`);
                 const list = o.querySelector('.cm-list'), chosenEl = o.querySelector('.cm-chosen'), inp = o.querySelector('.pk-q');
                 const chosen = new Map(); let found = [], timer = 0, seq = 0;
                 chosenEl.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px';
-                const drawChosen = () => { chosenEl.innerHTML = [...chosen.values()].map(u => `<button class="cm-btn" data-rm="${escapeHtml(u.uid)}" style="padding:5px 10px;font-size:13px">@${escapeHtml(u.username)} ✕</button>`).join(''); };
+                const drawChosen = () => { chosenEl.innerHTML = [...chosen.values()].map(u => `<button class="cm-btn" data-rm="${escapeHtml(u.uid)}" style="padding:5px 10px;font-size:13px">@${escapeHtml(u.username)} ${ic('x')}</button>`).join(''); };
                 const drawFound = () => {
-                    list.innerHTML = found.map(u => `<div class="cm-row${chosen.has(u.uid) ? ' sel' : ''}" data-uid="${escapeHtml(u.uid)}"><span>${escapeHtml(u.name)} <span style="opacity:.6">@${escapeHtml(u.username)}</span></span><span class="chk">✓</span></div>`).join('') || `<p>${inp.value.trim().length < 2 ? 'Введите юзернейм собеседника (минимум 2 символа)' : 'Никого не нашли. Проверьте юзернейм.'}</p>`;
+                    list.innerHTML = found.map(u => `<div class="cm-row${chosen.has(u.uid) ? ' sel' : ''}" data-uid="${escapeHtml(u.uid)}"><span>${escapeHtml(u.name)} <span style="opacity:.6">@${escapeHtml(u.username)}</span></span><span class="chk"><svg class="ic"><use href="#i-check"/></svg></span></div>`).join('') || `<p>${inp.value.trim().length < 2 ? 'Введите юзернейм собеседника (минимум 2 символа)' : 'Никого не нашли. Проверьте юзернейм.'}</p>`;
                 };
                 inp.focus();
                 inp.addEventListener('input', () => {
@@ -3170,7 +3267,7 @@
             const o = cmModal('<h3>🔔 Проверка уведомлений</h3><div class="cm-list" id="diag-out" style="gap:6px;font-size:14px;user-select:text"></div><div class="cm-actions"><button class="cm-btn" data-x="close">Закрыть</button></div>');
             o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-x="close"]')) o.remove(); });
             const out = o.querySelector('#diag-out');
-            const log = (ok, t) => { const d = document.createElement('div'); d.textContent = (ok === null ? 'ℹ️ ' : ok ? '✅ ' : '❌ ') + t; d.style.wordBreak = 'break-word'; out.appendChild(d); };
+            const log = (ok, t) => { const d = document.createElement('div'); d.innerHTML = iconText((ok === null ? 'ℹ️ ' : ok ? '✅ ' : '❌ ') + t); d.style.wordBreak = 'break-word'; out.appendChild(d); };
             try {
                 log(null, 'Режим: ' + (matchMedia('(display-mode: standalone)').matches ? 'установленное приложение' : 'вкладка браузера'));
                 log('Notification' in window, 'Поддержка уведомлений в этом браузере');
@@ -3432,22 +3529,25 @@
         // Точная высота окна (убирает пустую полосу снизу в мобильных браузерах/WebView)
         (function fitAppHeight() {
             const root = document.documentElement;
+            let raf = 0;
             const apply = () => {
+                raf = 0;
                 const vv = window.visualViewport;
                 const h = Math.round(vv ? vv.height : window.innerHeight);
                 const kb = !!vv && (window.innerHeight - h) > 120;   // клавиатура открыта
-                root.style.setProperty('--app-h', h + 'px');
+                if (kb) root.style.setProperty('--app-h', h + 'px');  // иначе высоту держит 100dvh — без чёрной полосы
                 document.body.classList.toggle('kb-open', kb);
-                if (vv && vv.offsetTop) window.scrollTo(0, 0);
+                if (kb && vv.offsetTop) window.scrollTo(0, 0);
             };
+            const sched = () => { if (!raf) raf = requestAnimationFrame(apply); };
             apply();
-            window.addEventListener('resize', apply);
+            window.addEventListener('resize', sched, { passive: true });
             window.addEventListener('orientationchange', () => setTimeout(apply, 250));
             if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', apply);
-                window.visualViewport.addEventListener('scroll', apply);
+                window.visualViewport.addEventListener('resize', sched, { passive: true });
+                window.visualViewport.addEventListener('scroll', sched, { passive: true });
             }
-        })();
+        })();;
 
         let currentScale = 1, panX = 0, panY = 0;
         const MAX_SCALE = 6;
@@ -3733,7 +3833,9 @@
                 i.dispatchEvent(new Event('input'));
             });
             const row = document.querySelector('.input-row');
-            setInterval(() => row.classList.toggle('has-text', !!(messageInput.value.trim() || pendingImageFile || pendingAudioBlob || pendingDocFile || editingMessageId)), 150);
+            const syncHasText = () => row.classList.toggle('has-text', !!(messageInput.value.trim() || pendingImageFile || pendingAudioBlob || pendingDocFile || editingMessageId));
+            messageInput.addEventListener('input', syncHasText);
+            setInterval(syncHasText, 500);
         })();
 
         // ===== Двойной тап по сообщению = ❤️ =====
@@ -3743,7 +3845,7 @@
             const id = b.dataset.id, msg = messagesCache.get(id); if (!msg || msg.deleted) return;
             if (msg.reactions?.[currentUser.uid] !== '❤️') {
                 toggleReaction(id, '❤️');
-                const h = document.createElement('div'); h.className = 'heart-pop'; h.textContent = '❤️';
+                const h = document.createElement('div'); h.className = 'heart-pop'; h.innerHTML = ic('heart');
                 h.style.left = e.clientX + 'px'; h.style.top = e.clientY + 'px';
                 document.body.appendChild(h); setTimeout(() => h.remove(), 750);
                 if (navigator.vibrate) navigator.vibrate(15);
@@ -3968,7 +4070,7 @@
             const rooms = [...callsCache.values()].filter(c => c.kind === 'room' && !c.ended && Date.now() - c.at < 12 * 3600e3).sort((a, b) => b.at - a.at);
             const rows = rooms.map(r => `<div class="cm-row" data-room="${r.id}"><span>🎙 ${escapeHtml(r.title)} · ${escapeHtml(r.owner === currentUser.uid ? 'ваша' : r.byName)}</span><span>▶</span></div>`).join('')
                 || '<p style="opacity:.7;padding:8px">Комнат, куда вас пустили, пока нет.</p>';
-            const o = cmModal(`<h3>🎙 Голосовые комнаты</h3><button class="cm-btn" data-x="new">＋ Создать комнату</button><div class="cm-list">${rows}</div><div class="cm-actions"><button class="cm-btn" data-x="close">Закрыть</button></div>`);
+            const o = cmModal(`<h3>🎙 Голосовые комнаты</h3><button class="cm-btn" data-x="new">➕ Создать комнату</button><div class="cm-list">${rows}</div><div class="cm-actions"><button class="cm-btn" data-x="close">Закрыть</button></div>`);
             o.addEventListener('click', e => {
                 const room = e.target.closest('[data-room]')?.dataset.room, x = e.target.closest('[data-x]')?.dataset.x;
                 if (e.target === o || x === 'close') o.remove();
@@ -3992,7 +4094,7 @@
             rtc = { id, c, me, joined, local, peers: new Map(), docs: new Map(), first: true, mic: true, q: Promise.resolve(), unsubs: [],
                 tr: { audio: local.getAudioTracks()[0] || null, video: local.getVideoTracks()[0] || null } };
             $c('call-overlay').classList.remove('mini'); $c('call-overlay').classList.add('show');
-            $c('call-title').textContent = c.kind === 'room' ? '🎙 ' + c.title : (c.owner === me ? 'Звоним…' : c.byName);
+            $c('call-title').innerHTML = c.kind === 'room' ? iconText('🎙 ' + c.title) : (c.owner === me ? 'Звоним…' : c.byName);
             $c('call-grid').innerHTML = ''; addTile(me, 'Вы', true); setTile(me); syncCtl();
             await setDoc(peerRef(id, me), { name: normalizeName(currentUser), joined, at: joined, cam: !!rtc.tr.video, mic: true });
             if (c.kind === 'room') updateDoc(callRef(id), { at: Date.now() }).catch(() => {});
@@ -4091,7 +4193,7 @@
         }
         function setStatus(uid, st) {
             const el = $c('tile-' + uid)?.querySelector('.st'); if (!el) return;
-            el.textContent = { new: 'Подключение…', checking: 'Подключение…', disconnected: '⚠ обрыв связи', failed: '⚠ нет связи' }[st] || '';
+            el.innerHTML = iconHtml({ new: 'Подключение…', checking: 'Подключение…', disconnected: '⚠ обрыв связи', failed: '⚠ нет связи' }[st] || '');
         }
         function setTile(uid) {
             const t = $c('tile-' + uid); if (!t || !rtc) return;
@@ -4146,7 +4248,7 @@
         function showIncoming(id, c) {
             const m = $c('incoming-call'); m.dataset.id = id;
             $c('incoming-name').textContent = c.byName || 'Звонок';
-            $c('incoming-kind').textContent = c.type === 'audio' ? '📞 Голосовой звонок' : '📹 Видеозвонок';
+            $c('incoming-kind').innerHTML = c.type === 'audio' ? iconHtml('📞 Голосовой звонок') : iconHtml('📹 Видеозвонок');
             m.classList.add('show'); startRing(); ringTimer = setTimeout(dismissIncoming, 40000);
         }
         function dismissIncoming() { const m = $c('incoming-call'); if (m.dataset.id) handledCalls.add(m.dataset.id); m.dataset.id = ''; m.classList.remove('show'); stopRing(); }
