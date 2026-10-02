@@ -783,6 +783,23 @@
         .doc-page-wrap { overflow-x:auto; } .doc-sheet-title { font-weight:700; margin:14px 0 6px; color:#111; }
         .doc-text { white-space:pre-wrap; font-family:ui-monospace,Menlo,monospace; font-size:13px; }
         .doc-msg { text-align:center; color:var(--text-secondary); padding:40px 16px; }
+
+        .msg-link{background:color-mix(in srgb,currentColor 15%,transparent);border-radius:6px;padding:0 4px;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+        .msg-phone{text-decoration:none;white-space:nowrap;word-break:normal}
+        .msg-phone::before{content:"📞 ";font-size:.9em}
+        .msg-link:hover{background:color-mix(in srgb,currentColor 25%,transparent)}
+        .in-browser{position:fixed;inset:0;z-index:10001;display:flex;flex-direction:column;background:var(--bg-color,#0f0f11)}
+        .in-browser.hidden{display:none}
+        .ib-bar{display:flex;align-items:center;gap:6px;padding:calc(8px + env(safe-area-inset-top,0px)) 8px 8px;background:var(--surface-color);border-bottom:1px solid var(--border-color)}
+        .ib-bar button{flex:0 0 auto;width:38px;height:38px;border:none;border-radius:10px;background:transparent;color:var(--text-primary);font-size:18px;cursor:pointer}
+        .ib-bar button:hover{background:var(--surface-hover)}
+        .ib-url{flex:1;min-width:0;height:38px;padding:0 12px;border-radius:19px;border:1px solid var(--border-color);background:var(--bg-color,#0f0f11);color:var(--text-primary);font-size:14px}
+        .ib-progress{height:2px;background:var(--accent);width:0;transition:width .3s}
+        .ib-hint{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:12.5px;color:var(--text-secondary);background:var(--surface-color);border-bottom:1px solid var(--border-color)}
+        .ib-hint span{flex:1}.ib-hint button{border:none;border-radius:8px;padding:6px 10px;background:var(--accent);color:#fff;cursor:pointer;font-size:12.5px}
+        .ib-hint button.x{background:transparent;color:var(--text-secondary)}
+        .in-browser iframe{flex:1;width:100%;border:0;background:#fff}
+        .in-browser .ib-ext{width:auto!important;padding:0 10px;font-size:13px!important;background:var(--accent)!important;color:#fff!important}
 </style>
     <style id="tg-style">
         /* ===== Тема в стиле Telegram ===== */
@@ -1318,6 +1335,18 @@
         </div>
     </div>
 
+    <div id="in-browser" class="in-browser hidden">
+        <div class="ib-bar">
+            <button id="ib-close" type="button" title="Закрыть">✕</button>
+            <input id="ib-url" class="ib-url" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false">
+            <button id="ib-reload" type="button" title="Обновить">⟳</button>
+            <button id="ib-copy" type="button" title="Копировать ссылку">⧉</button>
+            <button id="ib-ext" class="ib-ext" type="button" title="Открыть в другом браузере">↗ Открыть в браузере</button>
+        </div>
+        <div id="ib-progress" class="ib-progress"></div>
+        <div id="ib-hint" class="ib-hint"><span>Если страница пустая или не грузится — сайт запрещает встраивание. Откройте её в обычном браузере.</span><button id="ib-hint-open" type="button">Открыть</button><button class="x" id="ib-hint-x" type="button">✕</button></div>
+        <iframe id="ib-frame" title="Встроенный браузер" referrerpolicy="no-referrer" allow="clipboard-write; fullscreen" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"></iframe>
+    </div>
     <div id="doc-viewer" class="doc-viewer hidden">
         <div class="doc-viewer-bar"><div id="doc-viewer-title" class="doc-viewer-title"></div><button id="doc-viewer-dl" type="button">⬇ Скачать</button><button id="doc-viewer-close" class="dv-close" type="button">✕</button></div>
         <div id="doc-viewer-body" class="doc-viewer-body"></div>
@@ -1974,16 +2003,65 @@
         }
         // Текст → безопасный HTML со ссылками и форматированием
         function linkify(text) {
-            const re = /((?:https?:\/\/|www\.)[^\s<]+[^\s<.,;:!?)\]}'"»])/gi;
+            const re = /((?:https?:\/\/|www\.)[^\s<]+[^\s<.,;:!?)\]}'"»])|(\+?\d(?:[ \-]?[\d()]){9,17})/gi;
             let out = '', last = 0, m;
             while ((m = re.exec(text))) {
-                out += fmtText(text.slice(last, m.index));
-                const url = m[0], href = /^www\./i.test(url) ? 'https://' + url : url;
-                out += `<a class="msg-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer nofollow">${escapeHtml(url)}</a>`;
-                last = m.index + url.length;
+                if (m[1]) {
+                    out += fmtText(text.slice(last, m.index));
+                    const url = m[1], href = /^www\./i.test(url) ? 'https://' + url : url;
+                    out += `<a class="msg-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer nofollow">${escapeHtml(url)}</a>`;
+                    last = m.index + url.length;
+                } else {
+                    const raw = m[2], prev = m.index ? text[m.index - 1] : '', digits = raw.replace(/\D/g, ''), plus = raw[0] === '+';
+                    if (/[\w@.\/:-]/.test(prev) || digits.length < 10 || digits.length > 15 || (!plus && digits.length > 11)) { re.lastIndex = m.index + 1; continue; }
+                    out += fmtText(text.slice(last, m.index));
+                    out += `<a class="msg-link msg-phone" href="tel:${plus ? '+' : ''}${digits}" data-phone="${plus ? '+' : ''}${digits}">${escapeHtml(raw.trim())}</a>`;
+                    last = m.index + raw.length;
+                }
             }
             return (out + fmtText(text.slice(last))).replace(/\n/g, '<br>');
         }
+
+        // ===== Встроенный браузер =====
+        const ib = document.getElementById('in-browser'), ibFrame = document.getElementById('ib-frame'), ibUrl = document.getElementById('ib-url'), ibProg = document.getElementById('ib-progress'), ibHint = document.getElementById('ib-hint');
+        let ibCur = '';
+        function ibNormalize(v) {
+            v = String(v || '').trim(); if (!v) return '';
+            if (/^https?:\/\//i.test(v)) return v;
+            if (/^[a-z][a-z0-9+.-]*:/i.test(v) && !/^[^\s/]+:\d+/.test(v)) return '';
+            if (/\s/.test(v) || !/\./.test(v)) return 'https://duckduckgo.com/?q=' + encodeURIComponent(v);
+            return 'https://' + v;
+        }
+        function openBrowser(url) {
+            const u = ibNormalize(url);
+            if (!u) { showToast('Эту ссылку нельзя открыть'); return; }
+            ibCur = u; ibUrl.value = u;
+            ibHint.style.display = '';
+            ibProg.style.width = '30%';
+            ibFrame.src = u;
+            ib.classList.remove('hidden');
+        }
+        function closeBrowser() { ib.classList.add('hidden'); ibFrame.src = 'about:blank'; ibCur = ''; ibProg.style.width = '0'; }
+        function openExternal() { if (ibCur) window.open(ibCur, '_blank', 'noopener,noreferrer'); }
+        ibFrame.addEventListener('load', () => { ibProg.style.width = '100%'; setTimeout(() => { ibProg.style.width = '0'; }, 400); });
+        document.getElementById('ib-close').addEventListener('click', closeBrowser);
+        document.getElementById('ib-reload').addEventListener('click', () => { if (ibCur) { ibProg.style.width = '30%'; ibFrame.src = ibCur; } });
+        document.getElementById('ib-copy').addEventListener('click', () => ibCur && copyText(ibCur));
+        document.getElementById('ib-ext').addEventListener('click', openExternal);
+        document.getElementById('ib-hint-open').addEventListener('click', openExternal);
+        document.getElementById('ib-hint-x').addEventListener('click', () => { ibHint.style.display = 'none'; });
+        ibUrl.addEventListener('keydown', e => { if (e.key === 'Enter') { ibUrl.blur(); openBrowser(ibUrl.value); } });
+        ibUrl.addEventListener('focus', () => ibUrl.select());
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && !ib.classList.contains('hidden')) closeBrowser(); });
+        function openPhoneMenu(num, label) {
+            const o = cmModal(`<h3>${escapeHtml(label)}</h3><div class="cm-actions" style="flex-direction:column;align-items:stretch"><a class="cm-btn primary" data-x="call" href="tel:${escapeHtml(num)}" style="text-decoration:none;text-align:center">📞 Позвонить</a><button class="cm-btn" data-x="copy">Копировать номер</button><button class="cm-btn" data-x="cancel">Отмена</button></div>`);
+            o.addEventListener('click', e => {
+                const x = e.target.closest('[data-x]')?.dataset.x;
+                if (x === 'copy') copyText(num);
+                if (x || e.target === o) o.remove();
+            });
+        }
+
         const JUMBO_RE = /^(?:\p{Extended_Pictographic}(?:\uFE0F|\u200D|\p{Emoji_Modifier})*){1,3}$/u;
 
         function startEdit(id) {
@@ -3521,7 +3599,10 @@
 
         let pressTimer = null, suppressClickUntil = 0;
         messagesList.addEventListener('click', e => {
-            if (e.target.closest('.msg-link')) return; // открываем ссылку, меню не показываем
+            const ph = e.target.closest('.msg-phone');
+            if (ph) { e.preventDefault(); openPhoneMenu(ph.dataset.phone, ph.textContent); return; }
+            const lk = e.target.closest('.msg-link');
+            if (lk) { e.preventDefault(); openBrowser(lk.getAttribute('href')); return; } // ссылки — во встроенном браузере
             const sp = e.target.closest('.spoiler'); if (sp) { sp.classList.toggle('revealed'); return; }
             const quote = e.target.closest('.reply-quote');
             if (quote) { jumpToMessage(quote.dataset.reply); return; }
