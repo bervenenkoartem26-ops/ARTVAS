@@ -756,6 +756,8 @@
         .tile.cam .av{display:none}
         .tile .nm{position:absolute;left:8px;bottom:6px;font-size:13px;font-weight:700;color:#fff;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:8px}
         .tile.mute .nm::after{content:" 🔇"}
+        .tile .st{position:absolute;right:8px;top:6px;font-size:12px;color:#fff;background:rgba(0,0,0,.6);padding:2px 8px;border-radius:8px}
+        .tile .st:empty{display:none}
         .call-ctl{display:flex;justify-content:center;gap:12px;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface-color)}
         .call-round.cc{background:var(--surface-hover);color:var(--text-primary);font-size:20px}
         .call-round.cc.off{background:var(--danger);color:#fff}
@@ -3717,7 +3719,12 @@
 
         // ===== Звонки и комнаты: WebRTC (напрямую между людьми), Firestore — только «почта» для сигналов =====
         // Для сложных сетей добавьте TURN: { urls: 'turn:ваш-сервер:3478', username: '...', credential: '...' }
-        const ICE = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }];
+        const ICE = [
+            { urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' },
+            // Бесплатный общий TURN-ретранслятор (Open Relay, без регистрации): выручает, когда напрямую не соединиться.
+            // Он общий для всех и может быть перегружен — для надёжности поставьте свой coturn и замените эти строки.
+            { urls: ['turn:staticauth.openrelay.metered.ca:80', 'turn:staticauth.openrelay.metered.ca:443', 'turns:staticauth.openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }
+        ];
         const $c = id => document.getElementById(id);
         const callsCache = new Map(), handledCalls = new Set();
         let rtc = null, callsUnsub = null, ringBeat = null, ringTimer = null, ringCtx = null;
@@ -3816,10 +3823,9 @@
                 if (ch.type === 'removed') return closePeer(uid);
                 rtc.docs.set(uid, d);
                 if (!rtc.peers.has(uid)) {
-                    if (first && Date.now() - d.at > 70000) return;           // «мёртвая» запись от вылетевшего клиента
                     const p = ensurePeer(uid);
-                    // инициатор — тот, кто вошёл позже (так двое не звонят друг другу одновременно)
-                    if (rtc.joined > d.joined || (rtc.joined === d.joined && rtc.me > uid)) offerTo(p).catch(console.error);
+                    // инициатор — тот, у кого uid больше: так двое не звонят друг другу одновременно и не зависят от часов устройств
+                    if (rtc.me > uid) offerTo(p).catch(console.error);
                 }
                 setTile(uid);
             });
@@ -3831,7 +3837,12 @@
             p = { uid, pc, stream: new MediaStream(), pend: [], snd: {} };
             rtc.peers.set(uid, p); addTile(uid, rtc.docs.get(uid)?.name || 'Участник', false); setTile(uid);
             pc.onicecandidate = e => { if (e.candidate) sendSig(uid, 'ice', e.candidate.toJSON()); };
-            pc.ontrack = e => p.stream.addTrack(e.track);
+            pc.ontrack = e => {
+                p.stream.addTrack(e.track);
+                const v = $c('tile-' + uid)?.querySelector('video'); if (v) { v.srcObject = p.stream; v.play().catch(() => {}); }
+            };
+            pc.oniceconnectionstatechange = () => { console.log('ICE', uid, pc.iceConnectionState); setStatus(uid, pc.iceConnectionState); };
+            setStatus(uid, 'checking');
             pc.onconnectionstatechange = () => {
                 if (!rtc || rtc.peers.get(uid) !== p) return;
                 if (pc.connectionState === 'connected') {
@@ -3883,10 +3894,14 @@
         // ---------- плитки и кнопки ----------
         function addTile(uid, name, me) {
             const t = document.createElement('div'); t.className = 'tile' + (me ? ' me' : ''); t.id = 'tile-' + uid;
-            t.innerHTML = '<video autoplay playsinline></video><div class="av"></div><div class="nm"></div>';
+            t.innerHTML = '<video autoplay playsinline></video><div class="av"></div><div class="nm"></div><div class="st"></div>';
             const v = t.querySelector('video'); v.muted = !!me; v.srcObject = me ? rtc.local : rtc.peers.get(uid).stream;
             t.querySelector('.av').textContent = getInitial(name); t.querySelector('.nm').textContent = name;
             $c('call-grid').appendChild(t);
+        }
+        function setStatus(uid, st) {
+            const el = $c('tile-' + uid)?.querySelector('.st'); if (!el) return;
+            el.textContent = { new: 'Подключение…', checking: 'Подключение…', disconnected: '⚠ обрыв связи', failed: '⚠ нет связи' }[st] || '';
         }
         function setTile(uid) {
             const t = $c('tile-' + uid); if (!t || !rtc) return;
@@ -3968,6 +3983,7 @@
         $c('call-audio-btn').addEventListener('click', () => startDirect('audio'));
         $c('call-video-btn').addEventListener('click', () => startDirect('video'));
         $c('call-hangup').addEventListener('click', leaveCall);
+        $c('call-grid').addEventListener('click', () => document.querySelectorAll('#call-grid video').forEach(v => v.play().catch(() => {})));
         $c('call-min').addEventListener('click', () => $c('call-overlay').classList.toggle('mini'));
         $c('cc-mic').addEventListener('click', () => rtc && toggleMic());
         $c('cc-cam').addEventListener('click', () => rtc && toggleCam());
