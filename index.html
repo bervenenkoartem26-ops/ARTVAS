@@ -762,7 +762,28 @@
         .call-round.cc{background:var(--surface-hover);color:var(--text-primary);font-size:20px}
         .call-round.cc.off{background:var(--danger);color:#fff}
         .call-overlay.mini .call-ctl,.call-overlay.mini .call-grid .tile:not(:first-child){display:none}
-    </style>
+    
+        .doc-card { display:flex; align-items:center; gap:10px; min-width:200px; max-width:290px; padding:6px 4px; cursor:pointer; }
+        .doc-ico { flex:0 0 42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; background:#6b7280; letter-spacing:.3px; }
+        .doc-ico.pdf{background:#e5484d}.doc-ico.doc,.doc-ico.docx,.doc-ico.rtf{background:#2b6cd4}.doc-ico.xls,.doc-ico.xlsx,.doc-ico.csv{background:#1f9d55}.doc-ico.ppt,.doc-ico.pptx{background:#e8742a}.doc-ico.zip,.doc-ico.rar,.doc-ico.7z{background:#8b5cf6}
+        .doc-meta { display:flex; flex-direction:column; min-width:0; }
+        .doc-meta b { font-size:14px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .doc-meta span { font-size:12px; opacity:.7; }
+        .doc-viewer { position:fixed; inset:0; z-index:10000; background:var(--bg-color, #0f0f11); display:flex; flex-direction:column; }
+        .doc-viewer.hidden { display:none; }
+        .doc-viewer-bar { display:flex; align-items:center; gap:8px; padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px; background:var(--surface-color); border-bottom:1px solid var(--border-color); }
+        .doc-viewer-title { flex:1; min-width:0; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .doc-viewer-bar button { background:var(--accent); color:#fff; border:none; border-radius:10px; padding:8px 12px; cursor:pointer; font-size:14px; }
+        .doc-viewer-bar button.dv-close { background:transparent; color:var(--text-secondary); font-size:18px; }
+        .doc-viewer-body { flex:1; overflow:auto; padding:12px; -webkit-overflow-scrolling:touch; }
+        .doc-viewer-body canvas { display:block; margin:0 auto 10px; max-width:100%; height:auto; background:#fff; border-radius:4px; }
+        .doc-viewer-body iframe { width:100%; height:100%; border:0; background:#fff; }
+        .doc-page { background:#fff; color:#111; padding:20px; border-radius:8px; max-width:860px; margin:0 auto; line-height:1.5; overflow-wrap:anywhere; }
+        .doc-page img { max-width:100%; } .doc-page table { border-collapse:collapse; } .doc-page td,.doc-page th { border:1px solid #ccc; padding:4px 8px; font-size:13px; }
+        .doc-page-wrap { overflow-x:auto; } .doc-sheet-title { font-weight:700; margin:14px 0 6px; color:#111; }
+        .doc-text { white-space:pre-wrap; font-family:ui-monospace,Menlo,monospace; font-size:13px; }
+        .doc-msg { text-align:center; color:var(--text-secondary); padding:40px 16px; }
+</style>
     <style id="tg-style">
         /* ===== Тема в стиле Telegram ===== */
         :root{--bg-color:#0e1621;--surface-color:#17212b;--surface-hover:#202b36;--border-color:#0b121a;--text-primary:#f5f5f5;--text-secondary:#708499;--accent:#3390ec;--bubble-me:color-mix(in srgb,var(--accent) 52%,#0e1621);--bubble-other:#182533;--bubble-me-text:#fff;--wall:#0e1621}
@@ -1121,10 +1142,10 @@
                 <div id="emoji-panel" class="emoji-panel hidden"></div>
                 <div class="input-row">
                     <button id="emoji-btn" class="file-btn" title="Эмодзи" type="button" style="font-size:22px">😊</button>
-                    <button id="file-btn" class="file-btn" title="Отправить фото">
+                    <button id="file-btn" class="file-btn" title="Прикрепить фото или документ">
                         <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </button>
-                    <input id="file-input" type="file" accept="image/*">
+                    <input id="file-input" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.csv,.json,.md,.zip,.rar,.7z,application/pdf">
                     <input id="message-input" type="text" placeholder="Сообщение..." autocomplete="off">
                     <button id="mic-btn" class="file-btn mic-btn" title="Записать голос">
                         <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18.5V23"></path></svg>
@@ -1297,6 +1318,10 @@
         </div>
     </div>
 
+    <div id="doc-viewer" class="doc-viewer hidden">
+        <div class="doc-viewer-bar"><div id="doc-viewer-title" class="doc-viewer-title"></div><button id="doc-viewer-dl" type="button">⬇ Скачать</button><button id="doc-viewer-close" class="dv-close" type="button">✕</button></div>
+        <div id="doc-viewer-body" class="doc-viewer-body"></div>
+    </div>
     <div id="image-viewer" class="image-viewer hidden">
         <button id="image-viewer-close" class="image-viewer-close">✕</button>
         <img id="image-viewer-img" src="" alt="фото">
@@ -1434,6 +1459,7 @@
         let audioChunks = [];
         let typingTimeout = null;
         let pendingImageFile = null;
+        let pendingDocFile = null;
         let pendingAudioBlob = null;
         let pendingAudioUrl = null;
         let chatsUnsub = null;
@@ -1886,9 +1912,9 @@
             try {
                 const otherUid = chat.isGroup ? null : getOtherUserInfo(chat, currentUser.uid).uid;
                 const from = msg.forwardedFrom || (msg.senderId === currentUser.uid ? normalizeName(currentUser) : (msg.senderName || displayNameFor(msg.senderId, chatTitle.textContent)));
-                const payload = { senderId: currentUser.uid, receiverId: otherUid, text: msg.text || '', imageUrl: msg.imageUrl || null, audioUrl: msg.audioUrl || null, chatId: chat.id, read: false, createdAt: serverTimestamp(), forwardedFrom: from };
+                const payload = { senderId: currentUser.uid, receiverId: otherUid, text: msg.text || '', imageUrl: msg.imageUrl || null, audioUrl: msg.audioUrl || null, fileUrl: msg.fileUrl || null, fileName: msg.fileName || null, fileSize: msg.fileSize || null, fileType: msg.fileType || null, chatId: chat.id, read: false, createdAt: serverTimestamp(), forwardedFrom: from };
                 if (chat.isGroup) payload.senderName = normalizeName(currentUser);
-                let preview = msg.text || (msg.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
+                let preview = msg.text || (msg.fileUrl ? '📎 ' + (msg.fileName || 'Файл') : msg.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
                 if (msg.text && otherUid) { const e = await encryptFor(otherUid, { text: msg.text, rp: '' }); if (e) { payload.e2e = e; payload.text = ''; preview = '🔒 Сообщение'; } }
                 await addDoc(collection(db, 'messages'), payload);
                 await updateChatSummary(chat.id, preview, otherUid);
@@ -1899,7 +1925,7 @@
 
         // ===== Ответ на сообщение =====
         function previewOf(msg) {
-            return msg.text || (msg.imageUrl ? '📷 Фото' : msg.audioUrl ? '🎤 Голосовое сообщение' : 'Сообщение');
+            return msg.text || (msg.fileUrl ? '📎 ' + (msg.fileName || 'Файл') : msg.imageUrl ? '📷 Фото' : msg.audioUrl ? '🎤 Голосовое сообщение' : 'Сообщение');
         }
         function authorLabel(uid) { return uid === currentUser?.uid ? 'Вы' : (chatTitle.textContent || 'Собеседник'); }
         function startReply(id) {
@@ -1998,7 +2024,7 @@
             if (!confirm('Удалить сообщение?')) return;
             try {
                 const msg = messagesCache.get(id);
-                const updates = { deleted: true, text: '', imageUrl: null, audioUrl: null, reactions: deleteField(), pinned: false };
+                const updates = { deleted: true, text: '', imageUrl: null, audioUrl: null, fileUrl: null, fileName: null, fileSize: null, fileType: null, reactions: deleteField(), pinned: false };
                 await updateDoc(doc(db, 'messages', id), updates);
                 if (msg?.pinned) {
                     await updateDoc(doc(db, 'chats', currentChatId), { pinnedMessageId: deleteField() });
@@ -2117,7 +2143,73 @@
             return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
         }
 
+        // ===== Документы: карточка, просмотр =====
+        const DOC_MAX = 50 * 1024 * 1024;
+        const docExt = n => ((String(n || '').split('.').pop() || '').toLowerCase().slice(0, 5));
+        const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' МБ' : Math.max(1, Math.round((b || 0) / 1024)) + ' КБ';
+        const loadDocLib = src => new Promise((ok, no) => { if (document.querySelector('script[src="' + src + '"]')) return ok(); const x = document.createElement('script'); x.src = src; x.onload = ok; x.onerror = () => no(new Error('Не загрузилась библиотека просмотра')); document.head.appendChild(x); });
+        const CDN = 'https://cdnjs.cloudflare.com/ajax/libs/';
+        const dv = document.getElementById('doc-viewer'), dvBody = document.getElementById('doc-viewer-body');
+        let dvCur = null;
+        function docCardHtml(m) {
+            const ext = docExt(m.fileName);
+            return `<div class="doc-card" data-url="${escapeHtml(m.fileUrl)}" data-name="${escapeHtml(m.fileName || 'Файл')}"><div class="doc-ico ${escapeHtml(ext)}">${escapeHtml(ext.toUpperCase() || 'FILE')}</div><div class="doc-meta"><b>${escapeHtml(m.fileName || 'Файл')}</b><span>${m.fileSize ? fmtSize(m.fileSize) + ' · ' : ''}Открыть</span></div></div>`;
+        }
+        function officeEmbed(url) { dvBody.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}"></iframe>`; }
+        async function openDoc(url, name) {
+            dvCur = { url, name };
+            document.getElementById('doc-viewer-title').textContent = name;
+            dvBody.innerHTML = '<div class="doc-msg">Загрузка…</div>';
+            dv.classList.remove('hidden');
+            const ext = docExt(name);
+            try {
+                if (ext === 'pdf') {
+                    await loadDocLib(CDN + 'pdf.js/3.11.174/pdf.min.js');
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = CDN + 'pdf.js/3.11.174/pdf.worker.min.js';
+                    const pdf = await pdfjsLib.getDocument(url).promise;
+                    dvBody.innerHTML = '';
+                    const w = Math.min(dvBody.clientWidth - 24, 900), dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    for (let n = 1; n <= pdf.numPages; n++) {
+                        if (!dv.classList.contains('hidden') && dvCur?.url !== url) return;
+                        const pg = await pdf.getPage(n), v0 = pg.getViewport({ scale: 1 }), sc = w / v0.width, vp = pg.getViewport({ scale: sc * dpr });
+                        const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; c.style.width = (vp.width / dpr) + 'px';
+                        dvBody.appendChild(c); await pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+                    }
+                } else if (ext === 'docx') {
+                    await loadDocLib(CDN + 'mammoth/1.6.0/mammoth.browser.min.js');
+                    const r = await mammoth.convertToHtml({ arrayBuffer: await (await fetch(url)).arrayBuffer() });
+                    dvBody.innerHTML = '<div class="doc-page">' + r.value + '</div>';
+                } else if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') {
+                    await loadDocLib(CDN + 'xlsx/0.18.5/xlsx.full.min.js');
+                    const wb = XLSX.read(await (await fetch(url)).arrayBuffer(), { type: 'array' });
+                    dvBody.innerHTML = '<div class="doc-page doc-page-wrap">' + wb.SheetNames.map(n => `<div class="doc-sheet-title">${escapeHtml(n)}</div>` + XLSX.utils.sheet_to_html(wb.Sheets[n])).join('') + '</div>';
+                } else if (['txt', 'md', 'json', 'rtf'].includes(ext)) {
+                    const t = await (await fetch(url)).text();
+                    dvBody.innerHTML = '<div class="doc-page doc-text"></div>'; dvBody.firstChild.textContent = t.slice(0, 300000);
+                } else if (['doc', 'ppt', 'pptx'].includes(ext)) {
+                    officeEmbed(url);
+                } else {
+                    dvBody.innerHTML = '<div class="doc-msg">Предпросмотр для этого типа файла недоступен.<br>Нажмите «Скачать».</div>';
+                }
+            } catch (e) {
+                console.error(e);
+                if (['docx', 'xls', 'xlsx'].includes(ext)) officeEmbed(url);
+                else dvBody.innerHTML = '<div class="doc-msg">Не удалось показать файл. Попробуйте скачать.</div>';
+            }
+        }
+        function closeDoc() { dv.classList.add('hidden'); dvBody.innerHTML = ''; dvCur = null; }
+        document.getElementById('doc-viewer-close').addEventListener('click', closeDoc);
+        document.getElementById('doc-viewer-dl').addEventListener('click', async () => {
+            if (!dvCur) return;
+            try {
+                const b = await (await fetch(dvCur.url)).blob(), a = document.createElement('a');
+                a.href = URL.createObjectURL(b); a.download = dvCur.name; document.body.appendChild(a); a.click(); a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+            } catch (_) { window.open(dvCur.url, '_blank'); }
+        });
+
         function clearAttachment() {
+            pendingDocFile = null;
             pendingImageFile = null;
             pendingAudioBlob = null;
             if (pendingAudioUrl) URL.revokeObjectURL(pendingAudioUrl);
@@ -2137,6 +2229,11 @@
                 img.alt = 'превью';
                 attachmentThumb.appendChild(img);
                 attachmentInfo.innerHTML = `<span>${escapeHtml(pendingImageFile.name || 'Фото')}</span>`;
+            } else if (pendingDocFile) {
+                attachmentPreview.classList.remove('hidden');
+                const ext = docExt(pendingDocFile.name);
+                attachmentThumb.innerHTML = `<div class="doc-ico ${escapeHtml(ext)}">${escapeHtml(ext.toUpperCase() || 'FILE')}</div>`;
+                attachmentInfo.innerHTML = `<span>${escapeHtml(pendingDocFile.name)} · ${fmtSize(pendingDocFile.size)}</span>`;
             } else if (pendingAudioBlob) {
                 attachmentPreview.classList.remove('hidden');
                 attachmentThumb.innerHTML = '<div class="audio-icon">🎤</div>';
@@ -2156,6 +2253,12 @@
             renderAttachmentPreview();
         }
 
+        function setPendingDoc(file) {
+            clearAttachment();
+            pendingDocFile = file;
+            renderAttachmentPreview();
+        }
+
         function setPendingAudio(blob) {
             clearAttachment();
             pendingAudioBlob = blob;
@@ -2167,11 +2270,16 @@
             if (!currentUser || !currentChatId) return;
             if (editingMessageId) return submitEdit();
             const text = messageInput.value.trim();
-            if (!text && !pendingImageFile && !pendingAudioBlob) return;
+            if (!text && !pendingImageFile && !pendingAudioBlob && !pendingDocFile) return;
             sendBtn.disabled = true;
             try {
                 let imageUrl = null;
                 let audioUrl = null;
+                let docMeta = null;
+                if (pendingDocFile) {
+                    const f = pendingDocFile;
+                    docMeta = { fileUrl: await uploadToSupabase(f, f.name, 'files'), fileName: f.name, fileSize: f.size, fileType: f.type || '' };
+                }
                 if (pendingImageFile) {
                     imageUrl = await uploadToSupabase(pendingImageFile, pendingImageFile.name || 'image.jpg', 'images');
                 }
@@ -2185,6 +2293,7 @@
                     text: text || '',
                     imageUrl,
                     audioUrl,
+                    ...(docMeta || {}),
                     chatId: currentChatId,
                     read: false,
                     createdAt: serverTimestamp()
@@ -2194,7 +2303,7 @@
                     payload.replyPreview = replyingTo.text || '';
                     payload.replyAuthorId = replyingTo.senderId || null;
                 }
-                let lastPreview = text || (imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
+                let lastPreview = text || (docMeta ? '📎 ' + docMeta.fileName : imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
                 const cc = getCurrentChat();
                 if (cc?.isGroup) payload.senderName = normalizeName(currentUser);
                 else if (text && currentChatOtherUid) {
@@ -2318,14 +2427,14 @@
                     if (pinnedId && messagesCache.has(pinnedId)) {
                         const pMsg = messagesCache.get(pinnedId);
                         pinnedBanner.classList.remove('hidden');
-                        pinnedTextEl.textContent = pMsg.text || (pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение');
+                        pinnedTextEl.textContent = pMsg.text || (pMsg.fileUrl ? '📎 ' + (pMsg.fileName || 'Файл') : pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение');
                         pinnedBanner.dataset.msgId = pinnedId;
                     } else if (pinnedId) {
                         getDoc(doc(db, 'messages', pinnedId)).then(mSnap => {
                             if (mSnap.exists()) {
                                 const pMsg = mSnap.data();
                                 pinnedBanner.classList.remove('hidden');
-                                pinnedTextEl.textContent = pMsg.text || (pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение');
+                                pinnedTextEl.textContent = pMsg.text || (pMsg.fileUrl ? '📎 ' + (pMsg.fileName || 'Файл') : pMsg.imageUrl ? '📷 Фото' : 'Закрепленное сообщение');
                                 pinnedBanner.dataset.msgId = pinnedId;
                             } else {
                                 pinnedBanner.classList.add('hidden');
@@ -2507,9 +2616,10 @@
                     const qAuthor = authorLabel(src ? src.senderId : msg.replyAuthorId);
                     html += `<div class="reply-quote" data-reply="${escapeHtml(msg.replyTo)}"><b>${escapeHtml(qAuthor)}</b><span>${escapeHtml(qText.slice(0, 140))}</span></div>`;
                 }
-                const jumbo = msg.text && !msg.replyTo && !msg.forwardedFrom && !msg.imageUrl && JUMBO_RE.test(msg.text.trim());
+                const jumbo = msg.text && !msg.replyTo && !msg.forwardedFrom && !msg.imageUrl && !msg.fileUrl && JUMBO_RE.test(msg.text.trim());
                 if (msg.text) html += jumbo ? `<div class="msg-jumbo">${escapeHtml(msg.text.trim())}</div>` : `<div>${linkify(msg.text)}</div>`;
                 if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image">`;
+                if (msg.fileUrl) html += docCardHtml(msg);
                 if (msg.audioUrl) html += `<audio controls src="${escapeHtml(msg.audioUrl)}"></audio>`;
                 const counts = {};
                 Object.values(msg.reactions || {}).forEach(e => { counts[e] = (counts[e] || 0) + 1; });
@@ -3086,12 +3196,9 @@
         fileInput.addEventListener('change', () => {
             const file = fileInput.files?.[0];
             if (!file) return;
-            if (!file.type.startsWith('image/')) {
-                showToast('Можно выбрать только изображение.');
-                fileInput.value = '';
-                return;
-            }
-            setPendingImage(file);
+            if (file.type.startsWith('image/')) { setPendingImage(file); return; }
+            if (file.size > DOC_MAX) { showToast('Файл больше 50 МБ — слишком большой.'); fileInput.value = ''; return; }
+            setPendingDoc(file);
         });
         removeAttachment.addEventListener('click', clearAttachment);
 
@@ -3420,6 +3527,8 @@
             if (quote) { jumpToMessage(quote.dataset.reply); return; }
             const chip = e.target.closest('.reaction-chip');
             if (chip) { toggleReaction(chip.closest('.message').dataset.id, chip.dataset.emoji); return; }
+            const dc = e.target.closest('.doc-card');
+            if (dc) { openDoc(dc.dataset.url, dc.dataset.name); return; }
             const img = e.target.closest('.message-image');
             if (img) {
                 resetImageViewer();
@@ -3543,7 +3652,7 @@
                 i.dispatchEvent(new Event('input'));
             });
             const row = document.querySelector('.input-row');
-            setInterval(() => row.classList.toggle('has-text', !!(messageInput.value.trim() || pendingImageFile || pendingAudioBlob || editingMessageId)), 150);
+            setInterval(() => row.classList.toggle('has-text', !!(messageInput.value.trim() || pendingImageFile || pendingAudioBlob || pendingDocFile || editingMessageId)), 150);
         })();
 
         // ===== Двойной тап по сообщению = ❤️ =====
