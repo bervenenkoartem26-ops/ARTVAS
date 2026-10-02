@@ -726,6 +726,28 @@
         .msg-menu-item.danger svg { stroke: var(--danger); }
         .swipe-reply-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
         @media (prefers-reduced-motion: reduce) { .msg-backdrop, .msg-clone, .msg-overlay .msg-menu { animation: none; } }
+    
+        /* ===== Звонки (Jitsi) ===== */
+        .call-overlay{position:fixed;inset:0;z-index:5000;background:#000;display:none;flex-direction:column}
+        .call-overlay.show{display:flex}
+        .call-bar{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;background:var(--surface-color);color:var(--text-primary)}
+        .call-bar .t{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .call-frame{flex:1;min-height:0}
+        .call-frame iframe{width:100%;height:100%;border:0;display:block}
+        .call-hang{background:var(--danger)!important;color:#fff!important}
+        .call-overlay.mini{inset:auto 12px 90px auto;width:240px;height:190px;border-radius:14px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+        .call-overlay.mini .call-bar .t{display:none}
+        .incoming-call{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:6000;width:min(92vw,360px);background:var(--surface-color);color:var(--text-primary);border:1px solid var(--border-color);border-radius:18px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none;align-items:center;gap:12px}
+        .incoming-call.show{display:flex}
+        .incoming-call .info{flex:1;min-width:0}
+        .incoming-call .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .incoming-call .kd{font-size:13px;color:var(--text-secondary)}
+        .call-round{width:44px;height:44px;border-radius:50%;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .call-round svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .call-round.ok{background:#22c55e}.call-round.no{background:var(--danger)}
+        .call-banner{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--accent);color:#fff;font-size:14px;font-weight:600}
+        .call-banner.hidden{display:none}
+        .call-banner button{margin-left:auto;background:#fff;color:#111;border:none;border-radius:10px;padding:6px 12px;font-weight:700;cursor:pointer}
     </style>
     <style id="tg-style">
         /* ===== Тема в стиле Telegram ===== */
@@ -1049,7 +1071,10 @@
                     <div class="chat-title-row"><div id="chat-title" class="top-bar-title">Чат</div></div>
                     <div class="chat-status-row"><span id="chat-status-text" class="chat-status-text"></span><span id="chat-status-dot" class="status-switch sm offline"></span></div>
                 </div>
+                <button id="call-audio-btn" class="icon-btn" title="Голосовой звонок"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button>
+                <button id="call-video-btn" class="icon-btn" title="Видеозвонок"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
             </div>
+            <div id="call-banner" class="call-banner hidden"><span id="call-banner-text">Идёт звонок</span><button id="call-banner-join" type="button">Присоединиться</button></div>
             <div id="pinned-banner" class="pinned-banner hidden">
                 <div class="pinned-icon"><svg viewBox="0 0 24 24"><path d="M16 12V4H17V2H7V4H8V12L6 14V16H11.5V22H12.5V16H18V14L16 12Z"/></svg></div>
                 <div class="pinned-content">
@@ -1095,6 +1120,11 @@
             </div>
         </div>
 
+        <div id="call-overlay" class="call-overlay">
+            <div class="call-bar"><div id="call-title" class="t">Звонок</div><button id="call-min" class="icon-btn" title="Свернуть/развернуть"><svg viewBox="0 0 24 24"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg></button><button id="call-hangup" class="icon-btn call-hang" title="Завершить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>
+            <div id="call-frame" class="call-frame"></div>
+        </div>
+        <div id="incoming-call" class="incoming-call"><div class="info"><div id="incoming-name" class="nm"></div><div id="incoming-kind" class="kd"></div></div><button id="incoming-no" class="call-round no" title="Отклонить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button><button id="incoming-yes" class="call-round ok" title="Принять"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>
         <div id="offline-banner" class="offline-banner">Нет соединения — сообщения отправятся, когда сеть появится</div>
         <div id="profile-screen" class="screen">
             <div class="top-bar">
@@ -2555,6 +2585,7 @@
                 document.getElementById('chat-status-dot').className = 'status-switch sm hidden';
                 applyAvatar(chatAvatar, chatId, otherName || 'Группа');
             }
+            updateCallBanner();
             ensureE2EE();
             subscribeMessages(chatId);
             subscribeTyping(chatId);
@@ -2609,6 +2640,7 @@
                     return bt - at;
                 });
                 renderChats();
+                checkIncomingCalls();
             };
 
             const attach = q => {
@@ -3662,7 +3694,126 @@
         })();
         document.getElementById('avatar-reset-btn').addEventListener('click', () => saveProfile({ avatar: deleteField(), avatarGradient: deleteField() }));
 
+
+        // ===== Звонки и видеосвязь (Jitsi Meet IFrame API) =====
+        // Домен Jitsi. meet.jit.si — только для теста (обрывает встроенный звонок через 5 минут).
+        // Для постоянной работы укажите свой сервер Jitsi, напр. 'meet.ваш-домен.ru'.
+        const JITSI_DOMAIN = 'meet.jit.si';
+        const CALL_FRESH_MS = 60000;
+        let jitsiApi = null, activeCall = null, callBeat = null, ringTimer = null, ringBeat = null, ringCtx = null;
+        const handledCalls = new Set();
+        const $c = id => document.getElementById(id);
+        const freshCall = c => !!(c?.call?.room && Date.now() - (c.call.at || 0) < CALL_FRESH_MS);
+
+        function loadJitsi() {
+            if (window.JitsiMeetExternalAPI) return Promise.resolve();
+            return new Promise((res, rej) => {
+                const s = document.createElement('script');
+                s.src = `https://${JITSI_DOMAIN}/external_api.js`;
+                s.onload = res; s.onerror = () => rej(new Error('Не удалось загрузить Jitsi (' + JITSI_DOMAIN + ')'));
+                document.head.appendChild(s);
+            });
+        }
+
+        async function joinCall(chatId, room, type, title) {
+            if (jitsiApi) { showToast('Вы уже в звонке'); return; }
+            try { await loadJitsi(); } catch (e) { showToast(e.message); return; }
+            stopRing(); $c('incoming-call').classList.remove('show');
+            const ov = $c('call-overlay'); ov.classList.remove('mini'); ov.classList.add('show');
+            $c('call-title').textContent = title || 'Звонок';
+            const host = $c('call-frame'); host.innerHTML = '';
+            activeCall = { chatId, room };
+            jitsiApi = new JitsiMeetExternalAPI(JITSI_DOMAIN, {
+                roomName: room, parentNode: host, width: '100%', height: '100%', lang: 'ru',
+                userInfo: { displayName: normalizeName(currentUser) },
+                configOverwrite: { prejoinConfig: { enabled: false }, startWithVideoMuted: type === 'audio', disableDeepLinking: true, subject: title || 'C Messenger' },
+                interfaceConfigOverwrite: { MOBILE_APP_PROMO: false }
+            });
+            jitsiApi.addEventListener('readyToClose', leaveCall);
+            // «пульс»: пока кто-то в звонке, запись свежая → у остальных виден звонок/плашка «Присоединиться»
+            callBeat = setInterval(() => {
+                const c = allChatsCache.find(x => x.id === chatId);
+                if (c?.call?.room === room) updateDoc(doc(db, 'chats', chatId), { 'call.at': Date.now() }).catch(() => {});
+            }, 20000);
+            updateCallBanner();
+        }
+
+        async function leaveCall() {
+            if (!jitsiApi) return;
+            const { chatId, room } = activeCall; let n = 1;
+            try { n = jitsiApi.getNumberOfParticipants(); } catch (_) {}
+            clearInterval(callBeat); try { jitsiApi.dispose(); } catch (_) {}
+            jitsiApi = null; activeCall = null;
+            $c('call-overlay').classList.remove('show', 'mini'); $c('call-frame').innerHTML = '';
+            const c = allChatsCache.find(x => x.id === chatId);
+            if (n <= 1 && c?.call?.room === room) updateDoc(doc(db, 'chats', chatId), { call: deleteField() }).catch(() => {});
+            updateCallBanner();
+        }
+
+        async function startCall(type) {
+            const c = getCurrentChat(); if (!c || !currentUser) return;
+            const title = chatTitle.textContent;
+            if (freshCall(c)) return joinCall(c.id, c.call.room, type, title);   // звонок уже идёт — просто входим
+            const room = 'CMsg-' + [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(36).padStart(2, '0')).join('');
+            try {
+                await updateDoc(doc(db, 'chats', c.id), { call: { room, type, by: currentUser.uid, byName: normalizeName(currentUser), at: Date.now() } });
+            } catch (e) { showToast('Не удалось начать звонок: ' + (e.code || e.message)); return; }
+            sendPush(c.id, type === 'audio' ? '📞 Входящий звонок' : '📹 Входящий видеозвонок');
+            joinCall(c.id, room, type, title);
+        }
+
+        function startRing() {
+            stopRing();
+            try {
+                ringCtx = ringCtx || new (window.AudioContext || window.webkitAudioContext)();
+                const beep = () => { const o = ringCtx.createOscillator(), g = ringCtx.createGain(); o.frequency.value = 880; g.gain.value = .08; o.connect(g); g.connect(ringCtx.destination); o.start(); o.stop(ringCtx.currentTime + .25); };
+                beep(); ringBeat = setInterval(beep, 1500);
+            } catch (_) {}
+        }
+        function stopRing() { clearInterval(ringBeat); clearTimeout(ringTimer); }
+
+        function showIncoming(c) {
+            const m = $c('incoming-call');
+            m.dataset.chat = c.id; m.dataset.room = c.call.room; m.dataset.type = c.call.type;
+            m.dataset.title = c.isGroup ? (c.title || 'Группа') : (c.call.byName || 'Звонок');
+            $c('incoming-name').textContent = (c.isGroup ? (c.title || 'Группа') + ' · ' : '') + (c.call.byName || 'Звонок');
+            $c('incoming-kind').textContent = c.call.type === 'audio' ? '📞 Голосовой звонок' : '📹 Видеозвонок';
+            m.classList.add('show'); startRing();
+            ringTimer = setTimeout(() => dismissIncoming(), 30000);
+        }
+        function dismissIncoming() {
+            const m = $c('incoming-call'); if (m.dataset.room) handledCalls.add(m.dataset.room);
+            m.classList.remove('show'); stopRing();
+        }
+
+        function updateCallBanner() {
+            const c = getCurrentChat(), b = $c('call-banner'); if (!b) return;
+            const show = !!c && freshCall(c) && !(jitsiApi && activeCall?.room === c.call.room);
+            b.classList.toggle('hidden', !show);
+            if (show) $c('call-banner-text').textContent = c.call.by === currentUser?.uid ? 'Вы звоните…' : (c.call.type === 'audio' ? '📞 Идёт звонок' : '📹 Идёт видеозвонок');
+        }
+
+        function checkIncomingCalls() {
+            if (!currentUser) return;
+            updateCallBanner();
+            if (jitsiApi) return;
+            const c = allChatsCache.find(x => freshCall(x) && x.call.by !== currentUser.uid && !handledCalls.has(x.call.room) && Date.now() - x.call.at < 30000);
+            if (c) showIncoming(c);
+        }
+
+        $c('call-audio-btn').addEventListener('click', () => startCall('audio'));
+        $c('call-video-btn').addEventListener('click', () => startCall('video'));
+        $c('call-hangup').addEventListener('click', leaveCall);
+        $c('call-min').addEventListener('click', () => $c('call-overlay').classList.toggle('mini'));
+        $c('call-banner-join').addEventListener('click', () => { const c = getCurrentChat(); if (freshCall(c)) joinCall(c.id, c.call.room, c.call.type, chatTitle.textContent); });
+        $c('incoming-no').addEventListener('click', dismissIncoming);
+        $c('incoming-yes').addEventListener('click', () => {
+            const m = $c('incoming-call'); const { chat, room, type, title } = m.dataset;
+            handledCalls.add(room); joinCall(chat, room, type, title);
+        });
+
         onAuthStateChanged(auth, user => {
+            if (!user) leaveCall();
             Object.assign(E2E, { priv: null, pub: null, ready: false, initPromise: null }); E2E.keys.clear();
             currentUser = user;
             teardownWatchers();
