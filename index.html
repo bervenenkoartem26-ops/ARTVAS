@@ -3975,7 +3975,7 @@
                         else if (c.kind === 'room' && Date.now() - c.at < 20000) showToast(`🎙 ${c.byName} пустил(а) вас в комнату «${c.title}»`, false);
                     }
                 });
-            }, e => console.error('calls error:', e));
+            }, e => { console.error('calls error:', e); showToast('Звонки недоступны: ' + (e.code || e.message) + ' — проверьте правила Firestore'); });
         }
         function stopCallsWatch() { if (callsUnsub) callsUnsub(); callsUnsub = null; callsCache.clear(); }
         function updateCallBanner() { const g = !!getCurrentChat()?.isGroup; $c('call-audio-btn').style.display = $c('call-video-btn').style.display = g ? 'none' : ''; }
