@@ -727,7 +727,7 @@
         .swipe-reply-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
         @media (prefers-reduced-motion: reduce) { .msg-backdrop, .msg-clone, .msg-overlay .msg-menu { animation: none; } }
     
-        /* ===== Звонки (Jitsi) ===== */
+        /* ===== Звонки (WebRTC) ===== */
         .call-overlay{position:fixed;inset:0;z-index:5000;background:#000;display:none;flex-direction:column}
         .call-overlay.show{display:flex}
         .call-bar{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;background:var(--surface-color);color:var(--text-primary)}
@@ -748,6 +748,18 @@
         .call-banner{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--accent);color:#fff;font-size:14px;font-weight:600}
         .call-banner.hidden{display:none}
         .call-banner button{margin-left:auto;background:#fff;color:#111;border:none;border-radius:10px;padding:6px 12px;font-weight:700;cursor:pointer}
+            .call-grid{flex:1;min-height:0;display:grid;gap:8px;padding:8px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));align-content:center;overflow:auto;background:#000}
+        .tile{position:relative;background:#18181b;border-radius:14px;overflow:hidden;aspect-ratio:16/9;min-height:110px}
+        .tile video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;opacity:0}
+        .tile.cam video{opacity:1}
+        .tile .av{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:800;color:#fff}
+        .tile.cam .av{display:none}
+        .tile .nm{position:absolute;left:8px;bottom:6px;font-size:13px;font-weight:700;color:#fff;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:8px}
+        .tile.mute .nm::after{content:" 🔇"}
+        .call-ctl{display:flex;justify-content:center;gap:12px;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface-color)}
+        .call-round.cc{background:var(--surface-hover);color:var(--text-primary);font-size:20px}
+        .call-round.cc.off{background:var(--danger);color:#fff}
+        .call-overlay.mini .call-ctl,.call-overlay.mini .call-grid .tile:not(:first-child){display:none}
     </style>
     <style id="tg-style">
         /* ===== Тема в стиле Telegram ===== */
@@ -1006,6 +1018,9 @@
                 <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 <span id="badge-groups" class="rail-badge hidden"></span>
             </button>
+            <button id="nav-rooms-btn" class="rail-btn" title="Голосовые комнаты" aria-label="Голосовые комнаты">
+                <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v5M8 23h8"/></svg>
+            </button>
             <div class="rail-sep"></div>
             <button id="nav-settings-btn" class="rail-btn" title="Настройки приложения" aria-label="Настройки приложения">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.69 0 1.31.4 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.2.6-.82 1-1.51 1z"></path></svg>
@@ -1074,7 +1089,6 @@
                 <button id="call-audio-btn" class="icon-btn" title="Голосовой звонок"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button>
                 <button id="call-video-btn" class="icon-btn" title="Видеозвонок"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
             </div>
-            <div id="call-banner" class="call-banner hidden"><span id="call-banner-text">Идёт звонок</span><button id="call-banner-join" type="button">Присоединиться</button></div>
             <div id="pinned-banner" class="pinned-banner hidden">
                 <div class="pinned-icon"><svg viewBox="0 0 24 24"><path d="M16 12V4H17V2H7V4H8V12L6 14V16H11.5V22H12.5V16H18V14L16 12Z"/></svg></div>
                 <div class="pinned-content">
@@ -1122,7 +1136,14 @@
 
         <div id="call-overlay" class="call-overlay">
             <div class="call-bar"><div id="call-title" class="t">Звонок</div><button id="call-min" class="icon-btn" title="Свернуть/развернуть"><svg viewBox="0 0 24 24"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg></button><button id="call-hangup" class="icon-btn call-hang" title="Завершить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>
-            <div id="call-frame" class="call-frame"></div>
+            <div id="call-grid" class="call-grid"></div>
+            <div class="call-ctl">
+                <button id="cc-mic" class="call-round cc" title="Микрофон">🎤</button>
+                <button id="cc-cam" class="call-round cc" title="Камера">📷</button>
+                <button id="cc-scr" class="call-round cc" title="Показ экрана">🖥</button>
+                <button id="cc-inv" class="call-round cc" title="Пригласить в комнату">➕</button>
+                <button id="cc-close" class="call-round cc" title="Закрыть комнату для всех">⛔</button>
+            </div>
         </div>
         <div id="incoming-call" class="incoming-call"><div class="info"><div id="incoming-name" class="nm"></div><div id="incoming-kind" class="kd"></div></div><button id="incoming-no" class="call-round no" title="Отклонить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button><button id="incoming-yes" class="call-round ok" title="Принять"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>
         <div id="offline-banner" class="offline-banner">Нет соединения — сообщения отправятся, когда сеть появится</div>
@@ -1304,7 +1325,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, orderBy, limit, startAfter, getDocs, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteField, writeBatch, runTransaction, increment, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, orderBy, limit, startAfter, getDocs, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteField, writeBatch, runTransaction, increment, arrayRemove, arrayUnion, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDatabase, ref as rtdbRef, onValue, onDisconnect, set as rtdbSet, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
@@ -2640,7 +2661,6 @@
                     return bt - at;
                 });
                 renderChats();
-                checkIncomingCalls();
             };
 
             const attach = q => {
@@ -3695,73 +3715,220 @@
         document.getElementById('avatar-reset-btn').addEventListener('click', () => saveProfile({ avatar: deleteField(), avatarGradient: deleteField() }));
 
 
-        // ===== Звонки и видеосвязь (Jitsi Meet IFrame API) =====
-        // Домен Jitsi. meet.jit.si — только для теста (обрывает встроенный звонок через 5 минут).
-        // Для постоянной работы укажите свой сервер Jitsi, напр. 'meet.ваш-домен.ru'.
-        const JITSI_DOMAIN = 'meet.jit.si';
-        const CALL_FRESH_MS = 60000;
-        let jitsiApi = null, activeCall = null, callBeat = null, ringTimer = null, ringBeat = null, ringCtx = null;
-        const handledCalls = new Set();
+        // ===== Звонки и комнаты: WebRTC (напрямую между людьми), Firestore — только «почта» для сигналов =====
+        // Для сложных сетей добавьте TURN: { urls: 'turn:ваш-сервер:3478', username: '...', credential: '...' }
+        const ICE = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }];
         const $c = id => document.getElementById(id);
-        const freshCall = c => !!(c?.call?.room && Date.now() - (c.call.at || 0) < CALL_FRESH_MS);
+        const callsCache = new Map(), handledCalls = new Set();
+        let rtc = null, callsUnsub = null, ringBeat = null, ringTimer = null, ringCtx = null;
+        const callRef = id => doc(db, 'calls', id);
+        const peerRef = (id, uid) => doc(db, 'calls', id, 'peers', uid);
 
-        function loadJitsi() {
-            if (window.JitsiMeetExternalAPI) return Promise.resolve();
-            return new Promise((res, rej) => {
-                const s = document.createElement('script');
-                s.src = `https://${JITSI_DOMAIN}/external_api.js`;
-                s.onload = res; s.onerror = () => rej(new Error('Не удалось загрузить Jitsi (' + JITSI_DOMAIN + ')'));
-                document.head.appendChild(s);
-            });
+        function contactsList() {
+            const m = new Map();
+            allChatsCache.forEach(c => (c.members || c.participants || []).forEach(u => {
+                if (u !== currentUser.uid && !m.has(u)) m.set(u, displayNameFor(u, c.memberNames?.[u] || c.participantInfo?.[u]?.displayName));
+            }));
+            return [...m].map(([id, label]) => ({ id, label }));
         }
 
-        async function joinCall(chatId, room, type, title) {
-            if (jitsiApi) { showToast('Вы уже в звонке'); return; }
-            try { await loadJitsi(); } catch (e) { showToast(e.message); return; }
-            stopRing(); $c('incoming-call').classList.remove('show');
-            const ov = $c('call-overlay'); ov.classList.remove('mini'); ov.classList.add('show');
-            $c('call-title').textContent = title || 'Звонок';
-            const host = $c('call-frame'); host.innerHTML = '';
-            activeCall = { chatId, room };
-            jitsiApi = new JitsiMeetExternalAPI(JITSI_DOMAIN, {
-                roomName: room, parentNode: host, width: '100%', height: '100%', lang: 'ru',
-                userInfo: { displayName: normalizeName(currentUser) },
-                configOverwrite: { prejoinConfig: { enabled: false }, startWithVideoMuted: type === 'audio', disableDeepLinking: true, subject: title || 'C Messenger' },
-                interfaceConfigOverwrite: { MOBILE_APP_PROMO: false }
-            });
-            jitsiApi.addEventListener('readyToClose', leaveCall);
-            // «пульс»: пока кто-то в звонке, запись свежая → у остальных виден звонок/плашка «Присоединиться»
-            callBeat = setInterval(() => {
-                const c = allChatsCache.find(x => x.id === chatId);
-                if (c?.call?.room === room) updateDoc(doc(db, 'chats', chatId), { 'call.at': Date.now() }).catch(() => {});
-            }, 20000);
-            updateCallBanner();
-        }
-
-        async function leaveCall() {
-            if (!jitsiApi) return;
-            const { chatId, room } = activeCall; let n = 1;
-            try { n = jitsiApi.getNumberOfParticipants(); } catch (_) {}
-            clearInterval(callBeat); try { jitsiApi.dispose(); } catch (_) {}
-            jitsiApi = null; activeCall = null;
-            $c('call-overlay').classList.remove('show', 'mini'); $c('call-frame').innerHTML = '';
-            const c = allChatsCache.find(x => x.id === chatId);
-            if (n <= 1 && c?.call?.room === room) updateDoc(doc(db, 'chats', chatId), { call: deleteField() }).catch(() => {});
-            updateCallBanner();
-        }
-
-        async function startCall(type) {
-            const c = getCurrentChat(); if (!c || !currentUser) return;
-            const title = chatTitle.textContent;
-            if (freshCall(c)) return joinCall(c.id, c.call.room, type, title);   // звонок уже идёт — просто входим
-            const room = 'CMsg-' + [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(36).padStart(2, '0')).join('');
+        // ---------- звонок один на один из чата: попасть в него могут только эти двое ----------
+        async function startDirect(type) {
+            const c = getCurrentChat(); if (!c || c.isGroup || !currentChatOtherUid) return;
+            if (rtc) return showToast('Вы уже в звонке');
+            const data = { kind: 'direct', type, owner: currentUser.uid, byName: normalizeName(currentUser), title: chatTitle.textContent,
+                allowed: [currentUser.uid, currentChatOtherUid], status: 'ringing', ended: false, at: Date.now() };
             try {
-                await updateDoc(doc(db, 'chats', c.id), { call: { room, type, by: currentUser.uid, byName: normalizeName(currentUser), at: Date.now() } });
-            } catch (e) { showToast('Не удалось начать звонок: ' + (e.code || e.message)); return; }
-            sendPush(c.id, type === 'audio' ? '📞 Входящий звонок' : '📹 Входящий видеозвонок');
-            joinCall(c.id, room, type, title);
+                const r = await addDoc(collection(db, 'calls'), data);
+                sendPush(c.id, type === 'audio' ? '📞 Входящий звонок' : '📹 Входящий видеозвонок');
+                joinCall(r.id, data);
+            } catch (e) { showToast('Не удалось начать звонок: ' + (e.code || e.message)); }
         }
 
+        // ---------- голосовые комнаты: заходят только те, кого впустил создатель ----------
+        async function createRoom() {
+            const items = contactsList(); if (!items.length) return showToast('Сначала найдите собеседников в чатах');
+            const r = await openPicker({ title: 'Кого пустить в комнату', items, multi: true, nameField: 'Название комнаты', okLabel: 'Создать' });
+            if (!r) return;
+            const data = { kind: 'room', type: 'audio', owner: currentUser.uid, byName: normalizeName(currentUser), title: r.name,
+                allowed: [currentUser.uid, ...r.ids], ended: false, at: Date.now() };
+            try { const ref = await addDoc(collection(db, 'calls'), data); joinCall(ref.id, data); }
+            catch (e) { showToast('Не удалось создать комнату: ' + (e.code || e.message)); }
+        }
+        async function inviteToRoom() {
+            if (!rtc || rtc.c.kind !== 'room' || rtc.c.owner !== rtc.me) return;
+            const allowed = callsCache.get(rtc.id)?.allowed || rtc.c.allowed;
+            const items = contactsList().filter(i => !allowed.includes(i.id));
+            if (!items.length) return showToast('Все ваши собеседники уже приглашены', false);
+            const r = await openPicker({ title: 'Кого ещё пустить', items, multi: true, okLabel: 'Пригласить' }); if (!r) return;
+            updateDoc(callRef(rtc.id), { allowed: arrayUnion(...r.ids), at: Date.now() }).then(() => showToast('Приглашения отправлены', false)).catch(e => showToast(e.message));
+        }
+        function closeRoom() {
+            if (!rtc || rtc.c.owner !== rtc.me || !confirm('Закрыть комнату для всех?')) return;
+            updateDoc(callRef(rtc.id), { ended: true, status: 'closed' }).catch(() => {}); leaveCall();
+        }
+        function openRooms() {
+            const rooms = [...callsCache.values()].filter(c => c.kind === 'room' && !c.ended && Date.now() - c.at < 12 * 3600e3).sort((a, b) => b.at - a.at);
+            const rows = rooms.map(r => `<div class="cm-row" data-room="${r.id}"><span>🎙 ${escapeHtml(r.title)} · ${escapeHtml(r.owner === currentUser.uid ? 'ваша' : r.byName)}</span><span>▶</span></div>`).join('')
+                || '<p style="opacity:.7;padding:8px">Комнат, куда вас пустили, пока нет.</p>';
+            const o = cmModal(`<h3>🎙 Голосовые комнаты</h3><button class="cm-btn" data-x="new">＋ Создать комнату</button><div class="cm-list">${rows}</div><div class="cm-actions"><button class="cm-btn" data-x="close">Закрыть</button></div>`);
+            o.addEventListener('click', e => {
+                const room = e.target.closest('[data-room]')?.dataset.room, x = e.target.closest('[data-x]')?.dataset.x;
+                if (e.target === o || x === 'close') o.remove();
+                else if (room) { o.remove(); joinCall(room, callsCache.get(room)); }
+                else if (x === 'new') { o.remove(); createRoom(); }
+            });
+        }
+
+        // ---------- вход в звонок ----------
+        async function joinCall(id, c) {
+            if (rtc) return showToast('Вы уже в звонке');
+            if (!c || c.ended || !c.allowed?.includes(currentUser.uid)) return showToast('У вас нет доступа к этому звонку');
+            dismissIncoming();
+            let local;
+            try { local = await navigator.mediaDevices.getUserMedia({ audio: true, video: c.type === 'video' }); }
+            catch (_) {
+                try { local = await navigator.mediaDevices.getUserMedia({ audio: true }); if (c.type === 'video') showToast('Камера недоступна — только звук'); }
+                catch (e) { if (c.kind === 'direct' && c.owner === currentUser.uid) updateDoc(callRef(id), { ended: true, status: 'ended' }).catch(() => {}); return showToast('Нет доступа к микрофону (нужен HTTPS и разрешение)'); }
+            }
+            const me = currentUser.uid, joined = Date.now();
+            rtc = { id, c, me, joined, local, peers: new Map(), docs: new Map(), first: true, mic: true, q: Promise.resolve(), unsubs: [],
+                tr: { audio: local.getAudioTracks()[0] || null, video: local.getVideoTracks()[0] || null } };
+            $c('call-overlay').classList.remove('mini'); $c('call-overlay').classList.add('show');
+            $c('call-title').textContent = c.kind === 'room' ? '🎙 ' + c.title : (c.owner === me ? 'Звоним…' : c.byName);
+            $c('call-grid').innerHTML = ''; addTile(me, 'Вы', true); setTile(me); syncCtl();
+            await setDoc(peerRef(id, me), { name: normalizeName(currentUser), joined, at: joined, cam: !!rtc.tr.video, mic: true });
+            if (c.kind === 'room') updateDoc(callRef(id), { at: Date.now() }).catch(() => {});
+            rtc.unsubs.push(onSnapshot(query(collection(db, 'calls', id, 'signals'), where('to', '==', me)), snap => {
+                const adds = snap.docChanges().filter(x => x.type === 'added').map(x => x.doc).sort((a, b) => a.data().t - b.data().t);
+                adds.forEach(d => { const s = d.data(); deleteDoc(d.ref).catch(() => {}); if (rtc) rtc.q = rtc.q.then(() => onSignal(s)).catch(console.error); });
+            }));
+            rtc.unsubs.push(onSnapshot(collection(db, 'calls', id, 'peers'), onPeers));
+            rtc.beat = setInterval(() => updateDoc(peerRef(id, me), { at: Date.now() }).catch(() => {}), 20000);
+            if (c.kind === 'direct' && c.owner === me) rtc.ringT = setTimeout(() => { if (rtc?.id === id && !rtc.peers.size) { rtc.status = 'missed'; showToast('Не отвечает', false); leaveCall(); } }, 45000);
+        }
+
+        function onPeers(snap) {
+            if (!rtc) return;
+            const first = rtc.first; rtc.first = false;
+            snap.docChanges().forEach(ch => {
+                const uid = ch.doc.id, d = ch.doc.data(); if (uid === rtc.me) return;
+                if (ch.type === 'removed') return closePeer(uid);
+                rtc.docs.set(uid, d);
+                if (!rtc.peers.has(uid)) {
+                    if (first && Date.now() - d.at > 70000) return;           // «мёртвая» запись от вылетевшего клиента
+                    const p = ensurePeer(uid);
+                    // инициатор — тот, кто вошёл позже (так двое не звонят друг другу одновременно)
+                    if (rtc.joined > d.joined || (rtc.joined === d.joined && rtc.me > uid)) offerTo(p).catch(console.error);
+                }
+                setTile(uid);
+            });
+        }
+
+        function ensurePeer(uid) {
+            let p = rtc.peers.get(uid); if (p) return p;
+            const pc = new RTCPeerConnection({ iceServers: ICE });
+            p = { uid, pc, stream: new MediaStream(), pend: [], snd: {} };
+            rtc.peers.set(uid, p); addTile(uid, rtc.docs.get(uid)?.name || 'Участник', false); setTile(uid);
+            pc.onicecandidate = e => { if (e.candidate) sendSig(uid, 'ice', e.candidate.toJSON()); };
+            pc.ontrack = e => p.stream.addTrack(e.track);
+            pc.onconnectionstatechange = () => {
+                if (!rtc || rtc.peers.get(uid) !== p) return;
+                if (pc.connectionState === 'connected') {
+                    clearTimeout(rtc.ringT);
+                    if (rtc.c.kind === 'direct') $c('call-title').textContent = rtc.docs.get(uid)?.name || 'Звонок';
+                } else if (pc.connectionState === 'failed') {
+                    showToast('Не удалось соединиться напрямую (возможно, нужен TURN-сервер)');
+                    closePeer(uid); if (rtc.c.kind === 'direct') leaveCall();
+                }
+            };
+            return p;
+        }
+        async function offerTo(p) {
+            ['audio', 'video'].forEach(k => { p.snd[k] = p.pc.addTransceiver(rtc.tr[k] || k, { direction: 'sendrecv', streams: [rtc.local] }).sender; });
+            await p.pc.setLocalDescription(await p.pc.createOffer());
+            sendSig(p.uid, 'offer', p.pc.localDescription.toJSON());
+        }
+        function sendSig(to, kind, data) {
+            if (rtc) addDoc(collection(db, 'calls', rtc.id, 'signals'), { from: rtc.me, to, kind, data: JSON.stringify(data), t: Date.now() }).catch(() => {});
+        }
+        async function onSignal({ from, kind, data }) {
+            if (!rtc) return;
+            const allowed = callsCache.get(rtc.id)?.allowed || rtc.c.allowed; if (!allowed.includes(from)) return;
+            const p = ensurePeer(from), pc = p.pc, d = JSON.parse(data);
+            if (kind === 'ice') { if (pc.remoteDescription) await pc.addIceCandidate(d).catch(() => {}); else p.pend.push(d); return; }
+            await pc.setRemoteDescription(d);
+            if (kind === 'offer') {
+                pc.getTransceivers().forEach(t => { const k = t.receiver.track.kind; t.direction = 'sendrecv'; p.snd[k] = t.sender; t.sender.replaceTrack(rtc.tr[k] || null).catch(() => {}); });
+                await pc.setLocalDescription(await pc.createAnswer());
+                sendSig(from, 'answer', pc.localDescription.toJSON());
+            }
+            for (const ic of p.pend.splice(0)) await pc.addIceCandidate(ic).catch(() => {});
+        }
+        function closePeer(uid) {
+            const p = rtc?.peers.get(uid); if (!p) return;
+            p.pc.close(); rtc.peers.delete(uid); rtc.docs.delete(uid); $c('tile-' + uid)?.remove();
+            if (rtc.c.kind === 'direct') leaveCall();                       // собеседник вышел → звонок окончен
+        }
+        function leaveCall() {
+            if (!rtc) return; const r = rtc; rtc = null;
+            clearInterval(r.beat); clearTimeout(r.ringT); r.unsubs.forEach(u => u());
+            r.peers.forEach(p => p.pc.close());
+            [...r.local.getTracks(), r.camT, r.screen].forEach(t => t?.stop());
+            $c('call-overlay').classList.remove('show', 'mini'); $c('call-grid').innerHTML = '';
+            deleteDoc(peerRef(r.id, r.me)).catch(() => {});
+            if (r.c.kind === 'direct') updateDoc(callRef(r.id), { ended: true, status: r.status || 'ended' }).catch(() => {});
+        }
+
+        // ---------- плитки и кнопки ----------
+        function addTile(uid, name, me) {
+            const t = document.createElement('div'); t.className = 'tile' + (me ? ' me' : ''); t.id = 'tile-' + uid;
+            t.innerHTML = '<video autoplay playsinline></video><div class="av"></div><div class="nm"></div>';
+            const v = t.querySelector('video'); v.muted = !!me; v.srcObject = me ? rtc.local : rtc.peers.get(uid).stream;
+            t.querySelector('.av').textContent = getInitial(name); t.querySelector('.nm').textContent = name;
+            $c('call-grid').appendChild(t);
+        }
+        function setTile(uid) {
+            const t = $c('tile-' + uid); if (!t || !rtc) return;
+            const me = uid === rtc.me, d = rtc.docs.get(uid);
+            t.classList.toggle('cam', me ? !!rtc.tr.video : !!d?.cam);
+            t.classList.toggle('mute', me ? !rtc.mic : d?.mic === false);
+            if (!me && d?.name) { t.querySelector('.nm').textContent = d.name; t.querySelector('.av').textContent = getInitial(d.name); }
+        }
+        function syncCtl() {
+            if (!rtc) return; const own = rtc.c.kind === 'room' && rtc.c.owner === rtc.me;
+            $c('cc-inv').style.display = $c('cc-close').style.display = own ? '' : 'none';
+            $c('cc-mic').classList.toggle('off', !rtc.mic); $c('cc-cam').classList.toggle('off', !rtc.tr.video || !!rtc.screen); $c('cc-scr').classList.toggle('off', !!rtc.screen);
+        }
+        function setVideo(t) {
+            rtc.tr.video = t; rtc.peers.forEach(p => p.snd.video?.replaceTrack(t).catch(() => {}));
+            updateDoc(peerRef(rtc.id, rtc.me), { cam: !!t }).catch(() => {}); setTile(rtc.me); syncCtl();
+        }
+        function toggleMic() {
+            rtc.mic = !rtc.mic; if (rtc.tr.audio) rtc.tr.audio.enabled = rtc.mic;
+            updateDoc(peerRef(rtc.id, rtc.me), { mic: rtc.mic }).catch(() => {}); setTile(rtc.me); syncCtl();
+        }
+        async function toggleCam() {
+            if (rtc.screen) return stopScreen();
+            if (rtc.tr.video) { rtc.tr.video.stop(); rtc.local.removeTrack(rtc.tr.video); return setVideo(null); }
+            try { const t = (await navigator.mediaDevices.getUserMedia({ video: true })).getVideoTracks()[0]; rtc.local.addTrack(t); setVideo(t); }
+            catch (_) { showToast('Нет доступа к камере'); }
+        }
+        async function toggleScreen() {
+            if (rtc.screen) return stopScreen();
+            if (!navigator.mediaDevices.getDisplayMedia) return showToast('Показ экрана не поддерживается на этом устройстве');
+            try {
+                const t = (await navigator.mediaDevices.getDisplayMedia({ video: true })).getVideoTracks()[0];
+                if (rtc.tr.video) { rtc.camT = rtc.tr.video; rtc.local.removeTrack(rtc.camT); }
+                rtc.screen = t; t.onended = stopScreen; rtc.local.addTrack(t); setVideo(t);
+            } catch (_) {}
+        }
+        function stopScreen() {
+            if (!rtc?.screen) return; const t = rtc.screen; rtc.screen = null; t.stop(); rtc.local.removeTrack(t);
+            if (rtc.camT) { rtc.local.addTrack(rtc.camT); setVideo(rtc.camT); rtc.camT = null; } else setVideo(null);
+        }
+
+        // ---------- входящие ----------
         function startRing() {
             stopRing();
             try {
@@ -3771,49 +3938,49 @@
             } catch (_) {}
         }
         function stopRing() { clearInterval(ringBeat); clearTimeout(ringTimer); }
-
-        function showIncoming(c) {
-            const m = $c('incoming-call');
-            m.dataset.chat = c.id; m.dataset.room = c.call.room; m.dataset.type = c.call.type;
-            m.dataset.title = c.isGroup ? (c.title || 'Группа') : (c.call.byName || 'Звонок');
-            $c('incoming-name').textContent = (c.isGroup ? (c.title || 'Группа') + ' · ' : '') + (c.call.byName || 'Звонок');
-            $c('incoming-kind').textContent = c.call.type === 'audio' ? '📞 Голосовой звонок' : '📹 Видеозвонок';
-            m.classList.add('show'); startRing();
-            ringTimer = setTimeout(() => dismissIncoming(), 30000);
+        function showIncoming(id, c) {
+            const m = $c('incoming-call'); m.dataset.id = id;
+            $c('incoming-name').textContent = c.byName || 'Звонок';
+            $c('incoming-kind').textContent = c.type === 'audio' ? '📞 Голосовой звонок' : '📹 Видеозвонок';
+            m.classList.add('show'); startRing(); ringTimer = setTimeout(dismissIncoming, 40000);
         }
-        function dismissIncoming() {
-            const m = $c('incoming-call'); if (m.dataset.room) handledCalls.add(m.dataset.room);
-            m.classList.remove('show'); stopRing();
-        }
+        function dismissIncoming() { const m = $c('incoming-call'); if (m.dataset.id) handledCalls.add(m.dataset.id); m.dataset.id = ''; m.classList.remove('show'); stopRing(); }
 
-        function updateCallBanner() {
-            const c = getCurrentChat(), b = $c('call-banner'); if (!b) return;
-            const show = !!c && freshCall(c) && !(jitsiApi && activeCall?.room === c.call.room);
-            b.classList.toggle('hidden', !show);
-            if (show) $c('call-banner-text').textContent = c.call.by === currentUser?.uid ? 'Вы звоните…' : (c.call.type === 'audio' ? '📞 Идёт звонок' : '📹 Идёт видеозвонок');
+        function startCallsWatch() {
+            stopCallsWatch();
+            callsUnsub = onSnapshot(query(collection(db, 'calls'), where('allowed', 'array-contains', currentUser.uid)), snap => {
+                snap.docChanges().forEach(ch => {
+                    const id = ch.doc.id, c = ch.doc.data();
+                    if (ch.type === 'removed') { callsCache.delete(id); return; }
+                    callsCache.set(id, { id, ...c });
+                    if (rtc?.id === id && c.ended) { showToast(c.status === 'declined' ? 'Звонок отклонён' : c.status === 'closed' ? 'Комната закрыта' : 'Звонок завершён', false); leaveCall(); return; }
+                    if (c.ended && $c('incoming-call').dataset.id === id) { dismissIncoming(); return; }
+                    if (ch.type === 'added' && !c.ended && c.owner !== currentUser.uid && !handledCalls.has(id)) {
+                        if (c.kind === 'direct' && !rtc && Date.now() - c.at < 60000) showIncoming(id, c);
+                        else if (c.kind === 'room' && Date.now() - c.at < 20000) showToast(`🎙 ${c.byName} пустил(а) вас в комнату «${c.title}»`, false);
+                    }
+                });
+            }, e => console.error('calls error:', e));
         }
+        function stopCallsWatch() { if (callsUnsub) callsUnsub(); callsUnsub = null; callsCache.clear(); }
+        function updateCallBanner() { const g = !!getCurrentChat()?.isGroup; $c('call-audio-btn').style.display = $c('call-video-btn').style.display = g ? 'none' : ''; }
 
-        function checkIncomingCalls() {
-            if (!currentUser) return;
-            updateCallBanner();
-            if (jitsiApi) return;
-            const c = allChatsCache.find(x => freshCall(x) && x.call.by !== currentUser.uid && !handledCalls.has(x.call.room) && Date.now() - x.call.at < 30000);
-            if (c) showIncoming(c);
-        }
-
-        $c('call-audio-btn').addEventListener('click', () => startCall('audio'));
-        $c('call-video-btn').addEventListener('click', () => startCall('video'));
+        $c('call-audio-btn').addEventListener('click', () => startDirect('audio'));
+        $c('call-video-btn').addEventListener('click', () => startDirect('video'));
         $c('call-hangup').addEventListener('click', leaveCall);
         $c('call-min').addEventListener('click', () => $c('call-overlay').classList.toggle('mini'));
-        $c('call-banner-join').addEventListener('click', () => { const c = getCurrentChat(); if (freshCall(c)) joinCall(c.id, c.call.room, c.call.type, chatTitle.textContent); });
-        $c('incoming-no').addEventListener('click', dismissIncoming);
-        $c('incoming-yes').addEventListener('click', () => {
-            const m = $c('incoming-call'); const { chat, room, type, title } = m.dataset;
-            handledCalls.add(room); joinCall(chat, room, type, title);
-        });
+        $c('cc-mic').addEventListener('click', () => rtc && toggleMic());
+        $c('cc-cam').addEventListener('click', () => rtc && toggleCam());
+        $c('cc-scr').addEventListener('click', () => rtc && toggleScreen());
+        $c('cc-inv').addEventListener('click', inviteToRoom);
+        $c('cc-close').addEventListener('click', closeRoom);
+        $c('nav-rooms-btn').addEventListener('click', openRooms);
+        $c('incoming-yes').addEventListener('click', () => { const id = $c('incoming-call').dataset.id; joinCall(id, callsCache.get(id)); });
+        $c('incoming-no').addEventListener('click', () => { const id = $c('incoming-call').dataset.id; if (id) updateDoc(callRef(id), { ended: true, status: 'declined' }).catch(() => {}); dismissIncoming(); });
+        window.addEventListener('pagehide', () => { if (rtc) rtc.peers.forEach(p => p.pc.close()); });
 
         onAuthStateChanged(auth, user => {
-            if (!user) leaveCall();
+            if (!user) { leaveCall(); stopCallsWatch(); }
             Object.assign(E2E, { priv: null, pub: null, ready: false, initPromise: null }); E2E.keys.clear();
             currentUser = user;
             teardownWatchers();
@@ -3821,6 +3988,7 @@
                 watchUser(user.uid);
                 setupPresence();
                 subscribeChats();
+                startCallsWatch();
                 showScreen(chatsScreen);
                 syncSettingsUI();
                 handleDeepLink();
