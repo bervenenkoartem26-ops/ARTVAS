@@ -1157,6 +1157,27 @@
         .wp-tile.none span{background:none;color:var(--text-secondary);text-shadow:none;position:static;padding:0}
         .wp-anim-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px;font-size:15px}
         .wp-anim-row small{display:block;font-size:12px;color:var(--text-secondary);margin-top:2px}
+
+        /* ===== Конфиденциальность: фикс сжатия на телефоне + выравнивание ===== */
+        .settings-body > *{flex-shrink:0}              /* карточки не сжимаются в flex-колонке с прокруткой */
+        .tg-list{flex-shrink:0;border-radius:18px}
+        .tg-head{margin:10px 0 -6px;padding:0 16px;font-size:13px;letter-spacing:.2px}
+        .tg-head:first-child{margin-top:0}
+        .tg-hint{margin:-6px 0 4px;padding:0 16px;font-size:12px;line-height:1.45}
+        .tg-row{min-height:54px;padding:10px 16px;gap:14px;box-sizing:border-box}
+        .tg-row+.tg-row::before{left:60px}              /* 16 (отступ) + 30 (иконка) + 14 (зазор) */
+        .tg-ico{width:30px;height:30px;flex:0 0 30px}
+        .tg-title{line-height:1.25;overflow-wrap:anywhere}
+        .tg-val{flex-shrink:0;max-width:44%;overflow:hidden;text-overflow:ellipsis;text-align:right}
+        .tg-row .switch{margin-left:auto}
+        .tg-chev{margin-left:-6px}
+        .tg-blk{padding:10px 0}
+        @media (max-width:380px){
+            .tg-row{gap:12px;padding:10px 12px}
+            .tg-row+.tg-row::before{left:54px}
+            .tg-head,.tg-hint{padding:0 12px}
+            .tg-val{font-size:13px}
+        }
     </style>
 </head>
 <body>
