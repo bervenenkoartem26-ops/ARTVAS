@@ -1354,6 +1354,8 @@
             width:auto;flex-direction:row;align-items:stretch;justify-content:space-between;gap:0;padding:6px;overflow:visible;
         }
         .rail-sep{display:none}
+        /* порядок вкладок: Настройки — слева, Чаты — справа (DOM и JS не затронуты) */
+        #nav-settings-btn{order:1} #nav-groups-btn{order:2} #nav-rooms-btn{order:3} #nav-chats-btn{order:4}
         .rail .rail-btn{
             flex:1 1 0;min-width:0;width:auto;height:48px;border-radius:24px;padding:0;gap:2px;
             flex-direction:column;background:transparent;color:var(--text-secondary);
@@ -4747,7 +4749,16 @@
             pc.onicecandidate = e => { if (e.candidate) sendSig(uid, 'ice', e.candidate.toJSON()); };
             pc.ontrack = e => {
                 p.stream.addTrack(e.track);
-                const v = $c('tile-' + uid)?.querySelector('video'); if (v) { v.srcObject = p.stream; v.play().catch(() => {}); }
+                const v = $c('tile-' + uid)?.querySelector('video');
+                if (v) { if (v.srcObject !== p.stream) v.srcObject = p.stream; v.muted = true; v.play().catch(() => {}); }   // картинка; звук идёт через <audio> ниже
+                if (e.track.kind === 'audio') {
+                    // звук собеседника — отдельный элемент: не зависит от плитки, видео и перезагрузки srcObject
+                    const a = p.audioEl || (p.audioEl = Object.assign(document.createElement('audio'), { autoplay: true, className: 'call-audio' }));
+                    a.setAttribute('playsinline', ''); a.style.display = 'none';
+                    if (!a.isConnected) document.body.appendChild(a);
+                    a.srcObject = new MediaStream([e.track]); a.muted = false; a.volume = 1;
+                    a.play().catch(() => showToast('Нажмите на экран звонка, чтобы включить звук собеседника', false));
+                }
             };
             pc.oniceconnectionstatechange = () => { console.log('ICE', uid, pc.iceConnectionState); setStatus(uid, pc.iceConnectionState); };
             setStatus(uid, 'checking');
@@ -4778,7 +4789,10 @@
             if (kind === 'ice') { if (pc.remoteDescription) await pc.addIceCandidate(d).catch(() => {}); else p.pend.push(d); return; }
             await pc.setRemoteDescription(d);
             if (kind === 'offer') {
-                pc.getTransceivers().forEach(t => { const k = t.receiver.track.kind; t.direction = 'sendrecv'; p.snd[k] = t.sender; t.sender.replaceTrack(rtc.tr[k] || null).catch(() => {}); });
+                await Promise.all(pc.getTransceivers().map(async t => {
+                    const k = t.receiver.track.kind; t.direction = 'sendrecv'; p.snd[k] = t.sender;
+                    try { await t.sender.replaceTrack(rtc.tr[k] || null); } catch (_) {}
+                }));
                 await pc.setLocalDescription(await pc.createAnswer());
                 sendSig(from, 'answer', pc.localDescription.toJSON());
             }
@@ -4786,13 +4800,13 @@
         }
         function closePeer(uid) {
             const p = rtc?.peers.get(uid); if (!p) return;
-            p.pc.close(); rtc.peers.delete(uid); rtc.docs.delete(uid); $c('tile-' + uid)?.remove();
+            p.pc.close(); p.audioEl?.remove(); rtc.peers.delete(uid); rtc.docs.delete(uid); $c('tile-' + uid)?.remove();
             if (rtc.c.kind === 'direct') leaveCall();                       // собеседник вышел → звонок окончен
         }
         function leaveCall() {
             if (!rtc) return; const r = rtc; rtc = null;
             clearInterval(r.beat); clearTimeout(r.ringT); r.unsubs.forEach(u => u());
-            r.peers.forEach(p => p.pc.close());
+            r.peers.forEach(p => { p.pc.close(); p.audioEl?.remove(); });
             [...r.local.getTracks(), r.camT, r.screen].forEach(t => t?.stop());
             $c('call-overlay').classList.remove('show', 'mini'); $c('call-grid').innerHTML = '';
             deleteDoc(peerRef(r.id, r.me)).catch(() => {});
@@ -4892,7 +4906,7 @@
         $c('call-audio-btn').addEventListener('click', () => startDirect('audio'));
         $c('call-video-btn').addEventListener('click', () => startDirect('video'));
         $c('call-hangup').addEventListener('click', leaveCall);
-        $c('call-grid').addEventListener('click', () => document.querySelectorAll('#call-grid video').forEach(v => v.play().catch(() => {})));
+        $c('call-grid').addEventListener('click', () => document.querySelectorAll('#call-grid video, audio.call-audio').forEach(v => v.play().catch(() => {})));
         $c('call-min').addEventListener('click', () => $c('call-overlay').classList.toggle('mini'));
         $c('cc-mic').addEventListener('click', () => rtc && toggleMic());
         $c('cc-cam').addEventListener('click', () => rtc && toggleCam());
