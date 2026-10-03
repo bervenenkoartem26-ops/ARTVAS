@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>C Messenger</title>
+    <title>GOSPEL</title>
+    <meta name="description" content="GOSPEL — мессенджер: чаты, звонки и голосовые комнаты">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="C Messenger">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-title" content="GOSPEL">
+    <link rel="manifest" href="manifest.json?v=2">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+    <link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120.png?v=2">
+    <link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152.png?v=2">
+    <link rel="apple-touch-icon" sizes="167x167" href="apple-touch-icon-167.png?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
+    <link rel="shortcut icon" href="favicon.ico?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
@@ -127,6 +136,8 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
+        .logo-tile{width:88px;height:88px;margin:0 auto 14px;border-radius:24px;background:linear-gradient(180deg,#fdfdfc,#e8ecea);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.9)}
+        .logo-tile svg{width:60%;height:60%;display:block}
         .logo-c {
             font-size: 64px;
             font-weight: 900;
@@ -703,6 +714,7 @@
         @media (max-height: 640px) {
             .auth-card { padding: 22px 20px; }
             .logo-c { font-size: 48px; margin-bottom: 2px; }
+            .logo-tile { width: 64px; height: 64px; border-radius: 18px; margin-bottom: 8px; }
             .auth-title { margin-bottom: 14px; }
             .input-group { margin-bottom: 10px; }
         }
@@ -737,11 +749,39 @@
         .call-hang{background:var(--danger)!important;color:#fff!important}
         .call-overlay.mini{inset:auto 12px 90px auto;width:240px;height:190px;border-radius:14px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5)}
         .call-overlay.mini .call-bar .t{display:none}
-        .incoming-call{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:6000;width:min(92vw,360px);background:var(--surface-color);color:var(--text-primary);border:1px solid var(--border-color);border-radius:18px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none;align-items:center;gap:12px}
-        .incoming-call.show{display:flex}
-        .incoming-call .info{flex:1;min-width:0}
-        .incoming-call .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .incoming-call .kd{font-size:13px;color:var(--text-secondary)}
+        /* ===== Входящий вызов: полный экран, как в Telegram ===== */
+        .incoming-call{position:fixed;inset:0;z-index:6000;display:flex;flex-direction:column;align-items:center;justify-content:space-between;color:#fff;overflow:hidden;background:#0b1220;
+            padding:calc(env(safe-area-inset-top,0px) + 12vh) 24px calc(env(safe-area-inset-bottom,0px) + 44px);
+            opacity:0;visibility:hidden;pointer-events:none;transform:scale(1.04);
+            transition:opacity .32s var(--ease-settle),transform .5s var(--ease-settle),visibility 0s .5s}
+        .incoming-call.show{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition-delay:0s}
+        .ic-bg{position:absolute;inset:-60px;background:linear-gradient(160deg,#1d4f91,#0b1220) center/cover no-repeat;filter:blur(46px) saturate(1.35);transform:scale(1.15)}
+        .ic-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.55))}
+        .ic-main,.ic-actions{position:relative;z-index:1}
+        .ic-main{display:flex;flex-direction:column;align-items:center;text-align:center;width:100%;min-width:0}
+        .ic-av-wrap{position:relative;width:136px;height:136px;margin-bottom:52px}
+        .ic-av-wrap i{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.5);opacity:0;pointer-events:none}
+        .incoming-call.show .ic-av-wrap i{animation:icPulse 2.4s ease-out infinite}
+        .ic-av-wrap i:nth-child(2){animation-delay:.8s}.ic-av-wrap i:nth-child(3){animation-delay:1.6s}
+        @keyframes icPulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.8);opacity:0}}
+        .ic-av-wrap .avatar{position:relative;width:136px;height:136px;font-size:54px;font-weight:600;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+        .ic-name{max-width:100%;font-size:32px;line-height:1.1;font-weight:700;letter-spacing:-.022em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .ic-kind{margin-top:8px;font-size:17px;line-height:1.3;color:rgba(255,255,255,.78);letter-spacing:0}
+        .ic-actions{display:flex;justify-content:center;gap:clamp(64px,26vw,120px);width:100%}
+        .ic-act{display:flex;flex-direction:column;align-items:center;gap:10px;font-size:14px;color:rgba(255,255,255,.85)}
+        .ic-btn{width:72px;height:72px;border-radius:50%;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:transform .14s ease,filter .15s;-webkit-tap-highlight-color:transparent}
+        .ic-btn:active{transform:scale(.92)}
+        .ic-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+        .ic-btn.ok{background:var(--green,#30d158)}.ic-btn.no{background:var(--danger,#ff453a)}
+        .ic-btn svg{width:32px;height:32px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .ic-btn.no svg{transform:rotate(135deg)}
+        .incoming-call.show .ic-btn.ok svg{animation:icShake 1.8s ease-in-out infinite;transform-origin:50% 50%}
+        @keyframes icShake{0%,55%,100%{transform:rotate(0)}10%,30%{transform:rotate(-16deg)}20%,40%{transform:rotate(16deg)}}
+        @media (prefers-reduced-motion:reduce){
+            .incoming-call{transform:none;transition:opacity .2s linear,visibility 0s .2s}
+            .incoming-call.show .ic-av-wrap i,.incoming-call.show .ic-btn.ok svg{animation:none}
+        }
+        @media (prefers-reduced-transparency:reduce){.ic-bg{filter:none}.ic-scrim{background:rgba(0,0,0,.8)}}
         .call-round{width:44px;height:44px;border-radius:50%;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
         .call-round svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
         .call-round.ok{background:#22c55e}.call-round.no{background:var(--danger)}
@@ -1549,8 +1589,8 @@
         </nav>
         <div id="auth-screen" class="screen screen-center active">
             <div class="auth-card">
-                <div class="logo-c">C</div>
-                <h1 id="auth-title" class="auth-title">Вход в C Messenger</h1>
+                <div class="logo-tile" role="img" aria-label="GOSPEL"><svg viewBox="150 40 740 750" aria-hidden="true"><g fill="none" stroke="#385868" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"><path d="M520 97 L823 238 L823 525 L520 676 L415 624 L268 733 L268 543 L217 523 L217 238 Z"/><path d="M217 238 L430 345"/></g><circle cx="520" cy="400" r="34" fill="#385868"/></svg></div>
+                <h1 id="auth-title" class="auth-title">Вход в GOSPEL</h1>
                 <div class="input-group">
                     <label for="email-input">Email</label>
                     <input id="email-input" type="email" autocomplete="email" placeholder="you@example.com">
@@ -1668,7 +1708,18 @@
                 <button id="cc-close" class="call-round cc" title="Закрыть комнату для всех"><svg class="ic"><use href="#i-ban"/></svg></button>
             </div>
         </div>
-        <div id="incoming-call" class="incoming-call"><div class="info"><div id="incoming-name" class="nm"></div><div id="incoming-kind" class="kd"></div></div><button id="incoming-no" class="call-round no" title="Отклонить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button><button id="incoming-yes" class="call-round ok" title="Принять"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>
+        <div id="incoming-call" class="incoming-call" role="alertdialog" aria-modal="true" aria-labelledby="incoming-name" aria-describedby="incoming-kind">
+            <div id="ic-bg" class="ic-bg"></div><div class="ic-scrim"></div>
+            <div class="ic-main">
+                <div class="ic-av-wrap"><i></i><i></i><i></i><div id="ic-avatar" class="avatar"></div></div>
+                <div id="incoming-name" class="ic-name"></div>
+                <div id="incoming-kind" class="ic-kind"></div>
+            </div>
+            <div class="ic-actions">
+                <div class="ic-act"><button id="incoming-no" class="ic-btn no" aria-label="Отклонить" title="Отклонить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button><span>Отклонить</span></div>
+                <div class="ic-act"><button id="incoming-yes" class="ic-btn ok" aria-label="Принять" title="Принять"><svg id="ic-yes-ic" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button><span>Принять</span></div>
+            </div>
+        </div>
         <div id="offline-banner" class="offline-banner">Нет соединения — сообщения отправятся, когда сеть появится</div>
         <div id="profile-screen" class="screen">
             <div class="top-bar">
@@ -2040,7 +2091,7 @@
         }
         function onPeopleChanged() {
             cancelAnimationFrame(peopleRaf);
-            peopleRaf = requestAnimationFrame(() => { if (!currentUser) return; renderChats(); refreshChatHeader(); syncSettingsUI(); });
+            peopleRaf = requestAnimationFrame(() => { if (!currentUser) return; renderChats(); refreshChatHeader(); syncSettingsUI(); paintIncoming(); });
         }
         function effectiveStatus(uid) {
             if (uid === currentUser?.uid) return myStatus;
@@ -2922,7 +2973,7 @@
         }
 
         // Пуш-уведомление собеседникам через Supabase Edge Function "push"
-        async function sendPush(chatId, body) {
+        async function sendPush(chatId, body, extra) {
             try {
                 const chat = allChatsCache.find(c => c.id === chatId); if (!chat || !currentUser) return;
                 const targets = (chat.members || chat.participants || []).filter(u => u !== currentUser.uid);
@@ -2941,7 +2992,8 @@
                         tokens,
                         title: chat.isGroup ? (chat.title || 'Группа') : me,
                         body: chat.isGroup ? me + ': ' + body : body,
-                        link: location.href.split('#')[0].split('?')[0]
+                        link: location.href.split('#')[0].split('?')[0] + (extra?.callId ? '?call=' + encodeURIComponent(extra.callId) : ''),
+                        ...(extra ? { type: extra.type, callId: extra.callId, callKind: extra.callKind } : {})
                     })
                 }).catch(() => {});
             } catch (_) {}
@@ -3804,7 +3856,7 @@
 
         switchAuth.addEventListener('click', () => {
             isSignUp = !isSignUp;
-            authTitle.textContent = isSignUp ? 'Регистрация в C Messenger' : 'Вход в C Messenger';
+            authTitle.textContent = isSignUp ? 'Регистрация в GOSPEL' : 'Вход в GOSPEL';
             authBtn.textContent = isSignUp ? 'Зарегистрироваться' : 'Войти';
             nicknameGroup.classList.toggle('hidden', !isSignUp);
             setAuthError('');
@@ -4372,12 +4424,13 @@
             let name = null;
             try { name = new URL(text).searchParams.get('u'); } catch (_) {}
             if (!name) { const m = /^@?([a-zA-Z][a-zA-Z0-9_]{2,19})$/.exec(text.trim()); name = m && m[1]; }
-            if (!name) { showToast('Это не QR-код мессенджера'); return; }
+            if (!name) { showToast('Это не QR-код GOSPEL'); return; }
             try { await openChatByUsername(name); } catch (e) { showToast('Ошибка: ' + e.message); }
         }
         function handleDeepLink() {
-            const u = new URLSearchParams(location.search).get('u'); if (!u) return;
-            history.replaceState(null, '', location.pathname + location.hash);
+            const q = new URLSearchParams(location.search), u = q.get('u');
+            if (q.get('call') || u) history.replaceState(null, '', location.pathname + location.hash);   // ?call=… — вызов подхватит подписка на calls
+            if (!u) return;
             setTimeout(() => openChatByUsername(u).catch(e => showToast('Ошибка: ' + e.message)), 800);
         }
 
@@ -4386,7 +4439,7 @@
             if (!uname) { showToast('Сначала придумайте юзернейм выше'); return; }
             try { await loadScript(QR_GEN); } catch (e) { showToast(e.message); return; }
             const qr = qrcode(0, 'M'); qr.addData(profileLink(uname)); qr.make();
-            const o = cmModal(`<h3 style="text-align:center">Мой QR-код</h3><div class="qr-box" style="background:#fff;padding:14px;border-radius:16px;width:min(260px,100%);margin:0 auto"></div><p style="text-align:center;color:var(--text-primary)"><b>${escapeHtml(normalizeName(currentUser))}</b><br>@${escapeHtml(uname)}</p><p style="text-align:center">Друг может отсканировать код в мессенджере или обычной камерой телефона.</p><div class="cm-actions"><button class="cm-btn" data-x="copy">Копировать ссылку</button><button class="cm-btn primary" data-x="close">Закрыть</button></div>`);
+            const o = cmModal(`<h3 style="text-align:center">Мой QR-код</h3><div class="qr-box" style="background:#fff;padding:14px;border-radius:16px;width:min(260px,100%);margin:0 auto"></div><p style="text-align:center;color:var(--text-primary)"><b>${escapeHtml(normalizeName(currentUser))}</b><br>@${escapeHtml(uname)}</p><p style="text-align:center">Друг может отсканировать код в GOSPEL или обычной камерой телефона.</p><div class="cm-actions"><button class="cm-btn" data-x="copy">Копировать ссылку</button><button class="cm-btn primary" data-x="close">Закрыть</button></div>`);
             const box = o.querySelector('.qr-box'); box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
             const svg = box.querySelector('svg');
             if (svg) { if (!svg.getAttribute('viewBox') && svg.getAttribute('width')) svg.setAttribute('viewBox', `0 0 ${parseFloat(svg.getAttribute('width'))} ${parseFloat(svg.getAttribute('height'))}`); svg.removeAttribute('width'); svg.removeAttribute('height'); svg.style.cssText = 'width:100%;height:auto;display:block'; }
@@ -4657,7 +4710,7 @@
                 allowed: [currentUser.uid, currentChatOtherUid], status: 'ringing', ended: false, at: Date.now() };
             try {
                 const r = await addDoc(collection(db, 'calls'), data);
-                sendPush(c.id, type === 'audio' ? '📞 Входящий звонок' : '📹 Входящий видеозвонок');
+                sendPush(c.id, type === 'audio' ? '📞 Входящий звонок' : '📹 Входящий видеозвонок', { type: 'call', callId: r.id, callKind: type });
                 joinCall(r.id, data);
             } catch (e) { showToast('Не удалось начать звонок: ' + (e.code || e.message)); }
         }
@@ -4865,23 +4918,69 @@
             if (rtc.camT) { rtc.local.addTrack(rtc.camT); setVideo(rtc.camT); rtc.camT = null; } else setVideo(null);
         }
 
-        // ---------- входящие ----------
-        function startRing() {
-            stopRing();
+        // ---------- входящие: полноэкранный вызов ----------
+        const IC_PHONE = '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>';
+        const IC_VIDEO = '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>';
+        var incomingUid = null, incomingWake = null, incomingNote = null;
+        function ringOnce() {
             try {
-                ringCtx = ringCtx || new (window.AudioContext || window.webkitAudioContext)();
-                const beep = () => { const o = ringCtx.createOscillator(), g = ringCtx.createGain(); o.frequency.value = 880; g.gain.value = .08; o.connect(g); g.connect(ringCtx.destination); o.start(); o.stop(ringCtx.currentTime + .25); };
-                beep(); ringBeat = setInterval(beep, 1500);
+                if (myStatus === 'dnd') return;                       // «не беспокоить» — без звука, но экран вызова виден
+                unlockAudio(); const ctx = audioCtx; if (!ctx) return;
+                const t0 = ctx.currentTime, master = ctx.createGain(); master.gain.value = 0.2; master.connect(ctx.destination);
+                // мягкая мелодия вызова: E5 G5 B5 G5 … E5 G5 B5
+                [[659.3, 0], [783.99, .2], [987.77, .4], [783.99, .6], [659.3, 1.0], [783.99, 1.2], [987.77, 1.4]].forEach(([f, d]) => {
+                    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f;
+                    g.gain.setValueAtTime(0.0001, t0 + d);
+                    g.gain.exponentialRampToValueAtTime(1, t0 + d + 0.02);
+                    g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.34);
+                    o.connect(g); g.connect(master); o.start(t0 + d); o.stop(t0 + d + 0.38);
+                });
+            } catch (_) {}
+            try { navigator.vibrate && navigator.vibrate([500, 250, 500]); } catch (_) {}
+        }
+        function startRing() { stopRing(); ringOnce(); ringBeat = setInterval(ringOnce, 3000); }
+        function stopRing() { clearInterval(ringBeat); clearTimeout(ringTimer); try { navigator.vibrate && navigator.vibrate(0); } catch (_) {} }
+        // аватар и имя звонящего (подтягиваются и позже, когда придёт его профиль)
+        function paintIncoming() {
+            if (!incomingUid) return;
+            const m = $c('incoming-call'), nm = displayNameFor(incomingUid, m.dataset.by);
+            $c('incoming-name').textContent = nm;
+            applyAvatar($c('ic-avatar'), incomingUid, nm);
+            const p = profiles.get(incomingUid) || {}, bg = $c('ic-bg');
+            if (typeof p.avatar === 'string' && p.avatar.startsWith('data:image/') && canSee(incomingUid, 'photo')) bg.style.backgroundImage = 'url("' + p.avatar + '")';
+            else bg.style.backgroundImage = gradientCss(p.avatarGradient) || '';
+        }
+        async function holdScreenAwake() {
+            try {
+                const w = await navigator.wakeLock?.request('screen');
+                if (!w) return;
+                if (!incomingUid) w.release().catch(() => {}); else incomingWake = w;   // вызов уже закончился, пока ждали разрешение
             } catch (_) {}
         }
-        function stopRing() { clearInterval(ringBeat); clearTimeout(ringTimer); }
         function showIncoming(id, c) {
-            const m = $c('incoming-call'); m.dataset.id = id;
-            $c('incoming-name').textContent = c.byName || 'Звонок';
-            $c('incoming-kind').innerHTML = c.type === 'audio' ? iconHtml('📞 Голосовой звонок') : iconHtml('📹 Видеозвонок');
-            m.classList.add('show'); startRing(); ringTimer = setTimeout(dismissIncoming, 40000);
+            const m = $c('incoming-call'); m.dataset.id = id; m.dataset.by = c.byName || '';
+            incomingUid = c.owner; watchUser(c.owner); paintIncoming();
+            const video = c.type !== 'audio';
+            $c('incoming-kind').textContent = video ? 'Входящий видеозвонок' : 'Входящий голосовой звонок';
+            $c('ic-yes-ic').innerHTML = video ? IC_VIDEO : IC_PHONE;
+            m.classList.add('show'); startRing(); ringTimer = setTimeout(() => dismissIncoming(true), 40000);
+            holdScreenAwake();
+            // вкладка в фоне — показываем системное уведомление, чтобы вызов не пропустили
+            try {
+                if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+                    incomingNote = new Notification(displayNameFor(c.owner, c.byName), { body: $c('incoming-kind').textContent, tag: 'incoming-call', requireInteraction: true });
+                    incomingNote.onclick = () => { window.focus(); incomingNote?.close(); };
+                }
+            } catch (_) {}
         }
-        function dismissIncoming() { const m = $c('incoming-call'); if (m.dataset.id) handledCalls.add(m.dataset.id); m.dataset.id = ''; m.classList.remove('show'); stopRing(); }
+        function dismissIncoming(missed) {
+            const m = $c('incoming-call'), had = !!m.dataset.id;
+            if (had) handledCalls.add(m.dataset.id);
+            m.dataset.id = ''; m.classList.remove('show'); stopRing(); incomingUid = null;
+            try { incomingWake?.release(); } catch (_) {} incomingWake = null;
+            try { incomingNote?.close(); } catch (_) {} incomingNote = null;
+            if (had && missed === true) showToast('Пропущенный звонок', false);
+        }
 
         function startCallsWatch() {
             stopCallsWatch();
@@ -4891,7 +4990,7 @@
                     if (ch.type === 'removed') { callsCache.delete(id); return; }
                     callsCache.set(id, { id, ...c });
                     if (rtc?.id === id && c.ended) { showToast(c.status === 'declined' ? 'Звонок отклонён' : c.status === 'closed' ? 'Комната закрыта' : 'Звонок завершён', false); leaveCall(); return; }
-                    if (c.ended && $c('incoming-call').dataset.id === id) { dismissIncoming(); return; }
+                    if (c.ended && $c('incoming-call').dataset.id === id) { dismissIncoming(c.status !== 'declined'); return; }
                     if (ch.type === 'added' && !c.ended && c.owner !== currentUser.uid && !handledCalls.has(id)) {
                         if (c.kind === 'direct' && (iBlocked(c.owner) || !callAllowedFrom(c.owner))) { handledCalls.add(id); updateDoc(callRef(id), { ended: true, status: 'declined' }).catch(() => {}); return; }
                         if (c.kind === 'direct' && !rtc && Date.now() - c.at < 60000) showIncoming(id, c);
