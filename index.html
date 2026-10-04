@@ -1563,6 +1563,343 @@
         }
     </style>
 
+    <style id="apple-geometry">
+        /* =====================================================================
+           Apple-геометрия: единая система форм для ВСЕХ экранов
+           (вход, профиль, настройки, конфиденциальность, окна, меню, звонки).
+           Меняются только размеры, радиусы и отступы — логика и палитра те же.
+
+           Сетка 4 pt · поле экрана 16 · цель касания не меньше 44
+           Шкала радиусов:  12 — вложенные элементы, плитки, строки в шторках
+                            20 — карточки, списки, меню
+                            28 — шторки и окна
+                            h/2 — капсула: кнопки и поля ввода
+           Концентричность: радиус вложенного = внешний радиус − внутренний отступ
+           ===================================================================== */
+
+        :root{
+            --r-s:12px; --r-m:20px; --r-l:28px; --r-pill:999px;
+            --ctl:44px;        /* компактная кнопка / поле */
+            --ctl-lg:50px;     /* главная кнопка и поля входа */
+            --row:52px;        /* строка списка */
+            --group-gap:28px;  /* расстояние между группами настроек */
+            --grp-bg:#000; --grp-fill:#1c1c1e;                 /* «сгруппированный» фон iOS */
+            --track-off:rgba(120,120,128,.32);
+        }
+        :root[data-theme="light"]{
+            --grp-bg:#f2f2f7; --grp-fill:#fff;
+            --track-off:rgba(120,120,128,.16);
+        }
+
+        /* Профиль, настройки, конфиденциальность: серый фон и белые/тёмные карточки */
+        #profile-screen,#settings-screen,#privacy-screen{
+            --bg-color:var(--grp-bg); --surface-color:var(--grp-fill); --field:var(--grp-fill);
+        }
+
+        /* =====================================================================
+           ШАПКА ВТОРОГО УРОВНЯ: кнопка «Назад» сверху, большой заголовок под ней
+           ===================================================================== */
+        #profile-screen .top-bar,#settings-screen .top-bar,#privacy-screen .top-bar{
+            flex-wrap:wrap;align-content:flex-start;gap:0;min-height:0;
+            padding:calc(env(safe-area-inset-top,0px) + 4px) max(var(--px),var(--sr)) 8px max(var(--px),var(--sl));
+            background:var(--bg-color);border:0;box-shadow:none;
+        }
+        #profile-screen .top-bar .icon-btn,#settings-screen .top-bar .icon-btn,#privacy-screen .top-bar .icon-btn{
+            flex:0 0 44px;width:44px;height:44px;margin-left:-10px;color:var(--accent);
+        }
+        #profile-screen .top-bar .icon-btn svg,#settings-screen .top-bar .icon-btn svg,#privacy-screen .top-bar .icon-btn svg{
+            width:28px;height:28px;stroke-width:2.4;
+        }
+        #profile-screen .top-bar-title,#settings-screen .top-bar-title,#privacy-screen .top-bar-title{
+            flex:0 0 100%;min-width:0;padding:0 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+            font-size:34px;line-height:41px;font-weight:700;letter-spacing:-.022em;
+        }
+        @media (max-width:360px){
+            #profile-screen .top-bar-title,#settings-screen .top-bar-title,#privacy-screen .top-bar-title{font-size:28px;line-height:34px}
+        }
+
+        /* =====================================================================
+           НАСТРОЙКИ И ПРОФИЛЬ: сгруппированные списки
+           ===================================================================== */
+        #profile-screen .settings-body,#settings-screen .settings-body{
+            gap:0;
+            padding:8px max(var(--px),var(--sr)) calc(var(--tab-h) + var(--tab-gap) + var(--safe-bottom) + 24px) max(var(--px),var(--sl));
+        }
+        #settings-screen .tg-list{margin-bottom:var(--group-gap)}
+        .settings-section{margin-bottom:var(--group-gap)}
+
+        /* заголовок группы — обычным регистром, над карточкой */
+        .settings-section>.settings-label{
+            display:block;margin:0 0 8px;padding:0 16px;
+            font-size:13px;line-height:18px;font-weight:400;letter-spacing:-.003em;text-transform:none;color:var(--text-secondary);
+        }
+        /* пояснение под группой */
+        .settings-section>p,.settings-toggle-hint,.about-hint{
+            margin:8px 0 0!important;padding:0 16px;
+            font-size:13px!important;line-height:18px!important;letter-spacing:-.003em;color:var(--text-secondary);
+        }
+
+        /* строка с переключателем и строка «только чтение» — карточка высотой 52 */
+        .settings-toggle-row,.settings-static{
+            min-height:var(--row);padding:0 16px;border:0;border-radius:var(--r-m);background:var(--grp-fill);
+        }
+        .settings-static{display:flex;align-items:center;font-size:17px;line-height:22px;letter-spacing:-.012em;overflow-wrap:anywhere}
+        .settings-toggle-row .settings-toggle-label{font-size:17px;line-height:22px;letter-spacing:-.012em}
+
+        /* переключатель 51 × 31, ползунок 27 */
+        .switch{width:51px;height:31px}
+        .switch .slider{border-radius:16px;background:var(--track-off);transition:background-color .25s var(--ease-settle)}
+        .switch .slider:before{
+            width:27px;height:27px;left:2px;bottom:2px;border-radius:50%;
+            box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16);
+            transition:transform .35s var(--ease-flick);
+        }
+        .switch input:checked+.slider{background:var(--accent-fill)}
+        .switch input:checked+.slider:before{transform:translateX(20px)}
+        .switch input:focus-visible+.slider{outline:2px solid var(--accent);outline-offset:2px}
+
+        /* поля ввода: капсула 44 (в строке с кнопкой) */
+        .settings-body input:not([type="checkbox"]):not([type="file"]){
+            height:var(--ctl);padding:0 16px;border:0;border-radius:calc(var(--ctl) / 2);
+            background:var(--grp-fill);font-size:17px;line-height:22px;letter-spacing:-.012em;
+        }
+        .settings-body textarea{
+            padding:14px 16px!important;border:0!important;border-radius:var(--r-m)!important;resize:none!important;
+            background:var(--grp-fill)!important;font-size:17px!important;line-height:22px;letter-spacing:-.012em;
+        }
+        .settings-body input:focus,.settings-body textarea:focus{box-shadow:inset 0 0 0 2px var(--accent);border-color:transparent}
+        .settings-row{gap:8px;align-items:center}
+        .settings-row:not(:has(input)) .btn{flex:1 1 0}
+
+        /* кнопки: капсула; главная — залитая, вторичная — тонированная */
+        .btn{
+            min-height:var(--ctl-lg);padding:0 24px;border-radius:calc(var(--ctl-lg) / 2);
+            font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.012em;
+        }
+        .btn:not(.btn-secondary):not(.btn-danger){background:var(--accent-fill)}
+        .btn-secondary{border:0;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+        .btn-secondary:active{background:color-mix(in srgb,var(--accent) 24%,transparent)}
+        .settings-body .btn{min-height:var(--ctl);border-radius:calc(var(--ctl) / 2)}
+        .settings-row .btn{padding:0 20px}
+        .settings-toggle-hint+.btn,.about-hint+.btn{margin-top:16px!important}
+        /* «Выйти» — строка списка с красным текстом, как в «Настройках» iOS */
+        #settings-screen .btn-danger{
+            min-height:var(--row);margin-top:0!important;border-radius:var(--r-m);
+            background:var(--grp-fill);color:var(--danger);
+        }
+
+        /* выбор статуса — один список со строками по 52 и тонкими разделителями */
+        .status-picker{gap:0;overflow:hidden;border-radius:var(--r-m);background:var(--grp-fill)}
+        .status-picker button{
+            position:relative;min-height:var(--row);padding:0 16px;gap:12px;border:0;border-radius:0;background:transparent;
+            font-size:17px;line-height:22px;letter-spacing:-.012em;text-align:left;
+        }
+        .status-picker button+button::before{
+            content:'';position:absolute;top:0;left:16px;right:0;height:1px;background:var(--border-color);
+            transform:scaleY(.5);transform-origin:top;
+        }
+        .status-picker button.active{border-color:transparent;background:color-mix(in srgb,var(--accent) 14%,transparent)}
+
+        /* цвета: 44 — зона касания, 32 — сам образец */
+        .accent-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px;margin-top:0}
+        .accent-dot{
+            width:44px;height:44px;border:6px solid transparent;border-radius:50%;
+            background-clip:padding-box!important;
+        }
+        .accent-dot.on{border-color:transparent;outline:2px solid var(--text-primary);outline-offset:-2px}
+
+        /* карточка профиля и фон профиля */
+        .profile-card{gap:16px;padding:16px;border-radius:var(--r-m);background:var(--grp-fill)}
+        .avatar-xl{width:96px;height:96px;font-size:36px}
+        .profile-actions{gap:8px}
+        .profile-actions .btn,.banner-actions .btn{font-size:15px;line-height:20px;padding:0 16px}
+        .banner-preview{height:112px;border-radius:var(--r-m)}
+        .banner-actions{gap:8px;margin-top:8px}
+
+        /* «Конфиденциальность» и строки со значками */
+        .tg-head{margin-top:0;font-weight:400;font-size:13px;line-height:18px;color:var(--text-secondary);letter-spacing:-.003em}
+        .tg-hint{font-size:13px;line-height:18px}
+        .tg-row{min-height:var(--row);font-size:17px;line-height:22px;letter-spacing:-.012em}
+        .tg-val{font-size:17px}
+        .tg-ico{width:30px;height:30px;flex:0 0 30px;border-radius:7px}
+
+        /* =====================================================================
+           ВХОД: без карточки, значок приложения и поля-капсулы по 50
+           ===================================================================== */
+        #auth-screen{
+            justify-content:flex-start;align-items:center;overflow-y:auto;
+            padding:calc(env(safe-area-inset-top,0px) + 24px) max(var(--px),var(--sr)) calc(var(--safe-bottom) + 24px) max(var(--px),var(--sl));
+        }
+        #auth-screen .auth-card{
+            margin:auto;max-width:360px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;
+        }
+        #auth-screen .logo-c{
+            display:grid;place-items:center;width:96px;height:96px;margin:0 auto 24px;border-radius:22px;
+            font-size:56px;line-height:1;font-weight:800;letter-spacing:-.04em;color:#fff;
+            background:linear-gradient(160deg,color-mix(in srgb,var(--accent) 78%,#fff),var(--accent) 55%,color-mix(in srgb,var(--accent) 68%,#000));
+            box-shadow:inset 0 .5px 0 rgba(255,255,255,.4),0 12px 32px color-mix(in srgb,var(--accent) 38%,transparent);
+        }
+        #auth-screen .auth-title{margin:0 0 32px;font-size:28px;line-height:34px;font-weight:700;letter-spacing:-.02em}
+        #auth-screen .input-group{margin-bottom:12px}
+        #auth-screen .input-group label{
+            margin:0 0 6px;padding:0 20px;font-size:13px;line-height:18px;letter-spacing:-.003em;text-transform:none;
+        }
+        #auth-screen .input-group input{
+            height:var(--ctl-lg);padding:0 20px;border:0;border-radius:calc(var(--ctl-lg) / 2);
+            background:var(--surface-color);font-size:17px;line-height:22px;letter-spacing:-.012em;
+        }
+        #auth-screen .input-group input:focus{box-shadow:inset 0 0 0 2px var(--accent)}
+        #auth-screen #auth-btn{margin-top:20px}
+        #auth-screen .switch-auth{display:flex;align-items:center;justify-content:center;gap:4px;min-height:var(--ctl);margin-top:8px;font-size:15px;line-height:20px}
+        #auth-screen .error-msg{margin-top:8px;font-size:13px;line-height:18px;text-align:center}
+        @media (max-height:640px){
+            #auth-screen .logo-c{width:72px;height:72px;margin-bottom:12px;border-radius:16px;font-size:42px}
+            #auth-screen .auth-title{margin-bottom:16px}
+        }
+
+        /* =====================================================================
+           ГЛАВНЫЙ ЭКРАН И ЧАТ: доводка до общей шкалы
+           ===================================================================== */
+        #chats-screen #chats-search-input{
+            height:40px;padding:0 16px 0 40px;border-radius:20px;
+            background-position:14px 50%!important;
+        }
+        .chat-bottom-btn{width:44px;height:44px}
+        #chat-screen .pinned-banner,.edit-banner,.attachment-preview,.emoji-panel{border-radius:var(--r-m)}
+        .message .reply-quote{border-radius:var(--r-s)}
+        .date-sep,#chat-screen.has-wall .date-sep{border-radius:var(--r-pill)}
+        .reaction-chip{min-height:28px;padding:0 10px;border-radius:var(--r-pill)}
+        .wp-tile{border-radius:var(--r-s)}
+
+        /* =====================================================================
+           КОНТЕКСТНОЕ МЕНЮ СООБЩЕНИЯ: радиус 20, отступ 6, строки 14 (20 − 6)
+           ===================================================================== */
+        .msg-menu{min-width:240px;padding:6px;border:0;border-radius:var(--r-m);
+            box-shadow:0 0 0 .5px var(--border-color),0 12px 40px rgba(0,0,0,.35)}
+        .msg-menu-item{min-height:var(--ctl);padding:0 12px;gap:12px;border-radius:14px;font-size:17px;line-height:22px;letter-spacing:-.012em}
+        .msg-menu-item svg{width:22px;height:22px}
+        .react-btn{width:var(--ctl);height:var(--ctl);font-size:24px}
+
+        /* =====================================================================
+           ОКНА: шторка (со списком) — 28, диалог — 28 по центру, поля и кнопки — капсулы
+           ===================================================================== */
+        .cm-overlay{padding:16px max(16px,var(--sr)) 16px max(16px,var(--sl))}
+        .cm-card h3{font-size:20px;line-height:25px;font-weight:700;letter-spacing:-.02em}
+        .cm-card p{font-size:13px;line-height:18px;letter-spacing:-.003em}
+        .cm-card input:not([type="checkbox"]){
+            height:var(--ctl);padding:0 16px;border:0;border-radius:calc(var(--ctl) / 2);
+            font-size:17px;line-height:22px;letter-spacing:-.012em;
+        }
+        .cm-row{min-height:var(--ctl);padding:0 12px;border-radius:var(--r-s);font-size:17px;letter-spacing:-.012em}
+        .cm-btn{min-height:var(--ctl);padding:0 20px;border-radius:calc(var(--ctl) / 2);font-size:17px;line-height:22px;letter-spacing:-.012em}
+        .cm-actions{gap:8px}
+
+        /* шторка снизу: плавающая, с запасом 8 от края экрана и «ручкой» */
+        .cm-overlay:has(.cm-list),.cm-overlay.wp-ov{
+            align-items:flex-end;
+            padding:8px max(8px,var(--sr)) calc(8px + env(safe-area-inset-bottom,0px)) max(8px,var(--sl));
+        }
+        .cm-card:has(.cm-list),.wp-ov .cm-card{
+            width:min(520px,100%);gap:12px;padding:12px 16px 16px;border:0;border-radius:var(--r-l);
+        }
+        .cm-card:has(.cm-list)::before,.wp-ov .cm-card::before{
+            content:'';flex:0 0 5px;width:36px;height:5px;margin:0 auto 4px;border-radius:3px;background:var(--text-secondary);opacity:.4;
+        }
+        /* диалог без списка: по центру, текст по центру, кнопки поровну */
+        .cm-overlay:not(:has(.cm-list)):not(.wp-ov) .cm-card{
+            width:min(320px,100%);gap:12px;padding:24px 16px 16px;border:0;border-radius:var(--r-l);text-align:center;
+        }
+        .cm-overlay:not(:has(.cm-list)):not(.wp-ov) .cm-card h3{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.012em}
+        .cm-overlay:not(:has(.cm-list)):not(.wp-ov) .cm-card input{text-align:left}
+        .cm-overlay:not(:has(.cm-list)):not(.wp-ov) .cm-actions{justify-content:stretch}
+        .cm-overlay:not(:has(.cm-list)):not(.wp-ov) .cm-actions .cm-btn{flex:1 1 0}
+
+        /* =====================================================================
+           ПРОФИЛЬ СОБЕСЕДНИКА: внешняя 28 → список 20 (отступ 8) → строки 14 (отступ 6)
+           ===================================================================== */
+        .profile-menu{padding:calc(env(safe-area-inset-top,0px) + 64px) max(16px,var(--sr)) 16px max(16px,var(--sl))}
+        .profile-menu-card{border:0;border-radius:var(--r-l);box-shadow:0 0 0 .5px var(--border-color),0 18px 50px rgba(0,0,0,.4)}
+        .profile-menu-close{
+            top:calc(env(safe-area-inset-top,0px) + 8px);right:max(16px,var(--sr));width:var(--ctl);height:var(--ctl);border:0;
+            background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 .5px var(--border-color);
+        }
+        .profile-menu-head{padding:24px 16px 20px}
+        .profile-menu-name{font-size:22px;line-height:28px;font-weight:700;letter-spacing:-.02em}
+        .profile-menu-status{font-size:13px;line-height:18px}
+        .profile-menu-body{padding:8px}
+        .profile-menu-list{padding:6px;border-radius:var(--r-m)}
+        .profile-menu-action{min-height:48px;padding:0 12px;border-radius:14px;font-size:17px;line-height:22px;letter-spacing:-.012em}
+        .profile-menu-label{font-size:13px;line-height:18px;letter-spacing:0;text-transform:none}
+
+        /* =====================================================================
+           УВЕДОМЛЕНИЕ: капсула
+           ===================================================================== */
+        .toast{
+            min-height:var(--ctl);padding:12px 20px;border:0;border-radius:22px;
+            font-size:15px;line-height:20px;letter-spacing:-.006em;
+            background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 .5px var(--border-color),var(--glass-shadow);
+        }
+        .toast.toast-error{box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 1px var(--danger),var(--glass-shadow)}
+
+        /* =====================================================================
+           ЗВОНКИ
+           ===================================================================== */
+        .call-bar{gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) max(16px,var(--sr)) 8px max(16px,var(--sl))}
+        .call-bar .t{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.012em}
+        .call-grid{gap:8px;padding:8px max(8px,var(--sr)) 8px max(8px,var(--sl))}
+        .tile{border-radius:var(--r-m)}
+        .tile .nm,.tile .st{padding:3px 10px;border-radius:12px;font-size:13px;line-height:18px;font-weight:600}
+        .tile .nm{left:8px;bottom:8px}
+        .tile .st{right:8px;top:8px}
+        .call-ctl{flex-wrap:wrap;gap:12px;padding:12px max(16px,var(--sr)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,var(--sl))}
+        .call-round{width:52px;height:52px}
+        .call-round svg,.call-round.cc .ic{width:24px;height:24px}
+        .call-banner{min-height:var(--ctl);padding:6px max(16px,var(--sr)) 6px max(16px,var(--sl));font-size:15px;line-height:20px}
+        .call-banner button{min-height:32px;padding:0 14px;border-radius:var(--r-pill);font-size:15px;line-height:20px}
+        .call-overlay.mini{
+            inset:auto max(12px,var(--sr)) calc(var(--tab-h) + var(--tab-gap) + var(--safe-bottom) + 12px) auto;
+            width:240px;height:180px;border-radius:var(--r-m);
+        }
+        /* входящий звонок: капсула высотой 72 (радиус 36), кнопки 48 = 36 − 12 */
+        .incoming-call{
+            width:min(calc(100vw - 24px),400px);padding:12px 12px 12px 20px;border:0;border-radius:36px;
+            background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 .5px var(--border-color),var(--glass-shadow);
+        }
+        .incoming-call .nm{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.012em}
+        .incoming-call .kd{font-size:13px;line-height:18px}
+        .incoming-call .call-round{width:48px;height:48px}
+
+        /* =====================================================================
+           ВСТРОЕННЫЙ БРАУЗЕР
+           ===================================================================== */
+        .ib-bar{gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) max(8px,var(--sr)) 8px max(8px,var(--sl))}
+        .ib-bar button{width:var(--ctl);height:var(--ctl);border-radius:calc(var(--ctl) / 2)}
+        .ib-url{height:var(--ctl);padding:0 16px;border-radius:calc(var(--ctl) / 2);font-size:17px}
+        .in-browser .ib-ext{padding:0 16px}
+        .ib-hint{padding:8px max(16px,var(--sr)) 8px max(16px,var(--sl));font-size:13px;line-height:18px}
+        .ib-hint button{min-height:32px;padding:0 12px;border-radius:var(--r-pill)}
+
+        /* ---------- Непрерывная кривая там, где браузер умеет ---------- */
+        @supports (corner-shape:squircle){
+            .settings-toggle-row,.settings-static,.status-picker,.profile-card,.banner-preview,.settings-body textarea,
+            .tile,.incoming-call,.call-overlay.mini,.profile-menu-list,.profile-menu-card{corner-shape:squircle}
+        }
+
+        /* ---------- Без размытия / повышенная контрастность ---------- */
+        @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+            .toast,.incoming-call,.profile-menu-close{background:var(--surface-color)}
+        }
+        @media (prefers-reduced-transparency:reduce){
+            .toast,.incoming-call,.profile-menu-close{background:var(--surface-color);-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+        }
+        @media (prefers-reduced-motion:reduce){
+            .switch .slider,.switch .slider:before{transition-duration:.01ms}
+        }
+    </style>
+
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
