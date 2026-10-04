@@ -1882,6 +1882,29 @@
         .ib-hint{padding:8px max(16px,var(--sr)) 8px max(16px,var(--sl));font-size:13px;line-height:18px}
         .ib-hint button{min-height:32px;padding:0 12px;border-radius:var(--r-pill)}
 
+        /* =====================================================================
+           ПРОСМОТР ФОТО: плавающая капсула «Копировать / Сохранить»
+           внешняя 28 = 22 (кнопка) + 6 (отступ)
+           ===================================================================== */
+        .iv-actions{
+            position:absolute;z-index:1001;left:50%;transform:translateX(-50%);
+            bottom:calc(16px + env(safe-area-inset-bottom,0px));
+            display:flex;gap:2px;padding:6px;border-radius:28px;
+            background:rgba(44,44,46,.72);
+            -webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            box-shadow:inset 0 .5px 0 rgba(255,255,255,.16),0 0 0 .5px rgba(84,84,88,.55),0 8px 32px rgba(0,0,0,.45);
+        }
+        .iv-actions button{
+            display:flex;align-items:center;gap:8px;height:44px;padding:0 18px;border:0;border-radius:22px;
+            background:transparent;color:#fff;cursor:pointer;white-space:nowrap;
+            font-size:17px;line-height:22px;font-weight:500;letter-spacing:-.012em;
+            transition:background-color .15s,transform .1s;
+        }
+        .iv-actions button:active{background:rgba(255,255,255,.18);transform:scale(.96)}
+        @media (hover:hover){.iv-actions button:hover{background:rgba(255,255,255,.12)}}
+        .iv-actions .ic{width:22px;height:22px}
+        @media (prefers-reduced-transparency:reduce){.iv-actions{background:#2c2c2e;-webkit-backdrop-filter:none;backdrop-filter:none}}
+
         /* ---------- Непрерывная кривая там, где браузер умеет ---------- */
         @supports (corner-shape:squircle){
             .settings-toggle-row,.settings-static,.status-picker,.profile-card,.banner-preview,.settings-body textarea,
@@ -2247,6 +2270,10 @@
     <div id="image-viewer" class="image-viewer hidden">
         <button id="image-viewer-close" class="image-viewer-close"><svg class="ic"><use href="#i-x"/></svg></button>
         <img id="image-viewer-img" src="" alt="фото">
+        <div class="iv-actions">
+            <button type="button" id="iv-copy"><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Копировать</button>
+            <button type="button" id="iv-save"><svg class="ic"><use href="#i-download"/></svg>Сохранить</button>
+        </div>
     </div>
 
     <script>
@@ -2578,6 +2605,7 @@
             pin:     '<path d="M12 17v5"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>',
             unpin:   '<path d="M12 17v5"/><path d="M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17h12"/><path d="M15 9.34V6h1a2 2 0 0 0 0-4H7.89"/><path d="m2 2 20 20"/>',
             edit:    '<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+            download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
             trash:   '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="m19 6-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>'
         };
         const miBtn = (act, icon, label, cls = '') =>
@@ -2608,7 +2636,8 @@
             menu.innerHTML = `<div class="msg-menu-reactions">${REACTIONS.map(e => `<button class="react-btn${myReact === e ? ' active' : ''}" data-emoji="${e}">${e}</button>`).join('')}</div>` +
                 miBtn('reply', 'reply', 'Ответить') +
                 miBtn('forward', 'forward', 'Переслать') +
-                (msg.text ? miBtn('copy', 'copy', 'Копировать') : '') +
+                (msg.text ? miBtn('copy', 'copy', msg.imageUrl ? 'Копировать текст' : 'Копировать') : '') +
+                (msg.imageUrl ? miBtn('copyimg', 'copy', 'Копировать фото') + miBtn('saveimg', 'download', 'Сохранить фото') : '') +
                 miBtn('pin', isPinned ? 'unpin' : 'pin', isPinned ? 'Открепить' : 'Закрепить') +
                 (mine ? `${msg.text ? miBtn('edit', 'edit', 'Редактировать') : ''}${miBtn('delete', 'trash', 'Удалить', ' danger')}` : '');
             overlay.append(backdrop, clone, menu);
@@ -2639,6 +2668,8 @@
                 else if (it?.dataset.act === 'reply') startReply(id);
                 else if (it?.dataset.act === 'forward') forwardMessage(id);
                 else if (it?.dataset.act === 'copy') copyText(msg.text);
+                else if (it?.dataset.act === 'copyimg') copyPhoto(msg.imageUrl);
+                else if (it?.dataset.act === 'saveimg') savePhoto(msg.imageUrl);
                 else if (it?.dataset.act === 'pin') togglePinMessage(id, !isPinned);
                 else if (it?.dataset.act === 'edit') startEdit(id);
                 else if (it?.dataset.act === 'delete') deleteMessage(id);
@@ -2893,6 +2924,58 @@
                 document.body.appendChild(ta); ta.select();
                 try { document.execCommand('copy'); showToast('Скопировано', false); } catch (e) { showToast('Не удалось скопировать'); }
                 ta.remove();
+            }
+        }
+        // ===== Фото: копирование и сохранение =====
+        async function fetchImageBlob(url) {
+            const r = await fetch(url, { mode: 'cors' });          // data: и blob: тоже подходят
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return await r.blob();
+        }
+        async function blobToPng(blob) {                           // буфер обмена в браузерах принимает только PNG
+            const bmp = await createImageBitmap(blob);
+            const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+            c.getContext('2d').drawImage(bmp, 0, 0);
+            if (bmp.close) bmp.close();
+            return await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('toBlob')), 'image/png'));
+        }
+        async function copyPhoto(url) {
+            if (!url) return;
+            try {
+                if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') throw new Error('clipboard');
+                // Promise передаётся сразу: Safari требует, чтобы запись началась внутри жеста пользователя
+                const png = fetchImageBlob(url).then(b => b.type === 'image/png' ? b : blobToPng(b));
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+                showToast('Фото скопировано', false);
+            } catch (_) {
+                if (!url.startsWith('data:') && navigator.clipboard?.writeText) {
+                    try { await navigator.clipboard.writeText(url); showToast('Фото не скопировалось, скопирована ссылка', false); return; } catch (__) {}
+                }
+                showToast('Не удалось скопировать фото');
+            }
+        }
+        async function savePhoto(url) {
+            if (!url) return;
+            try {
+                const blob = await fetchImageBlob(url);
+                const ext = ((blob.type || 'image/jpeg').split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace(/\+.*$/, '');
+                const name = 'photo-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.' + ext;
+                const file = new File([blob], name, { type: blob.type || 'image/jpeg' });
+                // на телефоне — системное меню «Поделиться» (там есть «Сохранить изображение»)
+                if (matchMedia('(pointer:coarse)').matches && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try { await navigator.share({ files: [file] }); return; }
+                    catch (e) { if (e && e.name === 'AbortError') return; }
+                }
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob); a.download = name;
+                document.body.appendChild(a); a.click(); a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+                showToast('Фото сохранено', false);
+            } catch (_) {
+                // файл недоступен для чтения скриптом — открываем картинку напрямую
+                const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.download = '';
+                document.body.appendChild(a); a.click(); a.remove();
+                showToast('Фото открыто в новой вкладке — сохраните его оттуда', false);
             }
         }
         // Форматирование: *жирный* _курсив_ ~зачёркнутый~ `код` ||спойлер|| @упоминание
@@ -4606,6 +4689,8 @@
         }
 
         document.querySelectorAll('.image-viewer-close').forEach(el => el.addEventListener('click', closeImageViewer));
+        document.getElementById('iv-copy').addEventListener('click', () => copyPhoto(imageViewerImg.src));
+        document.getElementById('iv-save').addEventListener('click', () => savePhoto(imageViewerImg.src));
 
         imageViewer.addEventListener('wheel', e => {
             e.preventDefault();
@@ -4633,7 +4718,7 @@
         }
 
         imageViewer.addEventListener('pointerdown', e => {
-            if (e.target.closest('.image-viewer-close')) return;
+            if (e.target.closest('.image-viewer-close, .iv-actions')) return;
             imageViewerImg.classList.remove('smooth');
             vPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
             try { imageViewer.setPointerCapture(e.pointerId); } catch (_) {}
@@ -4740,6 +4825,9 @@
         ['touchend', 'touchmove', 'touchcancel'].forEach(ev => messagesList.addEventListener(ev, () => clearTimeout(pressTimer), { passive: true }));
         messagesList.addEventListener('contextmenu', e => { const b = e.target.closest('.message'); if (b) { e.preventDefault(); openMsgMenu(b); } });
         document.addEventListener('pointerdown', e => { if (menuEl && !e.target.closest('.msg-menu, .msg-clone')) closeMsgMenu(); });
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && !imageViewer.classList.contains('hidden')) { e.preventDefault(); copyPhoto(imageViewerImg.src); }
+        });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMsgMenu(); imageViewer.classList.add('hidden'); resetImageViewer(); } });
         messageInput.addEventListener('keydown', e => { if (e.key === 'Escape') cancelEdit(); });
         document.getElementById('cancel-edit').addEventListener('click', cancelEdit);
