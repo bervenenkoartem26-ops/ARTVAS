@@ -1923,6 +1923,32 @@
         }
     </style>
 
+
+    <style id="ds-style">
+        #chat-timer-btn{position:relative;opacity:.6}
+        #chat-timer-btn[data-ttl]{opacity:1}
+        #chat-timer-btn[data-ttl]::after{content:attr(data-ttl);position:absolute;right:1px;bottom:3px;min-width:17px;height:14px;padding:0 3px;
+            border-radius:7px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;line-height:14px;text-align:center;box-sizing:border-box}
+        .input-row:not(.has-text) .sched-btn{display:none}
+        .sched-btn{color:var(--text-secondary)}
+        .sched-btn .ic{width:22px;height:22px}
+        .sched-bar{cursor:pointer;align-items:center;gap:10px}
+        .sched-bar .ic{width:20px;height:20px;color:var(--accent);flex:none}
+        .sched-bar.hidden{display:none}
+        .msg-ds{display:inline-flex;align-items:center;opacity:.7;margin-right:4px}
+        .msg-ds .ic{width:11px;height:11px}
+        .message.ds-gone{opacity:0;transform:scale(.9);transition:opacity .25s,transform .25s;pointer-events:none}
+        .ds-quick{display:flex;gap:8px;flex-wrap:wrap}
+        .ds-quick .cm-btn{flex:1 1 auto;padding:0 12px;font-size:15px}
+        .cm-card input.ds-dt{width:100%;margin:10px 0 14px;padding:12px;font-size:16px;color:var(--text-primary)}
+        .ds-item{cursor:default;gap:8px}
+        .ds-it{flex:1;min-width:0}
+        .ds-when{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);font-weight:600}
+        .ds-when .ic{width:14px;height:14px}
+        .ds-txt{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .cm-btn.ds-mini{min-height:34px;padding:0 12px;font-size:13px}
+        @media (max-width:420px){#chat-screen .top-bar .icon-btn{width:38px;height:38px}}
+    </style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -1947,7 +1973,7 @@
     setTimeout(hide, 10000);   // страховка: если что-то не загрузилось, заставка всё равно уйдёт
 })();
 </script>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol><symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/></symbol><symbol id="i-clip" viewBox="0 0 24 24"><path d="m21.4 11.6-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></symbol><symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></symbol><symbol id="i-video" viewBox="0 0 24 24"><path d="m22 8-6 4 6 4z"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol><symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol><symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-mute" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6"/></symbol><symbol id="i-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></symbol><symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-dice" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 8h.01M16 8h.01M8 16h.01M16 16h.01M12 12h.01"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></symbol><symbol id="i-ext" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol><symbol id="i-fwd" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M9 3h6l-1 7 3 3v2H7v-2l3-3z"/></symbol><symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></symbol><symbol id="i-bad" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.6 22 9.6 17 14.5 18.2 21.5 12 18.2 5.8 21.5 7 14.5 2 9.6 8.9 8.6"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol><symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/></symbol><symbol id="i-clip" viewBox="0 0 24 24"><path d="m21.4 11.6-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></symbol><symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></symbol><symbol id="i-video" viewBox="0 0 24 24"><path d="m22 8-6 4 6 4z"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol><symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol><symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-mute" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6"/></symbol><symbol id="i-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></symbol><symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-dice" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 8h.01M16 8h.01M8 16h.01M16 16h.01M12 12h.01"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></symbol><symbol id="i-ext" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol><symbol id="i-fwd" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M9 3h6l-1 7 3 3v2H7v-2l3-3z"/></symbol><symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></symbol><symbol id="i-bad" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.6 22 9.6 17 14.5 18.2 21.5 12 18.2 5.8 21.5 7 14.5 2 9.6 8.9 8.6"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol><symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2h5"/></symbol><symbol id="i-sched" viewBox="0 0 24 24"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5M16 2v4M8 2v4M3 10h5"/><circle cx="17.5" cy="17.5" r="4.5"/><path d="M17.5 15.5v2l1 1"/></symbol></svg>
     <div class="app-shell">
         <nav id="rail" class="rail nav-hidden" aria-label="Меню">
             <button id="nav-chats-btn" class="rail-btn active" title="Чаты" aria-label="Чаты">
@@ -2028,6 +2054,7 @@
                     <div class="chat-status-row"><span id="chat-status-text" class="chat-status-text"></span><span id="chat-status-dot" class="status-switch sm offline"></span></div>
                 </div>
                 <button id="call-audio-btn" class="icon-btn" title="Голосовой звонок"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button>
+                <button id="chat-timer-btn" class="icon-btn" title="Исчезающие сообщения" aria-label="Исчезающие сообщения"><svg class="ic"><use href="#i-timer"/></svg></button>
                 <button id="chat-wall-btn" class="icon-btn" title="Обои чата" aria-label="Обои чата"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.8"/><path d="m21 15-4.2-4.2a2 2 0 0 0-2.8 0L5 20"/></svg></button>
                 <button id="call-video-btn" class="icon-btn" title="Видеозвонок"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
             </div>
@@ -2045,6 +2072,7 @@
             </button>
             <div id="typing-indicator" class="typing-indicator-box"></div>
             <div id="chat-panel" class="chat-input-panel">
+                <div id="sched-bar" class="edit-banner sched-bar hidden"><div class="edit-banner-text"><b></b><span></span></div><svg class="ic"><use href="#i-sched"/></svg></div>
                 <div id="edit-banner" class="edit-banner hidden">
                     <div class="edit-banner-text"><b>Редактирование</b><span id="edit-banner-preview"></span></div>
                     <button id="cancel-edit" class="remove-attachment" title="Отмена"><svg class="ic"><use href="#i-x"/></svg></button>
@@ -2069,6 +2097,7 @@
                     <button id="mic-btn" class="file-btn mic-btn" title="Записать голос">
                         <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18.5V23"></path></svg>
                     </button>
+                    <button id="sched-btn" class="file-btn sched-btn" title="Отправить позже" type="button"><svg class="ic"><use href="#i-sched"/></svg></button>
                     <button id="send-btn" class="send-btn" title="Отправить">
                         <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"></path></svg>
                     </button>
@@ -2883,6 +2912,7 @@
                 let preview = msg.text || (msg.fileUrl ? '📎 ' + (msg.fileName || 'Файл') : msg.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
                 const plainPrev = preview;
                 if (msg.text && otherUid) { const e = await encryptFor(otherUid, { text: msg.text, rp: '' }); if (e) { payload.e2e = e; payload.text = ''; preview = '🔒 Сообщение'; } }
+                const ttlF = Number(chat.disappearAfter) || 0; if (ttlF > 0) payload.expiresAt = Date.now() + ttlF * 1000;
                 await addDoc(collection(db, 'messages'), payload);
                 await updateChatSummary(chat.id, preview, otherUid);
                 sendPush(chat.id, (preview === '🔒 Сообщение' && pushTextOk(otherUid)) ? clipPush(plainPrev) : preview);
@@ -3335,9 +3365,46 @@
             renderAttachmentPreview();
         }
 
-        async function sendMessage() {
+        // Собирает сообщение (шифрование, таймер исчезновения) и отправляет его в чат
+        async function deliverOutgoing(o, onAdded) {
+            const chat = allChatsCache.find(c => c.id === o.chatId);
+            const payload = {
+                senderId: currentUser.uid,
+                receiverId: o.otherUid || null,
+                text: o.text || '',
+                imageUrl: o.imageUrl || null,
+                audioUrl: o.audioUrl || null,
+                ...(o.docMeta || {}),
+                chatId: o.chatId,
+                read: false,
+                createdAt: serverTimestamp()
+            };
+            if (o.reply?.id) {
+                payload.replyTo = o.reply.id;
+                payload.replyPreview = o.reply.text || '';
+                payload.replyAuthorId = o.reply.senderId || null;
+            }
+            const plainPreview = o.text || (o.docMeta ? '📎 ' + o.docMeta.fileName : o.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
+            let encrypted = false;
+            if (chat?.isGroup || o.isGroup) payload.senderName = normalizeName(currentUser);
+            else if (o.text && o.otherUid) {
+                const e = await encryptFor(o.otherUid, { text: o.text, rp: o.reply?.text || '' });
+                if (e) { payload.e2e = e; payload.text = ''; delete payload.replyPreview; encrypted = true; }
+            }
+            const ttl = Number(chat?.disappearAfter) || 0;
+            if (ttl > 0) payload.expiresAt = Date.now() + ttl * 1000;
+            await addDoc(collection(db, 'messages'), payload);
+            if (onAdded) onAdded();
+            const summary = ttl > 0 ? 'Исчезающее сообщение' : (encrypted ? '🔒 Сообщение' : plainPreview);
+            await updateChatSummary(o.chatId, summary, o.otherUid);
+            // в чате и списке чатов остаётся «🔒 Сообщение», а в пуш попадает текст (если получатель не отключил это)
+            sendPush(o.chatId, encrypted ? (pushTextOk(o.otherUid) ? clipPush(plainPreview) : '🔒 Сообщение') : plainPreview);
+        }
+
+        async function sendMessage(opts) {
             if (!currentUser || !currentChatId) return;
             if (editingMessageId) return submitEdit();
+            const when = (opts && typeof opts.scheduleAt === 'number') ? opts.scheduleAt : 0;
             const text = messageInput.value.trim();
             if (!text && !pendingImageFile && !pendingAudioBlob && !pendingDocFile) return;
             if (currentChatOtherUid && !getCurrentChat()?.isGroup) {
@@ -3359,39 +3426,15 @@
                 if (pendingAudioBlob) {
                     audioUrl = await uploadToSupabase(pendingAudioBlob, `voice-${Date.now()}.webm`, 'audio');
                 }
-
-                const payload = {
-                    senderId: currentUser.uid,
-                    receiverId: currentChatOtherUid,
-                    text: text || '',
-                    imageUrl,
-                    audioUrl,
-                    ...(docMeta || {}),
-                    chatId: currentChatId,
-                    read: false,
-                    createdAt: serverTimestamp()
+                const chatId = currentChatId;
+                const out = {
+                    chatId, otherUid: currentChatOtherUid || null, isGroup: !!getCurrentChat()?.isGroup,
+                    text, imageUrl, audioUrl, docMeta,
+                    reply: replyingTo?.id ? { id: replyingTo.id, text: replyingTo.text || '', senderId: replyingTo.senderId || null } : null
                 };
-                if (replyingTo?.id) {
-                    payload.replyTo = replyingTo.id;
-                    payload.replyPreview = replyingTo.text || '';
-                    payload.replyAuthorId = replyingTo.senderId || null;
-                }
-                let lastPreview = text || (docMeta ? '📎 ' + docMeta.fileName : imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
-                const plainPreview = lastPreview;
-                const cc = getCurrentChat();
-                if (cc?.isGroup) payload.senderName = normalizeName(currentUser);
-                else if (text && currentChatOtherUid) {
-                    const e = await encryptFor(currentChatOtherUid, { text, rp: replyingTo?.text || '' });
-                    if (e) { payload.e2e = e; payload.text = ''; delete payload.replyPreview; lastPreview = '🔒 Сообщение'; }
-                }
-                await addDoc(collection(db, 'messages'), payload);
-                messageInput.value = '';
-                clearAttachment();
-                cancelReply();
-                clearDraft(currentChatId);
-                await updateChatSummary(currentChatId, lastPreview, currentChatOtherUid);
-                // в чате и списке чатов остаётся «🔒 Сообщение», а в пуш попадает текст (если получатель не отключил это)
-                sendPush(currentChatId, (lastPreview === '🔒 Сообщение' && pushTextOk(currentChatOtherUid)) ? clipPush(plainPreview) : lastPreview);
+                const done = () => { messageInput.value = ''; clearAttachment(); cancelReply(); clearDraft(chatId); };
+                if (when) { if (addScheduled(out, when)) done(); }
+                else await deliverOutgoing(out, done);
             } catch (error) {
                 console.error(error);
                 showToast('Не удалось отправить: ' + (error.message || error));
@@ -3556,16 +3599,19 @@
                 const plainList = await Promise.all(snapshot.docs.map(d => decryptMsg(d.data())));
                 if (seq !== msgSeq || chatId !== currentChatId) return;
                 const plain = new Map(snapshot.docs.map((d, i) => [d.id, plainList[i]]));
+                dsNewestId = snapshot.docs[0]?.id || null;
+                snapshot.docs.forEach(d => { const pm = plain.get(d.id); if (dsExpired(pm)) dsPurge(d.id, pm); });
+                const liveDocs = snapshot.docs.filter(d => !dsExpired(plain.get(d.id)));
 
                 ignoreScrollUntil = performance.now() + 250;
                 // Обновляем только изменившиеся сообщения, а не перерисовываем весь список
-                messagesCache = new Map(snapshot.docs.map(d => [d.id, plain.get(d.id)]));
+                messagesCache = new Map(liveDocs.map(d => [d.id, plain.get(d.id)]));
                 const oldEls = new Map();
                 messagesList.querySelectorAll('.date-sep').forEach(el => el.remove());
                 messagesList.querySelectorAll('.message').forEach(el => oldEls.set(el.dataset.id, el));
                 const sigOf = (m, pend) => JSON.stringify([m, pend, m.replyTo && messagesCache.get(m.replyTo) ? [messagesCache.get(m.replyTo).text, messagesCache.get(m.replyTo).deleted] : 0], (k, v) => v && typeof v.toMillis === 'function' ? v.toMillis() : v);
                 const want = [];
-                snapshot.docs.slice().reverse().forEach(snap => {
+                liveDocs.slice().reverse().forEach(snap => {
                     const m = plain.get(snap.id);
                     lastMessageId = snap.id;
                     const sig = sigOf(m, snap.metadata.hasPendingWrites);
@@ -3642,7 +3688,8 @@
                 const olderDocs = snapshot.docs.slice().reverse();
                 const olderPlain = new Map(await Promise.all(olderDocs.map(async d => [d.id, await decryptMsg(d.data())])));
                 const tempContainer = document.createDocumentFragment();
-                olderDocs.forEach(snap => {
+                olderDocs.forEach(d => { const pm = olderPlain.get(d.id); if (dsExpired(pm)) dsPurge(d.id, pm); });
+                olderDocs.filter(d => !dsExpired(olderPlain.get(d.id))).forEach(snap => {
                     messagesCache.set(snap.id, olderPlain.get(snap.id));
                     const div = createMessageElement(snap.id, olderPlain.get(snap.id));
                     tempContainer.appendChild(div);
@@ -3725,7 +3772,7 @@
                 const chips = Object.entries(counts).map(([e, n]) => `<button class="reaction-chip${msg.reactions[currentUser.uid] === e ? ' mine' : ''}" data-emoji="${escapeHtml(e)}">${escapeHtml(e)}${n > 1 ? ' ' + n : ''}</button>`).join('');
                 if (chips) html += `<div class="reactions">${chips}</div>`;
             }
-            html += `<div class="msg-meta">${msg.edited && !msg.deleted ? '<span class="msg-edited">изменено</span>' : ''}<span class="msg-time">${formatTime(msg.createdAt)}</span>${mine && !msg.deleted ? `<span class="ticks${(msg.read && myPriv().readReceipts) ? ' read' : ''}" title="${(msg.read && myPriv().readReceipts) ? 'Прочитано' : 'Отправлено'}">${(msg.read && myPriv().readReceipts) ? TICK2 : TICK1}</span>` : ''}</div>`;
+            html += `<div class="msg-meta">${msg.edited && !msg.deleted ? '<span class="msg-edited">изменено</span>' : ''}${msg.expiresAt && !msg.deleted ? `<span class="msg-ds" title="Исчезающее сообщение">${ic('timer')}</span>` : ''}<span class="msg-time">${formatTime(msg.createdAt)}</span>${mine && !msg.deleted ? `<span class="ticks${(msg.read && myPriv().readReceipts) ? ' read' : ''}" title="${(msg.read && myPriv().readReceipts) ? 'Прочитано' : 'Отправлено'}">${(msg.read && myPriv().readReceipts) ? TICK2 : TICK1}</span>` : ''}</div>`;
             div.innerHTML = html;
             return div;
         }
@@ -5402,6 +5449,198 @@
         $c('incoming-yes').addEventListener('click', () => { const id = $c('incoming-call').dataset.id; joinCall(id, callsCache.get(id)); });
         $c('incoming-no').addEventListener('click', () => { const id = $c('incoming-call').dataset.id; if (id) updateDoc(callRef(id), { ended: true, status: 'declined' }).catch(() => {}); dismissIncoming(); });
         window.addEventListener('pagehide', () => { if (rtc) rtc.peers.forEach(p => p.pc.close()); });
+
+        // ===== Исчезающие и запланированные сообщения =====
+        let dsNewestId = null;
+        const dsCleaned = new Set();
+        const dsExpired = m => !!(m && m.expiresAt && Number(m.expiresAt) <= Date.now());
+        function dsLabel(sec) {
+            sec = Number(sec) || 0;
+            if (!sec) return 'Выключено';
+            if (sec < 60) return sec + ' секунд';
+            if (sec < 3600) return Math.round(sec / 60) + ' минут';
+            if (sec < 86400) return Math.round(sec / 3600) + ' час';
+            return Math.round(sec / 86400) + ' дн.';
+        }
+        function dsShort(sec) {
+            sec = Number(sec) || 0;
+            if (sec < 60) return sec + 'с';
+            if (sec < 3600) return Math.round(sec / 60) + 'м';
+            if (sec < 86400) return Math.round(sec / 3600) + 'ч';
+            return Math.round(sec / 86400) + 'д';
+        }
+        // Стираем содержимое истёкшего сообщения в базе (прячется оно у всех сразу, по expiresAt)
+        function dsPurge(id, m) {
+            if (dsCleaned.has(id)) return; dsCleaned.add(id);
+            const chatId = m?.chatId || currentChatId;
+            updateDoc(doc(db, 'messages', id), { deleted: true, text: '', e2e: deleteField(), replyPreview: deleteField(), imageUrl: null, audioUrl: null, fileUrl: null, fileName: null, fileSize: null, fileType: null, reactions: deleteField(), pinned: false }).catch(() => {});
+            if (m?.pinned && chatId) updateDoc(doc(db, 'chats', chatId), { pinnedMessageId: deleteField() }).catch(() => {});
+            if (id === dsNewestId && chatId) updateChatLastText(chatId, 'Сообщение исчезло');
+        }
+        function dsSweep() {
+            if (!currentChatId) return;
+            messagesCache.forEach((m, id) => {
+                if (!dsExpired(m)) return;
+                messagesCache.delete(id);
+                const el = messagesList.querySelector(`[data-id="${CSS.escape(id)}"]`);
+                if (el) { el.classList.add('ds-gone'); setTimeout(() => { el.remove(); rebuildDateSeparators(); }, 280); }
+                dsPurge(id, m);
+            });
+        }
+        const dsTimerBtn = document.getElementById('chat-timer-btn');
+        const dsSeen = new Map();
+        function dsRefreshHeader() {
+            const c = getCurrentChat(), ttl = Number(c?.disappearAfter) || 0;
+            if (ttl) dsTimerBtn.dataset.ttl = dsShort(ttl); else delete dsTimerBtn.dataset.ttl;
+            dsTimerBtn.title = ttl ? 'Исчезающие сообщения: ' + dsLabel(ttl) : 'Исчезающие сообщения';
+            if (!c) return;
+            const prev = dsSeen.get(c.id);
+            if (prev !== undefined && prev !== ttl && c.disappearBy && c.disappearBy !== currentUser?.uid) {
+                const who = c.isGroup ? 'Участник' : (chatTitle.textContent || 'Собеседник');
+                showToast(who + (ttl ? ' включил(а) исчезающие сообщения: ' + dsLabel(ttl) : ' выключил(а) исчезающие сообщения'), false);
+            }
+            dsSeen.set(c.id, ttl);
+        }
+        const DS_OPTS = [0, 30, 300, 3600, 86400, 604800];
+        function openTimerDialog() {
+            if (!currentChatId) return;
+            const cur = Number(getCurrentChat()?.disappearAfter) || 0;
+            const n = loadSched().filter(x => x.chatId === currentChatId).length;
+            const rows = DS_OPTS.map(sec => `<div class="cm-row${sec === cur ? ' sel' : ''}" data-ttl="${sec}"><span>${dsLabel(sec)}</span><span class="chk">${ic('check')}</span></div>`).join('');
+            const o = cmModal(`<h3>Исчезающие сообщения</h3><p>Новые сообщения в этом чате будут исчезать через выбранное время после отправки — у вас и у собеседника. Уже отправленные сообщения не затрагиваются.</p><div class="cm-list">${rows}</div><div class="cm-actions"><button class="cm-btn" data-x="sched">Запланированные${n ? ' (' + n + ')' : ''}</button><button class="cm-btn" data-x="close">Закрыть</button></div>`);
+            o.addEventListener('click', async e => {
+                const row = e.target.closest('.cm-row[data-ttl]'), x = e.target.closest('[data-x]')?.dataset.x;
+                if (e.target === o || x === 'close') { o.remove(); return; }
+                if (x === 'sched') { o.remove(); openSchedManager(); return; }
+                if (!row) return;
+                const ttl = Number(row.dataset.ttl), chatId = currentChatId, c = getCurrentChat(), was = c ? c.disappearAfter : undefined, wasBy = c ? c.disappearBy : undefined;
+                o.remove();
+                if (c) { c.disappearAfter = ttl; c.disappearBy = currentUser.uid; dsRefreshHeader(); }
+                try {
+                    await setDoc(doc(db, 'chats', chatId), { disappearAfter: ttl, disappearBy: currentUser.uid, disappearAt: serverTimestamp() }, { merge: true });
+                    showToast(ttl ? 'Исчезающие сообщения: ' + dsLabel(ttl) : 'Исчезающие сообщения выключены', false);
+                } catch (err) {
+                    if (c) { c.disappearAfter = was; c.disappearBy = wasBy; dsRefreshHeader(); }
+                    showToast('Не удалось изменить: ' + err.message);
+                }
+            });
+        }
+
+        // ---- запланированные сообщения (хранятся на устройстве, отправляются, пока приложение открыто) ----
+        const SCHED_KEY = () => 'sched:' + (currentUser?.uid || '');
+        function loadSched() { try { return JSON.parse(localStorage.getItem(SCHED_KEY()) || '[]'); } catch (_) { return []; } }
+        function saveSched(list) {
+            try { localStorage.setItem(SCHED_KEY(), JSON.stringify(list)); return true; }
+            catch (_) { showToast('Не удалось сохранить запланированное сообщение'); return false; }
+        }
+        const pad2 = n => String(n).padStart(2, '0');
+        const toLocalInput = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + 'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+        const fmtWhen = ms => new Date(ms).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        function schedPreview(it) { return it.text || (it.docMeta ? '📎 ' + (it.docMeta.fileName || 'Файл') : it.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение'); }
+        function addScheduled(out, when) {
+            const list = loadSched();
+            list.push({ ...out, id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), sendAt: when, created: Date.now() });
+            if (!saveSched(list)) return false;
+            updateSchedBar();
+            showToast('Запланировано на ' + fmtWhen(when), false);
+            return true;
+        }
+        let schedBusy = false;
+        async function runScheduler() {
+            if (schedBusy || !currentUser) return;
+            const now = Date.now(), due = loadSched().filter(x => x.sendAt <= now);
+            if (!due.length) return;
+            schedBusy = true;
+            try {
+                for (const it of due) {
+                    saveSched(loadSched().filter(x => x.id !== it.id)); // сначала убираем из очереди — повторно не уйдёт
+                    if (!it.isGroup && it.otherUid && (iBlocked(it.otherUid) || blockedMe(it.otherUid))) {
+                        showToast('Запланированное сообщение не отправлено: чат недоступен'); continue;
+                    }
+                    try {
+                        await deliverOutgoing(it);
+                        showToast('Отправлено запланированное сообщение', false);
+                    } catch (err) {
+                        console.error(err);
+                        it.tries = (it.tries || 0) + 1;
+                        it.sendAt = Date.now() + Math.min(300000, 30000 * it.tries); // нет сети — пробуем снова позже
+                        saveSched([...loadSched(), it]);
+                        if (it.tries === 1) showToast('Не удалось отправить запланированное сообщение, попробую ещё раз');
+                    }
+                }
+            } finally { schedBusy = false; updateSchedBar(); }
+        }
+        const schedBar = document.getElementById('sched-bar');
+        function updateSchedBar() {
+            const items = (currentUser && currentChatId) ? loadSched().filter(x => x.chatId === currentChatId).sort((a, b) => a.sendAt - b.sendAt) : [];
+            schedBar.classList.toggle('hidden', !items.length);
+            if (items.length) {
+                schedBar.querySelector('b').textContent = 'Запланировано: ' + items.length;
+                schedBar.querySelector('span').textContent = 'Ближайшее: ' + fmtWhen(items[0].sendAt);
+            }
+        }
+        function openScheduleDialog() {
+            if (!currentUser || !currentChatId) return;
+            if (editingMessageId) { showToast('Сначала завершите редактирование'); return; }
+            if (!(messageInput.value.trim() || pendingImageFile || pendingAudioBlob || pendingDocFile)) { showToast('Сначала напишите сообщение или прикрепите файл'); return; }
+            const now = new Date(), h1 = new Date(now.getTime() + 3600000);
+            const eve = new Date(now); eve.setHours(20, 0, 0, 0);
+            const tom = new Date(now); tom.setDate(tom.getDate() + 1); tom.setHours(9, 0, 0, 0);
+            const quick = [['Через час', h1]];
+            if (eve.getTime() > now.getTime() + 300000) quick.push(['Сегодня в 20:00', eve]);
+            quick.push(['Завтра в 9:00', tom]);
+            const o = cmModal(`<h3>Отправить позже</h3><p>Сообщение уйдёт автоматически в выбранное время. Приложение должно быть открыто (хотя бы во вкладке); если оно было закрыто — сообщение уйдёт при следующем запуске.</p><div class="ds-quick">${quick.map((q, i) => `<button class="cm-btn" data-q="${i}">${q[0]}</button>`).join('')}</div><input type="datetime-local" class="ds-dt" min="${toLocalInput(now)}" value="${toLocalInput(h1)}"><div class="cm-actions"><button class="cm-btn" data-x="close">Отмена</button><button class="cm-btn primary" data-x="ok">Запланировать</button></div>`);
+            const inp = o.querySelector('.ds-dt');
+            o.addEventListener('click', e => {
+                const q = e.target.closest('[data-q]'), x = e.target.closest('[data-x]')?.dataset.x;
+                if (e.target === o || x === 'close') { o.remove(); return; }
+                if (q) { inp.value = toLocalInput(quick[+q.dataset.q][1]); return; }
+                if (x === 'ok') {
+                    const t = new Date(inp.value).getTime();
+                    if (!t || isNaN(t)) { showToast('Выберите дату и время'); return; }
+                    if (t < Date.now() + 5000) { showToast('Выберите время в будущем'); return; }
+                    o.remove(); sendMessage({ scheduleAt: t });
+                }
+            });
+        }
+        function openSchedManager() {
+            const chatId = currentChatId; if (!chatId) return;
+            const o = cmModal('');
+            const draw = () => {
+                const items = loadSched().filter(x => x.chatId === chatId).sort((a, b) => a.sendAt - b.sendAt);
+                const list = items.length
+                    ? `<div class="cm-list">${items.map(it => `<div class="cm-row ds-item" data-id="${escapeHtml(it.id)}"><div class="ds-it"><div class="ds-when">${ic('sched')} ${escapeHtml(fmtWhen(it.sendAt))}</div><div class="ds-txt">${escapeHtml(schedPreview(it).slice(0, 120))}</div></div><button class="cm-btn ds-mini" data-act="now">Сейчас</button><button class="cm-btn danger ds-mini" data-act="del">${ic('x')}</button></div>`).join('')}</div>`
+                    : '<p>Здесь пока пусто. Напишите сообщение и нажмите кнопку с часами рядом с отправкой (или удерживайте кнопку отправки).</p>';
+                o.querySelector('.cm-card').innerHTML = iconHtml('<h3>Запланированные сообщения</h3>' + list + '<div class="cm-actions"><button class="cm-btn" data-x="close">Закрыть</button></div>');
+            };
+            draw();
+            o.addEventListener('click', e => {
+                const x = e.target.closest('[data-x]')?.dataset.x, act = e.target.closest('[data-act]')?.dataset.act, row = e.target.closest('.ds-item');
+                if (e.target === o || x === 'close') { o.remove(); return; }
+                if (!act || !row) return;
+                const id = row.dataset.id;
+                if (act === 'del') { saveSched(loadSched().filter(it => it.id !== id)); draw(); updateSchedBar(); }
+                else if (act === 'now') {
+                    saveSched(loadSched().map(it => it.id === id ? { ...it, sendAt: Date.now() } : it));
+                    o.remove(); runScheduler();
+                }
+            });
+        }
+        (function () {
+            let timer = null, lp = false;
+            const start = () => { lp = false; clearTimeout(timer); timer = setTimeout(() => { lp = true; if (navigator.vibrate) navigator.vibrate(15); openScheduleDialog(); }, 550); };
+            const stop = () => clearTimeout(timer);
+            sendBtn.addEventListener('pointerdown', start);
+            ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => sendBtn.addEventListener(ev, stop));
+            sendBtn.addEventListener('click', e => { if (lp) { e.stopImmediatePropagation(); e.preventDefault(); lp = false; } }, true);
+            sendBtn.addEventListener('contextmenu', e => e.preventDefault());
+            document.getElementById('sched-btn').addEventListener('click', openScheduleDialog);
+            dsTimerBtn.addEventListener('click', openTimerDialog);
+            schedBar.addEventListener('click', openSchedManager);
+            setInterval(() => { dsSweep(); dsRefreshHeader(); updateSchedBar(); }, 1000);
+            setInterval(runScheduler, 5000);
+            document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') runScheduler(); });
+        })();
 
         onAuthStateChanged(auth, user => {
             if (!user) { leaveCall(); stopCallsWatch(); }
