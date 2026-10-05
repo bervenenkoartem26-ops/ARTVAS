@@ -1392,7 +1392,7 @@
         }
         .rail-sep{display:none}
         /* порядок вкладок: Настройки — слева, Чаты — справа (DOM и JS не затронуты) */
-        #nav-settings-btn{order:1} #nav-groups-btn{order:2} #nav-rooms-btn{order:3} #nav-chats-btn{order:4}
+        #nav-settings-btn{order:1} #nav-calls-btn{order:2} #nav-rooms-btn{order:3} #nav-chats-btn{order:4}
         .rail .rail-btn{
             flex:1 1 0;min-width:0;width:auto;height:48px;border-radius:24px;padding:0;gap:2px;
             flex-direction:column;background:transparent;color:var(--text-secondary);
@@ -1401,7 +1401,7 @@
         .rail .rail-btn::before{display:none}
         .rail .rail-btn svg{width:24px;height:24px;stroke-width:1.9}
         .rail .rail-btn::after{font-size:10px;line-height:12px;font-weight:600;letter-spacing:.01em}
-        #nav-chats-btn::after{content:'Чаты'} #nav-groups-btn::after{content:'Группы'}
+        #nav-chats-btn::after{content:'Чаты'} #nav-calls-btn::after{content:'Звонки'}
         #nav-rooms-btn::after{content:'Комнаты'} #nav-settings-btn::after{content:'Настройки'}
         .rail .rail-btn:hover{border-radius:24px;background:transparent;color:var(--text-primary)}
         .rail .rail-btn.active,.rail .rail-btn.active:hover{border-radius:24px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
@@ -2011,6 +2011,29 @@
         @keyframes islDot{0%,70%,100%{transform:translateY(0);opacity:.45}35%{transform:translateY(-4px);opacity:1}}
         @media (prefers-reduced-motion:reduce){#isl,#isl .isl-in{transition:none;animation:none}}
     </style>
+
+    <style id="calls-perf-style">
+        /* --- вкладка «Звонки» --- */
+        #chats-screen.calls-mode .dc-actions{display:none}
+        .calls-tabs{display:flex;gap:4px;margin:4px 14px 10px;padding:3px;border-radius:12px;background:var(--surface-color)}
+        .calls-tabs button{flex:1;border:0;border-radius:10px;padding:8px 0;font:inherit;font-size:14px;font-weight:600;color:var(--text-secondary);background:transparent;cursor:pointer;transition:background-color .2s,color .2s}
+        .calls-tabs button.on{background:var(--bg-color);color:var(--text-primary);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+        .call-row{align-items:center}
+        .call-row.missed .chat-item-name{color:var(--danger)}
+        .call-sub{display:flex;align-items:center;gap:4px;color:var(--text-secondary)}
+        .call-sub .ic{width:14px;height:14px;flex-shrink:0;color:#34c759}
+        .call-sub.missed,.call-sub.missed .ic{color:var(--danger)}
+        .call-sub.declined .ic,.call-sub.noanswer .ic{color:var(--text-secondary)}
+        .call-back{flex-shrink:0;width:40px;height:40px;border:0;border-radius:50%;display:grid;place-items:center;background:transparent;color:var(--accent);cursor:pointer;transition:background-color .15s,transform .12s}
+        .call-back svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+        .call-back:active{background:color-mix(in srgb,var(--accent) 16%,transparent);transform:scale(.92)}
+        .attachment-preview.sending{opacity:.55;pointer-events:none}
+        /* --- производительность --- */
+        @media (pointer:coarse){
+            .top-bar,.chat-input-panel,.rail,.user-bar,#chat-screen .top-bar,#chat-screen .pinned-banner,#chat-screen.has-wall .input-row,#chat-screen.has-wall .date-sep,.chat-bottom-btn{
+                -webkit-backdrop-filter:blur(12px) saturate(150%)!important;backdrop-filter:blur(12px) saturate(150%)!important}
+        }
+    </style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -2042,9 +2065,9 @@
                 <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                 <span id="badge-chats" class="rail-badge hidden"></span>
             </button>
-            <button id="nav-groups-btn" class="rail-btn" title="Группы" aria-label="Группы">
-                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                <span id="badge-groups" class="rail-badge hidden"></span>
+            <button id="nav-calls-btn" class="rail-btn" title="Звонки" aria-label="Звонки">
+                <svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
+                <span id="badge-calls" class="rail-badge hidden"></span>
             </button>
             <button id="nav-rooms-btn" class="rail-btn" title="Голосовые комнаты" aria-label="Голосовые комнаты">
                 <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v5M8 23h8"/></svg>
@@ -2100,6 +2123,7 @@
             </div>
             <div id="recent-strip" class="recent-strip hidden"></div>
             <div id="chats-list" class="chats-list"></div>
+            <div id="calls-list" class="chats-list hidden"></div>
         </div>
 
         <div id="chat-screen" class="screen">
@@ -2405,11 +2429,13 @@
         function getSupabaseClient() {
             if (!__supabaseClientPromise) {
                 __supabaseClientPromise = import('https://esm.sh/@supabase/supabase-js@2')
-                    .then(({ createClient }) => createClient(SUPABASE_URL, SUPABASE_ANON_KEY));
+                    .then(({ createClient }) => createClient(SUPABASE_URL, SUPABASE_ANON_KEY))
+                    .catch(e => { __supabaseClientPromise = null; throw e; });
             }
             return __supabaseClientPromise;
         }
 
+        setTimeout(() => { try { getSupabaseClient().catch(() => {}); } catch (_) {} }, 2500);   // прогрев: первая отправка фото не ждёт загрузки библиотеки
         async function uploadToSupabase(fileOrBlob, filename, folder) {
             if (!SUPABASE_URL || !SUPABASE_ANON_KEY) throw new Error('Supabase не настроен');
             if (!currentUser?.uid) throw new Error('Нужно войти в аккаунт перед загрузкой файла');
@@ -2750,6 +2776,7 @@
             menu.style.transformOrigin = (mine ? 'top right' : 'top left');
             if (navigator.vibrate) navigator.vibrate(10);
 
+            if (msg.imageUrl) fetchImageBlob(msg.imageUrl).catch(() => {});
             const openedAt = Date.now();
             menu.addEventListener('click', e => {
                 if (Date.now() - openedAt < 300) return;        // игнор «отпускания» пальца после долгого нажатия
@@ -2917,13 +2944,20 @@
             const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc8.encode(JSON.stringify(obj)));
             return { iv: b64(iv), ct: b64(ct) };
         }
+        const __decCache = new Map();   // расшифровка один раз на сообщение, а не при каждом обновлении чата
         async function decryptMsg(data) {
             if (!data.e2e) return data;
             try {
-                const other = data.senderId === currentUser.uid ? data.receiverId : data.senderId;
-                const key = await chatKeyWith(other); if (!key) throw 0;
-                const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.e2e.iv) }, key, unb64(data.e2e.ct));
-                const o = JSON.parse(dec8.decode(pt));
+                const ck = data.e2e.iv + data.e2e.ct;
+                let o = __decCache.get(ck);
+                if (!o) {
+                    const other = data.senderId === currentUser.uid ? data.receiverId : data.senderId;
+                    const key = await chatKeyWith(other); if (!key) throw 0;
+                    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.e2e.iv) }, key, unb64(data.e2e.ct));
+                    o = JSON.parse(dec8.decode(pt));
+                    if (__decCache.size > 800) __decCache.delete(__decCache.keys().next().value);
+                    __decCache.set(ck, o);
+                }
                 return { ...data, text: o.text || '', replyPreview: o.rp || data.replyPreview };
             } catch (_) { return { ...data, text: 'Не удалось расшифровать', locked: true }; }
         }
@@ -3020,17 +3054,39 @@
             }
         }
         // ===== Фото: копирование и сохранение =====
-        async function fetchImageBlob(url) {
-            const r = await fetch(url, { mode: 'cors' });          // data: и blob: тоже подходят
-            if (!r.ok) throw new Error('HTTP ' + r.status);
-            return await r.blob();
+        const __photoBlobs = new Map();
+        function imgBlobViaCanvas(url) {   // запасной путь, если fetch запрещён: <img crossOrigin> → canvas
+            return new Promise((res, rej) => {
+                const im = new Image(); im.crossOrigin = 'anonymous';
+                im.onload = () => { try { const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext('2d').drawImage(im, 0, 0); c.toBlob(b => b ? res(b) : rej(new Error('toBlob')), 'image/png'); } catch (e) { rej(e); } };
+                im.onerror = () => rej(new Error('img'));
+                im.src = /^(data|blob):/.test(url) ? url : url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now();   // cb — чтобы не взять из кэша копию без CORS
+            });
+        }
+        function fetchImageBlob(url) {
+            if (__photoBlobs.has(url)) return __photoBlobs.get(url);
+            const job = (async () => {
+                for (const opts of [{ mode: 'cors' }, { mode: 'cors', cache: 'no-store' }]) {
+                    try { const r = await fetch(url, opts); if (r.ok) return await r.blob(); } catch (_) {}
+                }
+                return await imgBlobViaCanvas(url);
+            })();
+            __photoBlobs.set(url, job);
+            job.catch(() => __photoBlobs.delete(url));
+            if (__photoBlobs.size > 12) __photoBlobs.delete(__photoBlobs.keys().next().value);
+            return job;
         }
         async function blobToPng(blob) {                           // буфер обмена в браузерах принимает только PNG
-            const bmp = await createImageBitmap(blob);
-            const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
-            c.getContext('2d').drawImage(bmp, 0, 0);
-            if (bmp.close) bmp.close();
-            return await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('toBlob')), 'image/png'));
+            try {
+                const bmp = await createImageBitmap(blob);
+                const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+                c.getContext('2d').drawImage(bmp, 0, 0);
+                if (bmp.close) bmp.close();
+                return await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('toBlob')), 'image/png'));
+            } catch (_) {
+                const u = URL.createObjectURL(blob);
+                try { return await imgBlobViaCanvas(u); } finally { URL.revokeObjectURL(u); }
+            }
         }
         async function copyPhoto(url) {
             if (!url) return;
@@ -3039,30 +3095,39 @@
                 // Promise передаётся сразу: Safari требует, чтобы запись началась внутри жеста пользователя
                 const png = fetchImageBlob(url).then(b => b.type === 'image/png' ? b : blobToPng(b));
                 await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
-                showToast('Фото скопировано', false);
-            } catch (_) {
-                if (!url.startsWith('data:') && navigator.clipboard?.writeText) {
-                    try { await navigator.clipboard.writeText(url); showToast('Фото не скопировалось, скопирована ссылка', false); return; } catch (__) {}
-                }
-                showToast('Не удалось скопировать фото');
+                showToast('Фото скопировано', false); return;
+            } catch (_) {}
+            try {   // запасной способ для браузеров без Clipboard API для картинок
+                const blob = await fetchImageBlob(url), obj = URL.createObjectURL(blob);
+                const box = document.createElement('div'); box.contentEditable = 'true'; box.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+                const im = new Image(); im.src = obj; await im.decode().catch(() => {});
+                box.appendChild(im); document.body.appendChild(box);
+                const sel = getSelection(), rg = document.createRange(); rg.selectNode(im); sel.removeAllRanges(); sel.addRange(rg);
+                const ok = document.execCommand('copy'); sel.removeAllRanges(); box.remove(); URL.revokeObjectURL(obj);
+                if (ok) { showToast('Фото скопировано', false); return; }
+            } catch (_) {}
+            if (!url.startsWith('data:') && navigator.clipboard?.writeText) {
+                try { await navigator.clipboard.writeText(url); showToast('Браузер не умеет копировать фото — скопирована ссылка', false); return; } catch (__) {}
             }
+            showToast('Не удалось скопировать фото');
         }
         async function savePhoto(url) {
             if (!url) return;
             try {
                 const blob = await fetchImageBlob(url);
-                const ext = ((blob.type || 'image/jpeg').split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace(/\+.*$/, '');
+                const mime = /^image\//.test(blob.type) ? blob.type : 'image/jpeg';
+                const ext = (mime.split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace(/\+.*$/, '');
                 const name = 'photo-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.' + ext;
-                const file = new File([blob], name, { type: blob.type || 'image/jpeg' });
+                const file = new File([blob], name, { type: mime });
                 // на телефоне — системное меню «Поделиться» (там есть «Сохранить изображение»)
                 if (matchMedia('(pointer:coarse)').matches && navigator.canShare && navigator.canShare({ files: [file] })) {
                     try { await navigator.share({ files: [file] }); return; }
                     catch (e) { if (e && e.name === 'AbortError') return; }
                 }
                 const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob); a.download = name;
+                a.href = URL.createObjectURL(file); a.download = name;
                 document.body.appendChild(a); a.click(); a.remove();
-                setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+                setTimeout(() => URL.revokeObjectURL(a.href), 30000);
                 showToast('Фото сохранено', false);
             } catch (_) {
                 // файл недоступен для чтения скриптом — открываем картинку напрямую
@@ -3248,7 +3313,7 @@
         const rail = document.getElementById('rail');
         const userBar = document.getElementById('user-bar');
         const railBtns = [...rail.querySelectorAll('.rail-btn')];
-        let activeTab = 'chats'; // 'chats' — личные чаты, 'groups' — группы
+        let activeTab = 'chats'; // 'chats' — чаты и группы, 'calls' — звонки
 
         function setRailActive(id) {
             railBtns.forEach(b => {
@@ -3258,9 +3323,13 @@
             });
         }
         function applyTab() {
-            const g = activeTab === 'groups';
-            document.getElementById('chats-title').textContent = g ? 'Группы' : 'Сообщения';
-            if (window.__setFolder) window.__setFolder(g ? 'groups' : 'personal');
+            const calls = activeTab === 'calls';
+            document.getElementById('chats-title').textContent = calls ? 'Звонки' : 'Сообщения';
+            chatsScreen.classList.toggle('calls-mode', calls);
+            document.getElementById('calls-list').classList.toggle('hidden', !calls);
+            chatsList.classList.toggle('hidden', calls);
+            if (calls) { document.getElementById('recent-strip').classList.add('hidden'); renderCalls(); markCallsSeen(); }
+            else renderChats();
         }
         function showScreen(screen) {
             [authScreen, chatsScreen, chatScreen, settingsScreen, profileScreen, privacyScreen].forEach(el => el.classList.remove('active'));
@@ -3270,7 +3339,7 @@
             rail.classList.toggle('nav-hidden', !showNav);
             userBar.classList.toggle('nav-hidden', !showNav);
             document.body.classList.toggle('has-nav', showNav);
-            if (showNav) setRailActive(screen === settingsScreen || screen === privacyScreen ? 'nav-settings-btn' : screen === profileScreen ? '' : (activeTab === 'groups' ? 'nav-groups-btn' : 'nav-chats-btn'));
+            if (showNav) setRailActive(screen === settingsScreen || screen === privacyScreen ? 'nav-settings-btn' : screen === profileScreen ? '' : (activeTab === 'calls' ? 'nav-calls-btn' : 'nav-chats-btn'));
         }
 
         function setAuthError(message) {
@@ -3370,7 +3439,9 @@
             } catch (_) { window.open(dvCur.url, '_blank'); }
         });
 
+        let imgPrepToken = 0;
         function clearAttachment() {
+            imgPrepToken++;
             pendingDocFile = null;
             pendingImageFile = null;
             pendingAudioBlob = null;
@@ -3388,9 +3459,10 @@
                 attachmentThumb.innerHTML = '';
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(pendingImageFile);
+                img.decoding = 'async'; img.onload = () => URL.revokeObjectURL(img.src);
                 img.alt = 'превью';
                 attachmentThumb.appendChild(img);
-                attachmentInfo.innerHTML = `<span>${escapeHtml(pendingImageFile.name || 'Фото')}</span>`;
+                attachmentInfo.innerHTML = `<span>${escapeHtml(pendingImageFile.name || 'Фото')} · ${fmtSize(pendingImageFile.size)}</span>`;
             } else if (pendingDocFile) {
                 attachmentPreview.classList.remove('hidden');
                 const ext = docExt(pendingDocFile.name);
@@ -3409,10 +3481,40 @@
             }
         }
 
+        // Сжимаем фото до отправки: 12-мегапиксельный снимок на 5–8 МБ грузил телефон и канал и вешал превью
+        async function prepareImage(file) {
+            try {
+                if (!/^image\//.test(file.type) || /gif|svg/.test(file.type)) return file;
+                const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+                const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+                if (k === 1 && file.size < 400 * 1024 && /jpe?g|webp/.test(file.type)) { bmp.close?.(); return file; }
+                const w = Math.round(bmp.width * k), h = Math.round(bmp.height * k);
+                let blob;
+                if (typeof OffscreenCanvas !== 'undefined') {
+                    const oc = new OffscreenCanvas(w, h), x = oc.getContext('2d');
+                    x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); x.drawImage(bmp, 0, 0, w, h);
+                    blob = await oc.convertToBlob({ type: 'image/jpeg', quality: 0.82 });
+                } else {
+                    const c = document.createElement('canvas'); c.width = w; c.height = h;
+                    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); x.drawImage(bmp, 0, 0, w, h);
+                    blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.82));
+                }
+                bmp.close?.();
+                if (!blob || (k === 1 && blob.size >= file.size)) return file;
+                return new File([blob], (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+            } catch (_) { return file; }
+        }
         function setPendingImage(file) {
             clearAttachment();
-            pendingImageFile = file;
-            renderAttachmentPreview();
+            const t = imgPrepToken;
+            attachmentPreview.classList.remove('hidden');
+            attachmentThumb.innerHTML = '';
+            attachmentInfo.innerHTML = '<span>Подготовка фото…</span>';
+            prepareImage(file).then(f => {
+                if (t !== imgPrepToken) return;   // вложение уже убрали
+                pendingImageFile = f;
+                renderAttachmentPreview();
+            });
         }
 
         function setPendingDoc(file) {
@@ -3456,8 +3558,9 @@
             }
             const ttl = Number(chat?.disappearAfter) || 0;
             if (ttl > 0) payload.expiresAt = Date.now() + ttl * 1000;
-            await addDoc(collection(db, 'messages'), payload);
+            const addP = addDoc(collection(db, 'messages'), payload);
             if (onAdded) onAdded();
+            await addP;
             const summary = ttl > 0 ? 'Исчезающее сообщение' : (encrypted ? '🔒 Сообщение' : plainPreview);
             await updateChatSummary(o.chatId, summary, o.otherUid);
             // в чате и списке чатов остаётся «🔒 Сообщение», а в пуш попадает текст (если получатель не отключил это)
@@ -3475,6 +3578,7 @@
                 if (blockedMe(currentChatOtherUid)) { showToast('Не удалось отправить сообщение.'); return; }
             }
             sendBtn.disabled = true;
+            if (pendingImageFile || pendingDocFile) attachmentPreview.classList.add('sending');
             try {
                 let imageUrl = null;
                 let audioUrl = null;
@@ -3495,7 +3599,7 @@
                     text, imageUrl, audioUrl, docMeta,
                     reply: replyingTo?.id ? { id: replyingTo.id, text: replyingTo.text || '', senderId: replyingTo.senderId || null } : null
                 };
-                const done = () => { messageInput.value = ''; clearAttachment(); cancelReply(); clearDraft(chatId); };
+                const done = () => { messageInput.value = ''; clearAttachment(); cancelReply(); clearDraft(chatId); sendBtn.disabled = false; };
                 if (when) { if (addScheduled(out, when)) done(); }
                 else await deliverOutgoing(out, done);
             } catch (error) {
@@ -3503,6 +3607,7 @@
                 showToast('Не удалось отправить: ' + (error.message || error));
             } finally {
                 sendBtn.disabled = false;
+                attachmentPreview.classList.remove('sending');
             }
         }
 
@@ -3827,7 +3932,7 @@
                 }
                 const jumbo = msg.text && !msg.replyTo && !msg.forwardedFrom && !msg.imageUrl && !msg.fileUrl && JUMBO_RE.test(msg.text.trim());
                 if (msg.text) html += jumbo ? `<div class="msg-jumbo">${escapeHtml(msg.text.trim())}</div>` : `<div>${msg.locked ? ic('lock') + ' ' : ''}${linkify(msg.text)}</div>`;
-                if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image">`;
+                if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image" decoding="async">`;
                 if (msg.fileUrl) html += docCardHtml(msg);
                 if (msg.audioUrl) html += `<audio controls src="${escapeHtml(msg.audioUrl)}"></audio>`;
                 const counts = {};
@@ -4020,8 +4125,9 @@
         function updateRailBadges() {
             if (!currentUser) return;
             let p = 0, g = 0;
-            allChatsCache.forEach(c => { const n = c['unread_' + currentUser.uid] || 0; if (c.isGroup) g += n; else p += n; });
-            [['badge-chats', p], ['badge-groups', g]].forEach(([id, n]) => {
+            allChatsCache.forEach(c => { p += c['unread_' + currentUser.uid] || 0; });
+            try { g = missedUnseenCount(); } catch (_) {}
+            [['badge-chats', p], ['badge-calls', g]].forEach(([id, n]) => {
                 const el = document.getElementById(id); if (!el) return;
                 el.textContent = n > 99 ? '99+' : String(n);
                 el.classList.toggle('hidden', !n);
@@ -4050,7 +4156,16 @@
                 el.appendChild(b);
             });
         }
+        let __rcRaf = 0;
         function renderChats() {
+            if (__rcRaf) return;
+            __rcRaf = requestAnimationFrame(() => {
+                __rcRaf = 0;
+                if (activeTab === 'calls') { updateRailBadges(); return; }
+                renderChatsNow();
+            });
+        }
+        function renderChatsNow() {
             chatsList.innerHTML = '';
             updateRailBadges();
 
@@ -4456,7 +4571,7 @@
         document.getElementById('nav-add-btn').addEventListener('click', startNewGroup);
         document.getElementById('dc-find-btn').addEventListener('click', loadUsersForNewChat);
         document.getElementById('nav-chats-btn').addEventListener('click', () => { activeTab = 'chats'; applyTab(); showScreen(chatsScreen); });
-        document.getElementById('nav-groups-btn').addEventListener('click', () => { activeTab = 'groups'; applyTab(); showScreen(chatsScreen); });
+        document.getElementById('nav-calls-btn').addEventListener('click', () => { activeTab = 'calls'; applyTab(); showScreen(chatsScreen); });
         (function () {
             const head = document.querySelector('#chats-screen .semi-circle-nav'), inp = document.getElementById('chats-search-input');
             document.getElementById('dc-search-btn').addEventListener('click', () => { head.classList.add('searching'); inp.focus(); });
@@ -4923,6 +5038,7 @@
             const img = e.target.closest('.message-image');
             if (img) {
                 resetImageViewer();
+                fetchImageBlob(img.src).catch(() => {});
                 imageViewerImg.src = img.src;
                 imageViewer.classList.remove('hidden');
                 return;
@@ -5033,7 +5149,7 @@
         // ===== Telegram-доработки: папки чатов, эмодзи, микрофон/отправка =====
         (function () {
             let folder = 'personal';
-            window.__folderFilter = c => folder === 'groups' ? !!c.isGroup : !c.isGroup;
+            window.__folderFilter = () => true;
             window.__setFolder = f => { folder = f; renderChats(); };
             const panel = document.getElementById('emoji-panel');
             panel.innerHTML = '😀😂🥹😍😘😎🤔😢😭😡🥳🤝👍👎👏🙏💪🔥❤️💔🎉✨💯👀🙈😴🤯😅😉🙂🤗😇🤩😬🫡🤌👌✌️🫶💀🤡👋'.match(/\p{Extended_Pictographic}\uFE0F?(\u200D\p{Extended_Pictographic}\uFE0F?)*/gu).map(e => `<button type="button">${e}</button>`).join('');
@@ -5245,13 +5361,13 @@
         }
 
         // ---------- звонок один на один из чата: попасть в него могут только эти двое ----------
-        async function startDirect(type) {
-            const c = getCurrentChat(); if (!c || c.isGroup || !currentChatOtherUid) return;
+        async function startDirect(type, c0, uid0, title0) {
+            const c = c0 || getCurrentChat(); const otherUid = uid0 || currentChatOtherUid; if (!c || c.isGroup || !otherUid) return;
             if (rtc) return showToast('Вы уже в звонке');
-            if (iBlocked(currentChatOtherUid)) return showToast('Вы заблокировали этого пользователя');
-            if (blockedMe(currentChatOtherUid) || !canSee(currentChatOtherUid, 'calls')) return showToast('Этот пользователь ограничил входящие звонки');
-            const data = { kind: 'direct', type, owner: currentUser.uid, byName: normalizeName(currentUser), title: chatTitle.textContent,
-                allowed: [currentUser.uid, currentChatOtherUid], status: 'ringing', ended: false, at: Date.now() };
+            if (iBlocked(otherUid)) return showToast('Вы заблокировали этого пользователя');
+            if (blockedMe(otherUid) || !canSee(otherUid, 'calls')) return showToast('Этот пользователь ограничил входящие звонки');
+            const data = { kind: 'direct', type, owner: currentUser.uid, byName: normalizeName(currentUser), title: (title0 || chatTitle.textContent),
+                allowed: [currentUser.uid, otherUid], status: 'ringing', ended: false, at: Date.now() };
             try {
                 const r = await addDoc(collection(db, 'calls'), data);
                 sendPush(c.id, type === 'audio' ? '📞 Входящий звонок' : '📹 Входящий видеозвонок');
@@ -5312,6 +5428,7 @@
             $c('call-title').innerHTML = c.kind === 'room' ? iconText('🎙 ' + c.title) : (c.owner === me ? 'Звоним…' : c.byName);
             $c('call-grid').innerHTML = ''; addTile(me, 'Вы', true); setTile(me); syncCtl();
             await setDoc(peerRef(id, me), { name: normalizeName(currentUser), joined, at: joined, cam: !!rtc.tr.video, mic: true });
+            if (c.kind === 'direct' && c.owner !== me) updateDoc(callRef(id), { answeredAt: Date.now() }).catch(() => {});   // для истории звонков: «принят»
             if (c.kind === 'room') updateDoc(callRef(id), { at: Date.now() }).catch(() => {});
             rtc.unsubs.push(onSnapshot(query(collection(db, 'calls', id, 'signals'), where('to', '==', me)), snap => {
                 const adds = snap.docChanges().filter(x => x.type === 'added').map(x => x.doc).sort((a, b) => a.data().t - b.data().t);
@@ -5407,7 +5524,10 @@
             [...r.local.getTracks(), r.camT, r.screen].forEach(t => t?.stop());
             $c('call-overlay').classList.remove('show', 'mini'); $c('call-grid').innerHTML = '';
             deleteDoc(peerRef(r.id, r.me)).catch(() => {});
-            if (r.c.kind === 'direct') updateDoc(callRef(r.id), { ended: true, status: r.status || 'ended' }).catch(() => {});
+            if (r.c.kind === 'direct') {
+                updateDoc(callRef(r.id), { ended: true, status: r.status || 'ended' }).catch(() => {});
+                updateDoc(callRef(r.id), { endedAt: Date.now() }).catch(() => {});   // отдельной записью, чтобы не мешать завершению
+            }
         }
 
         // ---------- плитки и кнопки ----------
@@ -5496,9 +5616,88 @@
                         else if (c.kind === 'room' && Date.now() - c.at < 20000) showToast(`🎙 ${c.byName} пустил(а) вас в комнату «${c.title}»`, false);
                     }
                 });
+                try { scheduleCallsUI(); } catch (_) {}
             }, e => { console.error('calls error:', e); showToast('Звонки недоступны: ' + (e.code || e.message) + ' — проверьте правила Firestore'); });
         }
         function stopCallsWatch() { if (callsUnsub) callsUnsub(); callsUnsub = null; callsCache.clear(); }
+
+        // ===== Вкладка «Звонки»: история как в Telegram (исходящие, входящие, пропущенные) =====
+        let callsFilter = 'all', __callsRaf = 0;
+        const callsList = document.getElementById('calls-list');
+        const callsSeen = () => { try { return +localStorage.getItem('calls-seen') || 0; } catch (_) { return 0; } };
+        function callInfo(c) {
+            const out = c.owner === currentUser.uid;
+            const answered = !!c.answeredAt || (c.ended && c.status === 'ended' && !c.endedAt);   // старые записи без отметок считаем принятыми
+            const live = !c.ended && !c.answeredAt && Date.now() - c.at < 60000;
+            let kind;
+            if (answered || live) kind = out ? 'out' : 'in';
+            else if (c.status === 'declined') kind = 'declined';
+            else kind = out ? 'noanswer' : 'missed';
+            return { out, kind, live, answered };
+        }
+        function missedUnseenCount() {
+            const seen = callsSeen(); let n = 0;
+            callsCache.forEach(c => { if (c.kind === 'direct' && c.owner !== currentUser.uid && c.at > seen && callInfo(c).kind === 'missed') n++; });
+            return n;
+        }
+        function markCallsSeen() { try { localStorage.setItem('calls-seen', String(Date.now())); } catch (_) {} updateRailBadges(); }
+        function fmtCallTime(ms) {
+            const d = new Date(ms), now = new Date(), t = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            const day = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+            const diff = Math.round((day(now) - day(d)) / 864e5);
+            if (diff === 0) return t; if (diff === 1) return 'Вчера, ' + t;
+            return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) + ', ' + t;
+        }
+        function fmtDur(s) { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); }
+        function scheduleCallsUI() {
+            updateRailBadges();
+            if (activeTab !== 'calls' || __callsRaf) return;
+            __callsRaf = requestAnimationFrame(() => { __callsRaf = 0; renderCalls(); markCallsSeen(); });
+        }
+        function renderCalls() {
+            if (!currentUser) return;
+            const ARR = { out: 'M7 17 17 7M8 7h9v9', in: 'M17 7 7 17M16 17H7V8', missed: 'M17 7 7 17M16 17H7V8', declined: 'M17 7 7 17M16 17H7V8', noanswer: 'M7 17 17 7M8 7h9v9' };
+            const LBL = { out: 'Исходящий', in: 'Входящий', missed: 'Пропущенный', declined: 'Отклонённый', noanswer: 'Нет ответа' };
+            const all = [...callsCache.values()].filter(c => c.kind === 'direct' && c.allowed?.includes(currentUser.uid)).sort((a, b) => b.at - a.at).slice(0, 150);
+            const rows = all.map(c => ({ c, i: callInfo(c) })).filter(r => callsFilter === 'all' || r.i.kind === 'missed');
+            const tabs = `<div class="calls-tabs"><button type="button" data-f="all" class="${callsFilter === 'all' ? 'on' : ''}">Все</button><button type="button" data-f="missed" class="${callsFilter === 'missed' ? 'on' : ''}">Пропущенные</button></div>`;
+            if (!rows.length) {
+                callsList.innerHTML = tabs + `<div class="chats-empty">${callsFilter === 'missed' ? 'Пропущенных звонков нет.' : 'Звонков пока нет.<br>Позвоните другу — кнопка трубки в шапке чата.'}</div>`;
+                return;
+            }
+            const frag = document.createDocumentFragment();
+            const head = document.createElement('div'); head.innerHTML = tabs; frag.appendChild(head.firstChild);
+            rows.forEach(({ c, i }) => {
+                const uid = c.allowed.find(u => u !== currentUser.uid) || null;
+                const name = displayNameFor(uid, i.out ? c.title : c.byName);
+                const dur = i.answered && c.answeredAt && c.endedAt ? ' (' + fmtDur((c.endedAt - c.answeredAt) / 1000) + ')' : '';
+                const label = i.live ? (i.out ? 'Вызов…' : 'Входящий вызов…') : LBL[i.kind];
+                const el = document.createElement('div');
+                el.className = 'chat-item call-row' + (i.kind === 'missed' ? ' missed' : '');
+                el.dataset.uid = uid || ''; el.dataset.type = c.type === 'video' ? 'video' : 'audio';
+                el.innerHTML = `<div class="avatar-wrap"><div class="avatar"></div></div>
+                    <div class="chat-item-info">
+                        <div class="chat-item-header"><div class="chat-item-name-row"><div class="chat-item-name">${escapeHtml(name)}</div></div></div>
+                        <div class="chat-item-footer"><div class="chat-item-last call-sub ${i.kind}"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${ARR[i.kind]}"/></svg>${label}${dur} · ${fmtCallTime(c.at)}</div></div>
+                    </div>
+                    <button type="button" class="call-back" aria-label="Позвонить" title="Позвонить">${c.type === 'video' ? '<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>'}</button>`;
+                applyAvatar(el.querySelector('.avatar'), uid || c.id, name);
+                frag.appendChild(el);
+            });
+            callsList.innerHTML = ''; callsList.appendChild(frag);
+        }
+        callsList.addEventListener('click', e => {
+            const f = e.target.closest('.calls-tabs button');
+            if (f) { callsFilter = f.dataset.f; renderCalls(); return; }
+            const row = e.target.closest('.call-row'); if (!row || !row.dataset.uid) return;
+            const uid = row.dataset.uid;
+            const chat = allChatsCache.find(ch => !ch.isGroup && (ch.members || ch.participants || []).includes(uid));
+            if (!chat) { showToast('Чат с этим контактом не найден'); return; }
+            const name = displayNameFor(uid, row.querySelector('.chat-item-name')?.textContent);
+            if (e.target.closest('.call-back')) startDirect(row.dataset.type, chat, uid, name);
+            else openChat(chat.id, uid, name);
+        });
+
         function updateCallBanner() { const g = !!getCurrentChat()?.isGroup; $c('call-audio-btn').style.display = $c('call-video-btn').style.display = g ? 'none' : ''; }
 
         $c('call-audio-btn').addEventListener('click', () => startDirect('audio'));
