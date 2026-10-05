@@ -1949,6 +1949,68 @@
         .cm-btn.ds-mini{min-height:34px;padding:0 12px;font-size:13px}
         @media (max-width:420px){#chat-screen .top-bar .icon-btn{width:38px;height:38px}}
     </style>
+    <style id="isl-style">
+        #isl{--isl-top:11px;--isl-w:126px;--isl-h:37px;--isl-r:18px;position:fixed;left:50%;top:var(--isl-top);width:var(--isl-w);height:var(--isl-h);
+            transform:translateX(-50%);z-index:9500;background:#000;color:#fff;border-radius:var(--isl-r);overflow:hidden;opacity:0;pointer-events:none;
+            transition:width .5s cubic-bezier(.34,1.38,.5,1),height .5s cubic-bezier(.34,1.38,.5,1),border-radius .5s cubic-bezier(.34,1.38,.5,1),opacity .18s,top .25s;
+            -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:none;
+            font:500 14px/1.25 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;will-change:width,height}
+        #isl.on{opacity:1;pointer-events:auto}
+        #isl:not(.on) .isl-in{opacity:0;transition:opacity .15s}
+        #isl.plain.on{box-shadow:0 6px 24px rgba(0,0,0,.45),0 0 0 .5px rgba(255,255,255,.12)}
+        body.isl-on .incoming-call{display:none!important}
+        #isl .isl-in{position:absolute;inset:0;animation:islIn .3s .06s both}
+        @keyframes islIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+        #isl .isl-c{position:absolute;inset:0;display:flex;align-items:center}
+        #isl .isl-l,#isl .isl-r{flex:1;min-width:0;display:flex;align-items:center}
+        #isl .isl-l{justify-content:flex-start;padding-left:11px}
+        #isl .isl-r{justify-content:flex-end;padding-right:12px}
+        #isl .isl-mid{flex:none}
+        #isl .avatar.isl-av{width:22px;height:22px;font-size:11px;font-weight:600}
+        #isl .avatar.isl-av.lg{width:48px;height:48px;font-size:18px}
+        #isl .avatar.isl-av.md{width:40px;height:40px;font-size:15px}
+        #isl .avatar.isl-av.ring{animation:islRing 1.4s ease-out infinite}
+        @keyframes islRing{0%{box-shadow:0 0 0 0 rgba(48,209,88,.55)}100%{box-shadow:0 0 0 14px rgba(48,209,88,0)}}
+        #isl .isl-room{width:22px;height:22px;border-radius:50%;background:#30d158;display:flex;align-items:center;justify-content:center}
+        #isl .isl-room.lg{width:48px;height:48px}
+        #isl .isl-room svg{width:60%;height:60%;color:#000}
+        #isl .isl-time{font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;color:#30d158;white-space:nowrap}
+        #isl .isl-time.muted{color:#ff453a}
+        #isl .isl-e{position:absolute;inset:0;padding:0 18px;display:flex;flex-direction:column}
+        #isl .isl-top{flex:none;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.62);padding:0 2px}
+        #isl .isl-top .t{max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        #isl .isl-row{display:flex;align-items:center;gap:12px}
+        #isl .isl-btns{justify-content:space-around;margin-top:12px}
+        #isl .isl-txt{flex:1;min-width:0;display:flex;flex-direction:column}
+        #isl .isl-txt b{font-size:17px;font-weight:600;line-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        #isl .isl-txt b small{font-size:12px;font-weight:500;color:rgba(255,255,255,.5);margin-left:8px}
+        #isl .isl-txt span{font-size:14px;color:rgba(255,255,255,.66)}
+        #isl .isl-txt span.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:rgba(255,255,255,.86);word-break:break-word}
+        #isl .isl-btn{flex:none;width:48px;height:48px;border-radius:50%;border:0;padding:0;background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:transform .12s,background .15s}
+        #isl .isl-btn:active{transform:scale(.9)}
+        #isl .isl-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+        #isl .isl-btn.green{background:#30d158;color:#000}
+        #isl .isl-btn.red{background:#ff453a;color:#fff}
+        #isl .isl-btn.red svg.ph{transform:rotate(135deg)}
+        #isl .isl-btn.sm{width:36px;height:36px}
+        #isl .isl-btn.sm svg{width:17px;height:17px}
+        #isl .isl-btn.off{background:#fff;color:#000}
+        #isl .isl-btn.off::after{content:"";position:absolute;width:26px;height:2px;border-radius:2px;background:currentColor;transform:rotate(-45deg)}
+        #isl .isl-prog{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:rgba(255,255,255,.62);font-variant-numeric:tabular-nums}
+        #isl .isl-bar{flex:1;height:18px;display:flex;align-items:center;cursor:pointer}
+        #isl .isl-bar b{display:block;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,.2);overflow:hidden}
+        #isl .isl-bar i{display:block;height:100%;width:0;background:#fff;border-radius:2px}
+        #isl .isl-wave{display:flex;align-items:center;gap:2px;height:16px}
+        #isl .isl-wave i{width:3px;height:4px;border-radius:2px;background:#ff9f0a;animation:islWave .9s ease-in-out infinite}
+        #isl .isl-wave i:nth-child(2){animation-delay:.15s}#isl .isl-wave i:nth-child(3){animation-delay:.3s}#isl .isl-wave i:nth-child(4){animation-delay:.45s}
+        #isl .isl-wave.paused i{animation-play-state:paused;height:5px;background:rgba(255,255,255,.5)}
+        @keyframes islWave{0%,100%{height:4px}50%{height:15px}}
+        #isl .isl-dots{display:flex;gap:4px;align-items:center;height:16px}
+        #isl .isl-dots i{width:5px;height:5px;border-radius:50%;background:#fff;animation:islDot 1.2s ease-in-out infinite}
+        #isl .isl-dots i:nth-child(2){animation-delay:.18s}#isl .isl-dots i:nth-child(3){animation-delay:.36s}
+        @keyframes islDot{0%,70%,100%{transform:translateY(0);opacity:.45}35%{transform:translateY(-4px);opacity:1}}
+        @media (prefers-reduced-motion:reduce){#isl,#isl .isl-in{transition:none;animation:none}}
+    </style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -2117,6 +2179,7 @@
             </div>
         </div>
         <div id="incoming-call" class="incoming-call"><div class="info"><div id="incoming-name" class="nm"></div><div id="incoming-kind" class="kd"></div></div><button id="incoming-no" class="call-round no" title="Отклонить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button><button id="incoming-yes" class="call-round ok" title="Принять"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>
+        <div id="isl" role="status" aria-live="polite"></div>
         <div id="offline-banner" class="offline-banner">Нет соединения — сообщения отправятся, когда сеть появится</div>
         <div id="profile-screen" class="screen">
             <div class="top-bar">
@@ -3932,17 +3995,17 @@
             const attach = q => {
                 let ready = false;
                 return onSnapshot(q, snap => {
-                    let ping = false;
+                    let ping = false; const pinged = [];
                     snap.forEach(d => {
                         const data = d.data(), prev = chatsMap.get(d.id);
                         chatsMap.set(d.id, { id: d.id, ...data });
                         const pm = prev?.lastMessageAt?.toMillis?.(), nm = data.lastMessageAt?.toMillis?.();
-                        if (ready && pm && nm && nm > pm && data.lastSenderId && data.lastSenderId !== currentUser.uid && d.id !== currentChatId) ping = true;
+                        if (ready && pm && nm && nm > pm && data.lastSenderId && data.lastSenderId !== currentUser.uid && d.id !== currentChatId) { ping = true; pinged.push(d.id); }
                     });
                     ready = true;
                     updateAndRenderChats();
                     window.__splashHide?.();
-                    if (ping) playNotificationSound();
+                    if (ping) { playNotificationSound(); pinged.forEach(id => { try { islMessage(id); } catch (_) {} }); }
                 }, err => console.error('chats error:', err));
             };
             const unsub1 = attach(q1), unsub2 = attach(q2);
@@ -4108,9 +4171,11 @@
 
         function subscribeTyping(chatId) {
             if (typingUnsub) typingUnsub();
+            try { islTyping(false); } catch (_) {}
             if (!currentChatOtherUid) { typingIndicator.innerHTML = ''; return; }
             const typingRef = rtdbRef(rtdb, `typing/${chatId}/${currentChatOtherUid}`);
             typingUnsub = onValue(typingRef, snap => {
+                try { islTyping(!!snap.val(), chatTitle.textContent, currentChatOtherUid); } catch (_) {}
                 if (snap.val()) {
                     typingIndicator.innerHTML = `<span>${escapeHtml(chatTitle.textContent)} печатает</span><span class="typing-dots"><span></span><span></span><span></span></span>`;
                 } else {
@@ -5412,8 +5477,9 @@
             $c('incoming-name').textContent = c.byName || 'Звонок';
             $c('incoming-kind').innerHTML = c.type === 'audio' ? iconHtml('📞 Голосовой звонок') : iconHtml('📹 Видеозвонок');
             m.classList.add('show'); startRing(); ringTimer = setTimeout(dismissIncoming, 40000);
+            try { islIncoming(id, c); } catch (_) {}
         }
-        function dismissIncoming() { const m = $c('incoming-call'); if (m.dataset.id) handledCalls.add(m.dataset.id); m.dataset.id = ''; m.classList.remove('show'); stopRing(); }
+        function dismissIncoming() { const m = $c('incoming-call'); if (m.dataset.id) handledCalls.add(m.dataset.id); m.dataset.id = ''; m.classList.remove('show'); stopRing(); try { islIncomingEnd(); } catch (_) {} }
 
         function startCallsWatch() {
             stopCallsWatch();
@@ -5641,6 +5707,231 @@
             setInterval(runScheduler, 5000);
             document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') runScheduler(); });
         })();
+
+        // ===== Dynamic Island внутри приложения =====
+        // Подстройка под iPhone: высота статус-бара берётся из env(safe-area-inset-top), остров ставится вровень с вырезом.
+        // Если на вашей модели остров получился смещён или чуть шире/уже — поправьте числа ниже (в пикселях).
+        const ISL_TUNE = { w: 0, h: 0, top: 0 };
+        const islEl = document.getElementById('isl');
+        const isl = { mode: 'idle', sig: '', g: null, incoming: null, msg: null, msgT: 0, voice: null, voiceOpen: false, voiceT: 0,
+            callOpen: false, openT: 0, typing: null, typT: 0, swipeY: null, swiped: false, lastFor: {} };
+        const islFmt = s => { s = Math.max(0, Math.floor(s || 0)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+        function islInset() {
+            if (typeof window.__islandInset === 'number') return window.__islandInset;
+            const p = document.createElement('div');
+            p.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;padding-top:env(safe-area-inset-top,0px)';
+            document.body.appendChild(p); const v = parseFloat(getComputedStyle(p).paddingTop) || 0; p.remove(); return v;
+        }
+        function islGeom() {
+            const inset = islInset(), forced = typeof window.__islandInset === 'number';
+            const iphone = /iPhone/.test(navigator.userAgent) || forced;
+            const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || forced;
+            const island = iphone && standalone && innerHeight >= innerWidth && inset >= 51;   // у моделей с чёлкой отступ 44–50, с островом — 54 и больше
+            const W = 126 + ISL_TUNE.w, H = 37 + ISL_TUNE.h;
+            // остров стоит на 11 pt ниже верха при отступе 59 (iPhone 14 Pro … 16) и на 14 pt при 62 (16 Pro, 17) — то есть top = отступ − 48
+            const top = island ? Math.max(8, Math.min(26, inset - 48)) + ISL_TUNE.top : Math.max(10, inset + 6);
+            return { island, W, H, top, mid: island ? W : 12, topRow: island ? H + 3 : 14 };
+        }
+        function islCall() {
+            const r = rtc; if (!r) return null;
+            const direct = r.c.kind === 'direct', me = r.me;
+            const peerUid = direct ? (r.c.owner === me ? (r.c.allowed || []).find(u => u !== me) : r.c.owner) : null;
+            const name = direct ? (r.c.owner === me ? (r.c.title || displayNameFor(peerUid)) : (r.c.byName || displayNameFor(peerUid))) : (r.c.title || 'Комната');
+            let ok = false; r.peers.forEach(p => { if (p.pc.connectionState === 'connected') ok = true; });
+            if (ok && !r.connAt) r.connAt = Date.now();
+            return { r, direct, peerUid, name, ok: !!r.connAt, sec: r.connAt ? (Date.now() - r.connAt) / 1000 : 0, mic: r.mic !== false };
+        }
+        function islDesired() {
+            if (!currentUser) return 'idle';
+            if (isl.incoming) return 'incoming';
+            if (isl.msg) return 'message';
+            if (rtc) return isl.callOpen ? 'call-x' : 'call-c';
+            if (isl.voice) return isl.voiceOpen ? 'voice-x' : 'voice-c';
+            if (isl.typing) return 'typing';
+            return 'idle';
+        }
+        const IC_PHONE = '<svg class="ph" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>';
+        const IC_MIC = '<svg viewBox="0 0 24 24"><use href="#i-mic"/></svg>';
+        const IC_PLAY = '<svg viewBox="0 0 24 24"><use href="#i-play"/></svg>';
+        const IC_PAUSE = '<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>';
+        const IC_X = '<svg viewBox="0 0 24 24"><use href="#i-x"/></svg>';
+        const IC_EXP = '<svg viewBox="0 0 24 24"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>';
+        const islAv = (uid, name, cls) => `<div class="avatar isl-av ${cls || ''}" data-uid="${escapeHtml(uid || '')}" data-name="${escapeHtml(name || '')}"></div>`;
+        const islRoomAv = cls => `<div class="isl-room ${cls || ''}">${IC_MIC}</div>`;
+
+        function islBuild(mode, g) {
+            const full = Math.min(innerWidth - 20, 372), cw = g.mid + 2 * 58;
+            const compact = (l, r, title) => ({ w: g.island ? cw : 150, h: g.island ? g.H : 36, r: (g.island ? g.H : 36) / 2,
+                html: `<div class="isl-c" title="${escapeHtml(title || '')}"><div class="isl-l">${l}</div><div class="isl-mid" style="width:${g.mid}px"></div><div class="isl-r">${r}</div></div>` });
+            const top = (a, b) => g.island ? `<div class="isl-top" style="height:${g.topRow}px"><span class="t">${a || ''}</span><span class="t">${b || ''}</span></div>` : `<div style="height:${g.topRow}px"></div>`;
+            const expanded = (body, bodyH, topA, topB) => ({ w: full, h: g.topRow + bodyH, r: 40, html: `<div class="isl-e">${top(topA, topB)}${body}</div>` });
+            if (mode === 'incoming') {
+                const i = isl.incoming;
+                return expanded(`<div class="isl-row">${islAv(i.uid, i.name, 'lg ring')}<div class="isl-txt"><b>${escapeHtml(i.name)}</b><span>${i.type === 'audio' ? 'Голосовой звонок' : 'Видеозвонок'}</span></div>
+                    <button class="isl-btn red" data-act="inc-no" aria-label="Отклонить">${IC_PHONE}</button><button class="isl-btn green" data-act="inc-yes" aria-label="Принять">${IC_PHONE}</button></div>`, 66,
+                    'Звонок', '');
+            }
+            if (mode === 'message') {
+                const m = isl.msg;
+                return expanded(`<div class="isl-row" style="align-items:flex-start">${islAv(m.uid || m.chatId, m.name, 'md')}<div class="isl-txt"><b>${escapeHtml(m.name)}<small>сейчас</small></b><span class="clamp">${escapeHtml(m.text)}</span></div></div>`, 74, 'Сообщение', '');
+            }
+            if (mode === 'call-c' || mode === 'call-x') {
+                const c = islCall(); if (!c) return compact('', '');
+                const av = c.direct ? islAv(c.peerUid, c.name, mode === 'call-x' ? 'lg' : '') : islRoomAv(mode === 'call-x' ? 'lg' : '');
+                const label = c.ok ? islFmt(c.sec) : (c.direct && c.r.c.owner === c.r.me ? 'Звоним…' : 'Соединение…');
+                const time = `<span class="isl-time${c.mic ? '' : ' muted'}" id="isl-time">${label}</span>`;
+                if (mode === 'call-c') return compact(av, time, c.name);
+                return expanded(`<div class="isl-row">${av}<div class="isl-txt"><b>${escapeHtml(c.name)}</b>${time}</div></div>
+                    <div class="isl-row isl-btns"><button class="isl-btn${c.mic ? '' : ' off'}" data-act="call-mic" aria-label="Микрофон">${IC_MIC}</button>
+                    <button class="isl-btn" data-act="call-open" aria-label="Открыть звонок">${IC_EXP}</button>
+                    <button class="isl-btn red" data-act="call-end" aria-label="Завершить">${IC_PHONE}</button></div>`, 132,
+                    c.direct ? (c.r.c.type === 'video' ? 'Видеозвонок' : 'Звонок') : 'Комната', '');
+            }
+            if (mode === 'voice-c' || mode === 'voice-x') {
+                const v = isl.voice, paused = v.audio.paused;
+                if (mode === 'voice-c') return compact(islAv(v.uid, v.name), `<div class="isl-wave${paused ? ' paused' : ''}"><i></i><i></i><i></i><i></i></div>`, 'Голосовое сообщение');
+                return expanded(`<div class="isl-row">${islAv(v.uid, v.name, 'md')}<div class="isl-txt"><b>${escapeHtml(v.name)}</b><span>Голосовое сообщение</span></div>
+                    <button class="isl-btn" data-act="voice-play" aria-label="Пауза / воспроизведение">${paused ? IC_PLAY : IC_PAUSE}</button><button class="isl-btn sm" data-act="voice-close" aria-label="Закрыть">${IC_X}</button></div>
+                    <div class="isl-prog"><span id="isl-t1">0:00</span><div class="isl-bar" data-act="voice-seek"><b><i id="isl-fill"></i></b></div><span id="isl-t2">0:00</span></div>`, 92, 'Голосовое', '');
+            }
+            if (mode === 'typing') {
+                const t = isl.typing;
+                return compact(islAv(t.uid, t.name), '<div class="isl-dots"><i></i><i></i><i></i></div>', t.name + ' печатает');
+            }
+            return null;
+        }
+
+        function islRender(force) {
+            const g = isl.g || (isl.g = islGeom());
+            const mode = islDesired();
+            let sig = mode;
+            if (mode.startsWith('call')) { const c = islCall(); sig += '|' + (c ? (c.mic ? 1 : 0) + '|' + (c.ok ? 1 : 0) + '|' + c.name : ''); }
+            else if (mode.startsWith('voice')) sig += '|' + (isl.voice.audio.paused ? 'p' : 'r') + '|' + isl.voice.name;
+            else if (mode === 'message') sig += '|' + isl.msg.chatId + '|' + isl.msg.text;
+            else if (mode === 'incoming') sig += '|' + isl.incoming.id;
+            else if (mode === 'typing') sig += '|' + isl.typing.name;
+            if (!force && sig === isl.sig) return;
+            const was = isl.mode; isl.mode = mode; isl.sig = sig;
+            islEl.classList.toggle('plain', !g.island);
+            islEl.style.setProperty('--isl-top', g.top + 'px');
+            if (mode === 'idle') {
+                islEl.style.setProperty('--isl-w', g.W + 'px'); islEl.style.setProperty('--isl-h', g.H + 'px'); islEl.style.setProperty('--isl-r', (g.H / 2) + 'px');
+                islEl.classList.remove('on');
+                setTimeout(() => { if (isl.mode === 'idle') islEl.innerHTML = ''; }, 450);
+                return;
+            }
+            const b = islBuild(mode, g); if (!b) return;
+            if (was === 'idle') { islEl.style.setProperty('--isl-w', g.W + 'px'); islEl.style.setProperty('--isl-h', g.H + 'px'); islEl.style.setProperty('--isl-r', (g.H / 2) + 'px'); void islEl.offsetWidth; }
+            islEl.innerHTML = '<div class="isl-in">' + b.html + '</div>';
+            islEl.querySelectorAll('.isl-av').forEach(el => { try { applyAvatar(el, el.dataset.uid, el.dataset.name); } catch (_) {} });
+            requestAnimationFrame(() => {
+                islEl.style.setProperty('--isl-w', b.w + 'px'); islEl.style.setProperty('--isl-h', b.h + 'px'); islEl.style.setProperty('--isl-r', b.r + 'px');
+                islEl.classList.add('on');
+            });
+        }
+        function islArmCollapse() {
+            clearTimeout(isl.openT);
+            isl.openT = setTimeout(() => { isl.callOpen = false; isl.voiceOpen = false; islRender(); }, 7000);
+        }
+        function islTick() {
+            if (isl.voice && !isl.voice.audio.isConnected) isl.voice = null;
+            if (isl.callOpen && !rtc) isl.callOpen = false;
+            islRender();
+            const m = isl.mode;
+            if (m === 'call-c' || m === 'call-x') {
+                const c = islCall(), t = document.getElementById('isl-time');
+                if (c && t) t.textContent = c.ok ? islFmt(c.sec) : (c.direct && c.r.c.owner === c.r.me ? 'Звоним…' : 'Соединение…');
+            } else if (m === 'voice-x') {
+                const a = isl.voice.audio, d = a.duration, t1 = document.getElementById('isl-t1'), t2 = document.getElementById('isl-t2'), f = document.getElementById('isl-fill');
+                if (t1) t1.textContent = islFmt(a.currentTime);
+                if (t2) t2.textContent = isFinite(d) ? islFmt(d) : '…';
+                if (f) f.style.width = (isFinite(d) && d > 0 ? Math.min(100, a.currentTime / d * 100) : 0) + '%';
+            }
+        }
+
+        // ----- события -----
+        function islIncoming(id, c) { isl.incoming = { id, uid: c.owner, name: c.byName || displayNameFor(c.owner), type: c.type }; if (navigator.vibrate) navigator.vibrate([180, 90, 180]); islRender(); }
+        function islIncomingEnd() { isl.incoming = null; islRender(); }
+        function islTyping(on, name, uid) {
+            clearTimeout(isl.typT);
+            if (on) { isl.typing = { name: name || 'Собеседник', uid }; isl.typT = setTimeout(() => { isl.typing = null; islRender(); }, 8000); }
+            else isl.typing = null;
+            islRender();
+        }
+        async function islMessage(chatId) {
+            if (!currentUser || document.visibilityState !== 'visible') return;
+            if (Date.now() - (isl.lastFor[chatId] || 0) < 1500) return; isl.lastFor[chatId] = Date.now();
+            const chat = allChatsCache.find(c => c.id === chatId); if (!chat) return;
+            const meta = chatMeta(chat); let text = String(chat.lastMessage || '').replace(/^🔒\s*/, '');
+            try {
+                const snap = await getDocs(query(collection(db, 'messages'), where('chatId', '==', chatId), orderBy('createdAt', 'desc'), limit(1)));
+                const d = snap.docs[0];
+                if (d) {
+                    const m = await decryptMsg(d.data());
+                    if (!dsExpired(m) && !m.deleted && !m.locked) {
+                        text = m.text || (m.imageUrl ? '📷 Фото' : m.audioUrl ? '🎤 Голосовое сообщение' : m.fileUrl ? '📎 ' + (m.fileName || 'Файл') : text);
+                        if (chat.isGroup && m.senderName && m.text) text = m.senderName + ': ' + text;
+                    }
+                }
+            } catch (_) {}
+            if (!pushTextOk(currentUser.uid)) text = 'Новое сообщение';
+            text = String(text || 'Новое сообщение').replace(/\s+/g, ' ').trim();
+            if (text.length > 160) text = text.slice(0, 159) + '…';
+            isl.msg = { chatId, uid: meta.otherUid || null, name: meta.name || 'Чат', text, otherUid: meta.otherUid || null };
+            clearTimeout(isl.msgT); isl.msgT = setTimeout(() => { isl.msg = null; islRender(); }, 4800);
+            if (navigator.vibrate) navigator.vibrate(8);
+            islRender(true);
+        }
+        function islVoiceStart(a) {
+            const msgEl = a.closest('.message'), m = msgEl ? messagesCache.get(msgEl.dataset.id) : null, me = currentUser?.uid;
+            const uid = m?.senderId || currentChatOtherUid || null;
+            const name = !m ? (chatTitle.textContent || 'Голосовое') : (m.senderId === me ? 'Вы' : (m.senderName || displayNameFor(m.senderId, chatTitle.textContent)));
+            clearTimeout(isl.voiceT);
+            if (!isl.voice || isl.voice.audio !== a) isl.voiceOpen = false;
+            isl.voice = { audio: a, uid, name };
+            islRender(true);
+        }
+        document.addEventListener('play', e => { const a = e.target; if (a instanceof HTMLAudioElement && !a.classList.contains('call-audio')) islVoiceStart(a); }, true);
+        document.addEventListener('pause', e => {
+            const a = e.target; if (!isl.voice || isl.voice.audio !== a || a.ended) return;
+            islRender(true); clearTimeout(isl.voiceT);
+            isl.voiceT = setTimeout(() => { if (isl.voice?.audio === a && a.paused && !isl.voiceOpen) { isl.voice = null; islRender(); } }, 5000);
+        }, true);
+        document.addEventListener('ended', e => { if (isl.voice?.audio === e.target) { isl.voice = null; isl.voiceOpen = false; islRender(); } }, true);
+
+        islEl.addEventListener('click', e => {
+            if (isl.swiped) { isl.swiped = false; return; }
+            const el = e.target.closest('[data-act]'), act = el?.dataset.act, m = isl.mode;
+            if (act === 'inc-yes') { document.getElementById('incoming-yes').click(); return; }
+            if (act === 'inc-no') { document.getElementById('incoming-no').click(); return; }
+            if (act === 'call-mic') { if (rtc) { toggleMic(); islRender(); islArmCollapse(); } return; }
+            if (act === 'call-end') { isl.callOpen = false; leaveCall(); islRender(); return; }
+            if (act === 'call-open') { document.getElementById('call-overlay').classList.remove('mini'); isl.callOpen = false; islRender(); return; }
+            if (act === 'voice-play') { const a = isl.voice?.audio; if (a) { a.paused ? a.play().catch(() => {}) : a.pause(); islRender(true); islArmCollapse(); } return; }
+            if (act === 'voice-close') { isl.voice?.audio.pause(); isl.voice = null; isl.voiceOpen = false; islRender(); return; }
+            if (act === 'voice-seek') { const a = isl.voice?.audio, r = el.getBoundingClientRect(); if (a && isFinite(a.duration)) a.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * a.duration; islArmCollapse(); return; }
+            if (m === 'call-c') { isl.callOpen = true; islRender(); islArmCollapse(); }
+            else if (m === 'call-x') { isl.callOpen = false; islRender(); }
+            else if (m === 'voice-c') { isl.voiceOpen = true; islRender(true); islArmCollapse(); }
+            else if (m === 'voice-x') { isl.voiceOpen = false; islRender(true); }
+            else if (m === 'message' && isl.msg) {
+                const o = isl.msg, chat = allChatsCache.find(c => c.id === o.chatId);
+                isl.msg = null; clearTimeout(isl.msgT); islRender();
+                if (chat) { const mt = chatMeta(chat); openChat(chat.id, mt.otherUid, mt.name); }
+            }
+        });
+        islEl.addEventListener('pointerdown', e => { isl.swipeY = e.clientY; });
+        islEl.addEventListener('pointerup', e => {
+            if (isl.swipeY == null) return; const dy = e.clientY - isl.swipeY; isl.swipeY = null;
+            if (dy < -22 && isl.mode === 'message') { isl.swiped = true; isl.msg = null; clearTimeout(isl.msgT); islRender(); }
+        });
+        let islResizeT = 0;
+        window.addEventListener('resize', () => { clearTimeout(islResizeT); islResizeT = setTimeout(() => { isl.g = islGeom(); islRender(true); }, 150); });
+        window.addEventListener('orientationchange', () => setTimeout(() => { isl.g = islGeom(); islRender(true); }, 300));
+        isl.g = islGeom();
+        document.body.classList.add('isl-on');
+        setInterval(islTick, 250);
+        window.__island = { isl, islIncoming, islMessage, islTyping, islVoiceStart, islRender, regeom: () => { isl.g = islGeom(); islRender(true); } };
 
         onAuthStateChanged(auth, user => {
             if (!user) { leaveCall(); stopCallsWatch(); }
