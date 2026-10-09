@@ -5663,14 +5663,15 @@
             $c('call-overlay').classList.remove('mini'); $c('call-overlay').classList.add('show');
             $c('call-title').innerHTML = c.kind === 'room' ? iconText('🎙 ' + c.title) : (c.owner === me ? 'Звоним…' : c.byName);
             $c('call-grid').innerHTML = ''; addTile(me, 'Вы', true); setTile(me); syncCtl();
-            await setDoc(peerRef(id, me), { name: normalizeName(currentUser), joined, at: joined, cam: !!rtc.tr.video, mic: true });
+            try { await setDoc(peerRef(id, me), { name: normalizeName(currentUser), joined, at: joined, cam: !!rtc.tr.video, mic: true }); }
+            catch (e) { console.error('call peers write', e); showToast('Звонок: не удалось войти (' + (e.code || e.message) + ') — проверьте правила Firestore для calls/peers'); leaveCall(); return; }
             if (c.kind === 'direct' && c.owner !== me) updateDoc(callRef(id), { answeredAt: Date.now() }).catch(() => {});   // для истории звонков: «принят»
             if (c.kind === 'room') updateDoc(callRef(id), { at: Date.now() }).catch(() => {});
             rtc.unsubs.push(onSnapshot(query(collection(db, 'calls', id, 'signals'), where('to', '==', me)), snap => {
                 const adds = snap.docChanges().filter(x => x.type === 'added').map(x => x.doc).sort((a, b) => a.data().t - b.data().t);
                 adds.forEach(d => { const s = d.data(); deleteDoc(d.ref).catch(() => {}); if (rtc) rtc.q = rtc.q.then(() => onSignal(s)).catch(console.error); });
-            }));
-            rtc.unsubs.push(onSnapshot(collection(db, 'calls', id, 'peers'), onPeers));
+            }, e => { console.error('call signals', e); showToast('Звонок: сигналы недоступны (' + (e.code || e.message) + ') — правила calls/signals'); }));
+            rtc.unsubs.push(onSnapshot(collection(db, 'calls', id, 'peers'), onPeers, e => { console.error('call peers', e); showToast('Звонок: участники недоступны (' + (e.code || e.message) + ') — правила calls/peers'); }));
             rtc.beat = setInterval(() => updateDoc(peerRef(id, me), { at: Date.now() }).catch(() => {}), 20000);
             if (c.kind === 'direct' && c.owner === me) rtc.ringT = setTimeout(() => { if (rtc?.id === id && !rtc.peers.size) { rtc.status = 'missed'; showToast('Не отвечает', false); leaveCall(); } }, 45000);
         }
@@ -5751,7 +5752,7 @@
             sendSig(p.uid, 'offer', p.pc.localDescription.toJSON());
         }
         function sendSig(to, kind, data) {
-            if (rtc) addDoc(collection(db, 'calls', rtc.id, 'signals'), { from: rtc.me, to, kind, data: JSON.stringify(data), t: Date.now() }).catch(() => {});
+            if (rtc) addDoc(collection(db, 'calls', rtc.id, 'signals'), { from: rtc.me, to, kind, data: JSON.stringify(data), t: Date.now() }).catch(e => { console.error('call signal send', e); if (!rtc.sigErr) { rtc.sigErr = 1; showToast('Звонок: сигнал не отправлен (' + (e.code || e.message) + ') — правила calls/signals'); } });
         }
         async function onSignal({ from, kind, data }) {
             if (!rtc) return;
