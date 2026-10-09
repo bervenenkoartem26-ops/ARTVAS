@@ -2534,11 +2534,7 @@
         // Постоянный офлайн-кэш: чаты и сообщения открываются из IndexedDB мгновенно, записи без сети копятся в очереди Firestore
         let db;
         try {
-            db = initializeFirestore(app, {
-                localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
-                // VPN/прокси/блокировки ломают WebChannel (потоковое соединение): при проблемах SDK сам переключится на long-polling
-                experimentalAutoDetectLongPolling: true
-            });
+            db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
         } catch (e) {
             console.warn('Офлайн-кэш Firestore недоступен, работаем без него:', e);
             db = getFirestore(app);
@@ -5663,15 +5659,14 @@
             $c('call-overlay').classList.remove('mini'); $c('call-overlay').classList.add('show');
             $c('call-title').innerHTML = c.kind === 'room' ? iconText('🎙 ' + c.title) : (c.owner === me ? 'Звоним…' : c.byName);
             $c('call-grid').innerHTML = ''; addTile(me, 'Вы', true); setTile(me); syncCtl();
-            try { await setDoc(peerRef(id, me), { name: normalizeName(currentUser), joined, at: joined, cam: !!rtc.tr.video, mic: true }); }
-            catch (e) { console.error('call peers write', e); showToast('Звонок: не удалось войти (' + (e.code || e.message) + ') — проверьте правила Firestore для calls/peers'); leaveCall(); return; }
+            await setDoc(peerRef(id, me), { name: normalizeName(currentUser), joined, at: joined, cam: !!rtc.tr.video, mic: true });
             if (c.kind === 'direct' && c.owner !== me) updateDoc(callRef(id), { answeredAt: Date.now() }).catch(() => {});   // для истории звонков: «принят»
             if (c.kind === 'room') updateDoc(callRef(id), { at: Date.now() }).catch(() => {});
             rtc.unsubs.push(onSnapshot(query(collection(db, 'calls', id, 'signals'), where('to', '==', me)), snap => {
                 const adds = snap.docChanges().filter(x => x.type === 'added').map(x => x.doc).sort((a, b) => a.data().t - b.data().t);
                 adds.forEach(d => { const s = d.data(); deleteDoc(d.ref).catch(() => {}); if (rtc) rtc.q = rtc.q.then(() => onSignal(s)).catch(console.error); });
-            }, e => { console.error('call signals', e); showToast('Звонок: сигналы недоступны (' + (e.code || e.message) + ') — правила calls/signals'); }));
-            rtc.unsubs.push(onSnapshot(collection(db, 'calls', id, 'peers'), onPeers, e => { console.error('call peers', e); showToast('Звонок: участники недоступны (' + (e.code || e.message) + ') — правила calls/peers'); }));
+            }));
+            rtc.unsubs.push(onSnapshot(collection(db, 'calls', id, 'peers'), onPeers));
             rtc.beat = setInterval(() => updateDoc(peerRef(id, me), { at: Date.now() }).catch(() => {}), 20000);
             if (c.kind === 'direct' && c.owner === me) rtc.ringT = setTimeout(() => { if (rtc?.id === id && !rtc.peers.size) { rtc.status = 'missed'; showToast('Не отвечает', false); leaveCall(); } }, 45000);
         }
@@ -5694,7 +5689,7 @@
 
         function ensurePeer(uid) {
             let p = rtc.peers.get(uid); if (p) return p;
-            const pc = new RTCPeerConnection({ iceServers: ICE, iceCandidatePoolSize: 4 });
+            const pc = new RTCPeerConnection({ iceServers: ICE });
             p = { uid, pc, stream: new MediaStream(), pend: [], snd: {} };
             rtc.peers.set(uid, p); addTile(uid, rtc.docs.get(uid)?.name || 'Участник', false); setTile(uid);
             pc.onicecandidate = e => { if (e.candidate) sendSig(uid, 'ice', e.candidate.toJSON()); };
@@ -5718,41 +5713,20 @@
                 if (pc.connectionState === 'connected') {
                     clearTimeout(rtc.ringT);
                     if (rtc.c.kind === 'direct') $c('call-title').textContent = rtc.docs.get(uid)?.name || 'Звонок';
-                    clearTimeout(p.giveUp); p.giveUp = null; p.tries = 0;
-                } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-                    // сеть сменилась (включили/выключили VPN, Wi-Fi ↔ LTE): пробуем пересогласовать маршрут, а не рвём звонок
-                    iceRecover(p);
-                    if (!p.giveUp) p.giveUp = setTimeout(() => {
-                        if (!rtc || rtc.peers.get(uid) !== p || p.pc.connectionState === 'connected') return;
-                        showToast('Не удалось соединиться (возможно, нужен свой TURN-сервер)');
-                        closePeer(uid); if (rtc?.c.kind === 'direct') leaveCall();
-                    }, 25000);
+                } else if (pc.connectionState === 'failed') {
+                    showToast('Не удалось соединиться напрямую (возможно, нужен TURN-сервер)');
+                    closePeer(uid); if (rtc.c.kind === 'direct') leaveCall();
                 }
             };
             return p;
         }
-        // Перезапуск ICE: инициатор — участник с меньшим uid (чтобы два конца не слали offer одновременно)
-        async function iceRecover(p) {
-            if (!rtc || p.recovering || rtc.me > p.uid) return;
-            p.recovering = true; p.tries = (p.tries || 0) + 1;
-            try {
-                if (p.pc.signalingState === 'stable' && p.pc.remoteDescription) {
-                    p.pc.restartIce();
-                    await p.pc.setLocalDescription(await p.pc.createOffer({ iceRestart: true }));
-                    sendSig(p.uid, 'offer', p.pc.localDescription.toJSON());
-                }
-            } catch (e) { console.warn('ICE restart', e); }
-            setTimeout(() => { p.recovering = false; if (rtc && p.pc.connectionState !== 'connected' && p.pc.connectionState !== 'closed' && p.tries < 6) iceRecover(p); }, 4000);
-        }
-        window.addEventListener('online', () => { if (rtc) rtc.peers.forEach(p => { if (p.pc.connectionState !== 'connected') iceRecover(p); }); });
-        navigator.connection?.addEventListener?.('change', () => { if (rtc) rtc.peers.forEach(p => iceRecover(p)); });
         async function offerTo(p) {
             ['audio', 'video'].forEach(k => { p.snd[k] = p.pc.addTransceiver(rtc.tr[k] || k, { direction: 'sendrecv', streams: [rtc.local] }).sender; });
             await p.pc.setLocalDescription(await p.pc.createOffer());
             sendSig(p.uid, 'offer', p.pc.localDescription.toJSON());
         }
         function sendSig(to, kind, data) {
-            if (rtc) addDoc(collection(db, 'calls', rtc.id, 'signals'), { from: rtc.me, to, kind, data: JSON.stringify(data), t: Date.now() }).catch(e => { console.error('call signal send', e); if (!rtc.sigErr) { rtc.sigErr = 1; showToast('Звонок: сигнал не отправлен (' + (e.code || e.message) + ') — правила calls/signals'); } });
+            if (rtc) addDoc(collection(db, 'calls', rtc.id, 'signals'), { from: rtc.me, to, kind, data: JSON.stringify(data), t: Date.now() }).catch(() => {});
         }
         async function onSignal({ from, kind, data }) {
             if (!rtc) return;
