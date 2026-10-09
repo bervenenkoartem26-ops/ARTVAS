@@ -2034,6 +2034,15 @@
                 -webkit-backdrop-filter:blur(12px) saturate(150%)!important;backdrop-filter:blur(12px) saturate(150%)!important}
         }
     </style>
+    <style id="outbox-style">
+        .msg-state{display:inline-flex;align-items:center;gap:4px;opacity:.85}
+        .msg-state .ic{width:12px;height:12px}
+        .msg-fail{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;background:#fff;color:var(--danger);font-weight:700;cursor:pointer}
+        .msg-fail .ic{width:13px;height:13px}
+        .message.local.failed{box-shadow:inset 0 0 0 1.5px var(--danger)}
+        .message.local:not(.failed) .message-image{opacity:.75}
+        .message.local .doc-card{cursor:default}
+    </style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -2417,7 +2426,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, orderBy, limit, startAfter, getDocs, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteField, writeBatch, runTransaction, increment, arrayRemove, arrayUnion, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, orderBy, limit, startAfter, getDocs, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteField, writeBatch, runTransaction, increment, arrayRemove, arrayUnion, deleteDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getDocFromCache } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDatabase, ref as rtdbRef, onValue, onDisconnect, set as rtdbSet, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
@@ -2522,7 +2531,14 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        // Постоянный офлайн-кэш: чаты и сообщения открываются из IndexedDB мгновенно, записи без сети копятся в очереди Firestore
+        let db;
+        try {
+            db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+        } catch (e) {
+            console.warn('Офлайн-кэш Firestore недоступен, работаем без него:', e);
+            db = getFirestore(app);
+        }
         const rtdb = getDatabase(app);
         const messaging = getMessaging(app);
 
@@ -3530,41 +3546,274 @@
             renderAttachmentPreview();
         }
 
-        // Собирает сообщение (шифрование, таймер исчезновения) и отправляет его в чат
-        async function deliverOutgoing(o, onAdded) {
+        // ===== Надёжная отправка: исходящая очередь (IndexedDB) =====
+        // Сообщение сначала попадает в очередь на устройстве, потом: загрузка медиа → запись в Firestore.
+        // Id сообщения создаётся сразу, поэтому повтор после сбоя не даёт дублей. Без сети запись ждёт в кэше Firestore.
+        const OB = { items: new Map(), els: new Map(), urls: new Map(), running: false, timer: 0, backoff: 0 };
+        let __obDb = null;
+        function obDB() {
+            if (!__obDb) __obDb = new Promise((ok, no) => {
+                const r = indexedDB.open('cm-outbox', 1);
+                r.onupgradeneeded = () => r.result.createObjectStore('q', { keyPath: 'id' });
+                r.onsuccess = () => ok(r.result);
+                r.onerror = () => no(r.error);
+            }).catch(e => { __obDb = null; throw e; });
+            return __obDb;
+        }
+        async function obPut(it) {
+            try {
+                const d = await obDB();
+                await new Promise((ok, no) => { const t = d.transaction('q', 'readwrite'); t.objectStore('q').put(it); t.oncomplete = ok; t.onerror = () => no(t.error); });
+            } catch (e) { console.warn('outbox put:', e); }
+        }
+        async function obDel(id) {
+            try {
+                const d = await obDB();
+                await new Promise((ok, no) => { const t = d.transaction('q', 'readwrite'); t.objectStore('q').delete(id); t.oncomplete = ok; t.onerror = () => no(t.error); });
+            } catch (e) { console.warn('outbox del:', e); }
+        }
+        async function obLoadAll(uid) {
+            const d = await obDB();
+            return new Promise((ok, no) => { const q = d.transaction('q').objectStore('q').getAll(); q.onsuccess = () => ok((q.result || []).filter(x => x.uid === uid)); q.onerror = () => no(q.error); });
+        }
+        const obWithTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error('timeout: нет ответа от сервера')), ms))]);
+        function obNetErr(e) {
+            const c = e?.code || '', m = String(e?.message || e || '');
+            return !navigator.onLine || c === 'unavailable' || c === 'deadline-exceeded' || /fetch|network|load failed|timeout|offline|ERR_/i.test(m);
+        }
+        function obErrText(e) {
+            const c = e?.code || '', m = String(e?.message || e || '');
+            if (c === 'permission-denied') return 'Нет прав на отправку в этот чат';
+            if (c === 'resource-exhausted') return 'Слишком много запросов, попробуйте позже';
+            if (c === 'invalid-argument' || c === 'out-of-range') return 'Сервер не принял сообщение';
+            return m.slice(0, 160) || 'Не удалось отправить';
+        }
+
+        function obEnqueue(o) {
             const chat = allChatsCache.find(c => c.id === o.chatId);
-            const payload = {
-                senderId: currentUser.uid,
-                receiverId: o.otherUid || null,
-                text: o.text || '',
-                imageUrl: o.imageUrl || null,
-                audioUrl: o.audioUrl || null,
-                ...(o.docMeta || {}),
-                chatId: o.chatId,
-                read: false,
-                createdAt: serverTimestamp()
+            const it = {
+                id: doc(collection(db, 'messages')).id,
+                uid: currentUser.uid, chatId: o.chatId, otherUid: o.otherUid || null, isGroup: !!(o.isGroup || chat?.isGroup),
+                text: o.text || '', reply: o.reply || null, created: Date.now(), ttl: Number(chat?.disappearAfter) || 0,
+                imageBlob: o.imageBlob || null, imageName: o.imageBlob?.name || 'image.jpg',
+                audioBlob: o.audioBlob || null,
+                docBlob: o.docBlob || null, docName: o.docBlob?.name || '', docSize: o.docBlob?.size || 0, docType: o.docBlob?.type || '',
+                imageUrl: o.imageUrl || null, audioUrl: o.audioUrl || null, docMeta: o.docMeta || null,
+                stage: (o.imageBlob || o.audioBlob || o.docBlob) ? 'media' : 'write', state: 'queued', tries: 0, err: ''
             };
-            if (o.reply?.id) {
-                payload.replyTo = o.reply.id;
-                payload.replyPreview = o.reply.text || '';
-                payload.replyAuthorId = o.reply.senderId || null;
+            OB.items.set(it.id, it);
+            obPut(it);
+            obRenderLocal();
+            obKick();
+            return it;
+        }
+
+        async function obEncrypt(it) {
+            if (it.isGroup || !it.text || !it.otherUid) return null;
+            await ensureE2EE();
+            if (!E2E.ready) return null;
+            let p = profiles.get(it.otherUid)?.e2eePub;
+            if (!p) p = (await getDoc(doc(db, 'users', it.otherUid))).data()?.e2eePub;   // нет сети и нет кэша → ошибка → ждём, а не шлём открытым текстом
+            if (!p) return null;
+            return encryptFor(it.otherUid, { text: it.text, rp: it.reply?.text || '' });
+        }
+
+        function obDone(it, push) {
+            if (!OB.items.delete(it.id)) return;
+            obDel(it.id); obFree(it.id); obRenderLocal();
+            if (push && it.pushBody) sendPush(it.chatId, it.pushBody);
+        }
+        function obFree(id) {
+            ['i', 'a'].forEach(k => { const u = OB.urls.get(id + k); if (u) { try { URL.revokeObjectURL(u); } catch (_) {} OB.urls.delete(id + k); } });
+            OB.els.delete(id);
+        }
+
+        async function obProcess(it) {
+            if (!currentUser || currentUser.uid !== it.uid) return 'wait';
+            if (it.stage === 'media' && !navigator.onLine) { it.state = 'queued'; obRenderLocal(); return 'wait'; }
+            it.state = 'sending'; obRenderLocal();
+            try {
+                if (it.stage === 'media') {
+                    if (it.docBlob && !it.docMeta) it.docMeta = { fileUrl: await obWithTimeout(uploadToSupabase(it.docBlob, it.docName || 'file', 'files'), 90000), fileName: it.docName, fileSize: it.docSize, fileType: it.docType };
+                    if (it.imageBlob && !it.imageUrl) it.imageUrl = await obWithTimeout(uploadToSupabase(it.imageBlob, it.imageName || 'image.jpg', 'images'), 90000);
+                    if (it.audioBlob && !it.audioUrl) it.audioUrl = await obWithTimeout(uploadToSupabase(it.audioBlob, `voice-${it.created}.webm`, 'audio'), 90000);
+                    it.stage = 'write'; it.imageBlob = it.audioBlob = it.docBlob = null;
+                    await obPut(it);
+                }
+                const payload = {
+                    senderId: currentUser.uid, receiverId: it.otherUid || null, text: it.text || '',
+                    imageUrl: it.imageUrl || null, audioUrl: it.audioUrl || null, ...(it.docMeta || {}),
+                    chatId: it.chatId, read: false, createdAt: serverTimestamp()
+                };
+                if (it.reply?.id) { payload.replyTo = it.reply.id; payload.replyPreview = it.reply.text || ''; payload.replyAuthorId = it.reply.senderId || null; }
+                const plain = it.text || (it.docMeta ? '📎 ' + (it.docMeta.fileName || 'Файл') : it.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
+                let encrypted = false;
+                if (it.isGroup) payload.senderName = normalizeName(currentUser);
+                else {
+                    const e = await obEncrypt(it);
+                    if (e) { payload.e2e = e; payload.text = ''; delete payload.replyPreview; encrypted = true; }
+                }
+                if (it.ttl > 0) payload.expiresAt = it.created + it.ttl * 1000;
+                const summary = it.ttl > 0 ? 'Исчезающее сообщение' : (encrypted ? '🔒 Сообщение' : plain);
+                it.pushBody = encrypted ? (pushTextOk(it.otherUid) ? clipPush(plain) : '🔒 Сообщение') : plain;
+                const batch = writeBatch(db);
+                batch.set(doc(db, 'messages', it.id), payload);
+                batch.set(doc(db, 'chats', it.chatId), chatSummaryPatch(it.chatId, summary, it.otherUid), { merge: true });
+                it.stage = 'handed'; it.state = 'sending';
+                await obPut(it);
+                const commit = batch.commit();   // без сети запись ждёт в кэше Firestore и уйдёт сама
+                obRenderLocal();
+                commit.then(() => obDone(it, true), e => {
+                    if (e?.code === 'unavailable' || e?.code === 'deadline-exceeded') return;
+                    it.stage = 'write'; it.state = 'failed'; it.err = obErrText(e);
+                    obPut(it); obRenderLocal();
+                });
+                return 'ok';
+            } catch (e) {
+                console.warn('outbox:', e);
+                if (obNetErr(e)) { it.state = 'queued'; obRenderLocal(); return 'wait'; }
+                it.tries++; it.state = 'failed'; it.err = obErrText(e);
+                await obPut(it); obRenderLocal();
+                return 'fail';
             }
-            const plainPreview = o.text || (o.docMeta ? '📎 ' + o.docMeta.fileName : o.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
-            let encrypted = false;
-            if (chat?.isGroup || o.isGroup) payload.senderName = normalizeName(currentUser);
-            else if (o.text && o.otherUid) {
-                const e = await encryptFor(o.otherUid, { text: o.text, rp: o.reply?.text || '' });
-                if (e) { payload.e2e = e; payload.text = ''; delete payload.replyPreview; encrypted = true; }
+        }
+
+        async function obRun() {
+            if (OB.running || !currentUser) return;
+            OB.running = true;
+            const uid = currentUser.uid, tried = new Set();
+            try {
+                while (currentUser && currentUser.uid === uid) {
+                    const it = [...OB.items.values()]
+                        .filter(i => i.uid === uid && i.state !== 'failed' && i.stage !== 'handed' && !tried.has(i.id))
+                        .sort((a, b) => a.created - b.created)[0];
+                    if (!it) break;
+                    tried.add(it.id);
+                    if (await obProcess(it) === 'wait') break;
+                }
+            } finally { OB.running = false; }
+            obSchedule();
+        }
+        function obKick() { clearTimeout(OB.timer); obRun(); }
+        function obSchedule() {
+            clearTimeout(OB.timer);
+            const left = currentUser && [...OB.items.values()].some(i => i.uid === currentUser.uid && i.state !== 'failed' && i.stage !== 'handed');
+            if (!left) { OB.backoff = 0; return; }
+            OB.backoff = Math.min(30000, (OB.backoff || 2500) * 1.6);
+            OB.timer = setTimeout(obKick, OB.backoff);
+        }
+        function obRetry(id) {
+            const it = OB.items.get(id); if (!it) return;
+            it.state = 'queued'; it.err = ''; it.tries = 0;
+            obPut(it); obRenderLocal(); OB.backoff = 0; obKick();
+        }
+        function obDiscard(id) {
+            if (!OB.items.delete(id)) return;
+            obDel(id); obFree(id); obRenderLocal();
+        }
+        function obFailedDialog(id) {
+            const it = OB.items.get(id); if (!it) return;
+            const o = cmModal(`<h3>Сообщение не отправлено</h3><p>${escapeHtml(it.err || 'Не удалось отправить')}</p><div class="cm-actions"><button class="cm-btn danger" data-x="del">Удалить</button><button class="cm-btn primary" data-x="retry">Повторить</button></div>`);
+            o.addEventListener('click', e => {
+                const x = e.target.closest('[data-x]')?.dataset.x;
+                if (e.target === o) o.remove();
+                else if (x === 'retry') { o.remove(); obRetry(id); }
+                else if (x === 'del') { o.remove(); obDiscard(id); }
+            });
+        }
+        // после перезапуска: что уже передано в Firestore — ждём подтверждения, что потерялось — отправляем заново
+        function obAwaitAck(it) {
+            let sawPending = false;
+            const un = onSnapshot(doc(db, 'messages', it.id), { includeMetadataChanges: true }, s => {
+                if (s.metadata.hasPendingWrites) { sawPending = true; return; }
+                if (s.exists()) { un(); obDone(it, sawPending); }
+            }, () => {});
+        }
+        async function obInit() {
+            OB.items.clear(); OB.els.clear();
+            let rows = [];
+            try { rows = await obLoadAll(currentUser.uid); } catch (e) { console.warn('outbox load:', e); }
+            for (const it of rows) {
+                OB.items.set(it.id, it);
+                if (it.state === 'sending') it.state = 'queued';
+                if (it.stage === 'handed') {
+                    try { const s = await getDocFromCache(doc(db, 'messages', it.id)); if (s.exists()) { obAwaitAck(it); continue; } } catch (_) {}
+                    it.stage = 'write';
+                }
             }
-            const ttl = Number(chat?.disappearAfter) || 0;
-            if (ttl > 0) payload.expiresAt = Date.now() + ttl * 1000;
-            const addP = addDoc(collection(db, 'messages'), payload);
+            obRenderLocal(); obKick();
+        }
+        function obReset() {
+            clearTimeout(OB.timer);
+            [...OB.items.keys()].forEach(obFree);
+            OB.items.clear(); OB.els.clear();
+            messagesList.querySelectorAll('.message.local').forEach(el => el.remove());
+        }
+
+        // локальные пузыри: сообщения, которых ещё нет в ленте Firestore (грузятся, ждут сеть, не отправлены)
+        function obBlobUrl(id, key, blob) {
+            const k = id + key; let u = OB.urls.get(k);
+            if (!u && blob) { try { u = URL.createObjectURL(blob); OB.urls.set(k, u); } catch (_) {} }
+            return u || '';
+        }
+        const obSig = it => [it.state, it.stage, it.err ? 1 : 0, navigator.onLine ? 1 : 0, it.imageUrl ? 1 : 0].join('|');
+        function obElement(it) {
+            const div = document.createElement('div');
+            div.className = 'message me local' + (it.state === 'failed' ? ' failed' : '');
+            div.dataset.id = it.id;
+            let h = '';
+            if (it.reply?.id) h += `<div class="reply-quote" data-reply="${escapeHtml(it.reply.id)}"><b>${escapeHtml(authorLabel(it.reply.senderId))}</b><span>${iconLead(String(it.reply.text || '').slice(0, 140))}</span></div>`;
+            if (it.text) {
+                const jumbo = !it.reply && !it.imageBlob && !it.imageUrl && !it.docBlob && !it.docMeta && JUMBO_RE.test(it.text.trim());
+                h += jumbo ? `<div class="msg-jumbo">${escapeHtml(it.text.trim())}</div>` : `<div>${linkify(it.text)}</div>`;
+            }
+            const img = obBlobUrl(it.id, 'i', it.imageBlob) || it.imageUrl;
+            if (img) h += `<img src="${escapeHtml(img)}" alt="фото" class="message-image" decoding="async">`;
+            const dn = it.docMeta?.fileName || it.docName;
+            if (dn) h += docCardHtml({ fileUrl: '', fileName: dn, fileSize: it.docMeta?.fileSize || it.docSize });
+            const au = obBlobUrl(it.id, 'a', it.audioBlob) || it.audioUrl;
+            if (au) h += `<audio controls src="${escapeHtml(au)}"></audio>`;
+            let st;
+            if (it.state === 'failed') st = `<span class="msg-fail">${ic('alert')} Не отправлено · Повторить</span>`;
+            else if (!navigator.onLine) st = `<span class="msg-state" title="Отправится, когда появится сеть">${ic('timer')} Ждёт сети</span>`;
+            else st = `<span class="msg-state" title="Отправляется">${ic('timer')}</span>`;
+            div.innerHTML = h + `<div class="msg-meta">${st}<span class="msg-time">${formatTime(it.created)}</span></div>`;
+            return div;
+        }
+        function obRenderLocal() {
+            if (!currentUser) return;
+            const want = currentChatId
+                ? [...OB.items.values()].filter(i => i.chatId === currentChatId && i.uid === currentUser.uid && !messagesCache.has(i.id)).sort((a, b) => a.created - b.created)
+                : [];
+            const ids = new Set(want.map(i => i.id));
+            messagesList.querySelectorAll('.message.local').forEach(el => { if (!ids.has(el.dataset.id)) el.remove(); });
+            OB.els.forEach((el, id) => { if (!ids.has(id)) OB.els.delete(id); });
+            let changed = false;
+            want.forEach(it => {
+                const sig = obSig(it);
+                let el = OB.els.get(it.id);
+                if (!el || el._sig !== sig) {
+                    const fresh = !el, n = obElement(it);
+                    n._sig = sig;
+                    if (fresh) { n.classList.add('msg-in'); n.addEventListener('animationend', () => n.classList.remove('msg-in'), { once: true }); }
+                    if (el && el.isConnected) el.replaceWith(n);
+                    el = n; OB.els.set(it.id, el); changed = true;
+                }
+            });
+            const els = want.map(it => OB.els.get(it.id));
+            const tail = [...messagesList.children].slice(-els.length);
+            const ordered = els.length === 0 || els.every((el, i) => tail[i] === el);
+            if (!ordered) { els.forEach(el => messagesList.appendChild(el)); changed = true; }
+            if (changed) stickIfNeeded();
+        }
+        window.addEventListener('online', () => { OB.backoff = 0; obRenderLocal(); obKick(); });
+        window.addEventListener('offline', () => obRenderLocal());
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') obKick(); });
+
+        // Сообщение уходит в очередь (дальше всё делает obRun); для отложенных сообщений это тот же путь
+        async function deliverOutgoing(o, onAdded) {
+            obEnqueue(o);
             if (onAdded) onAdded();
-            await addP;
-            const summary = ttl > 0 ? 'Исчезающее сообщение' : (encrypted ? '🔒 Сообщение' : plainPreview);
-            await updateChatSummary(o.chatId, summary, o.otherUid);
-            // в чате и списке чатов остаётся «🔒 Сообщение», а в пуш попадает текст (если получатель не отключил это)
-            sendPush(o.chatId, encrypted ? (pushTextOk(o.otherUid) ? clipPush(plainPreview) : '🔒 Сообщение') : plainPreview);
         }
 
         async function sendMessage(opts) {
@@ -3577,34 +3826,34 @@
                 if (iBlocked(currentChatOtherUid)) { showToast('Вы заблокировали этого пользователя. Разблокируйте его, чтобы написать.'); return; }
                 if (blockedMe(currentChatOtherUid)) { showToast('Не удалось отправить сообщение.'); return; }
             }
+            const chatId = currentChatId;
+            const out = {
+                chatId, otherUid: currentChatOtherUid || null, isGroup: !!getCurrentChat()?.isGroup, text,
+                reply: replyingTo?.id ? { id: replyingTo.id, text: replyingTo.text || '', senderId: replyingTo.senderId || null } : null
+            };
+            const clearAll = () => { messageInput.value = ''; clearAttachment(); cancelReply(); clearDraft(chatId); };
+            if (!when) {
+                // мгновенно: сообщение появляется в чате сразу, загрузка и отправка идут в фоне
+                out.imageBlob = pendingImageFile; out.audioBlob = pendingAudioBlob; out.docBlob = pendingDocFile;
+                obEnqueue(out);
+                clearAll();
+                snapToBottomRobust();
+                return;
+            }
+            // отложенное сообщение: файлы загружаем сейчас, дальше оно хранится на устройстве до времени отправки
             sendBtn.disabled = true;
             if (pendingImageFile || pendingDocFile) attachmentPreview.classList.add('sending');
             try {
-                let imageUrl = null;
-                let audioUrl = null;
-                let docMeta = null;
                 if (pendingDocFile) {
                     const f = pendingDocFile;
-                    docMeta = { fileUrl: await uploadToSupabase(f, f.name, 'files'), fileName: f.name, fileSize: f.size, fileType: f.type || '' };
+                    out.docMeta = { fileUrl: await uploadToSupabase(f, f.name, 'files'), fileName: f.name, fileSize: f.size, fileType: f.type || '' };
                 }
-                if (pendingImageFile) {
-                    imageUrl = await uploadToSupabase(pendingImageFile, pendingImageFile.name || 'image.jpg', 'images');
-                }
-                if (pendingAudioBlob) {
-                    audioUrl = await uploadToSupabase(pendingAudioBlob, `voice-${Date.now()}.webm`, 'audio');
-                }
-                const chatId = currentChatId;
-                const out = {
-                    chatId, otherUid: currentChatOtherUid || null, isGroup: !!getCurrentChat()?.isGroup,
-                    text, imageUrl, audioUrl, docMeta,
-                    reply: replyingTo?.id ? { id: replyingTo.id, text: replyingTo.text || '', senderId: replyingTo.senderId || null } : null
-                };
-                const done = () => { messageInput.value = ''; clearAttachment(); cancelReply(); clearDraft(chatId); sendBtn.disabled = false; };
-                if (when) { if (addScheduled(out, when)) done(); }
-                else await deliverOutgoing(out, done);
+                if (pendingImageFile) out.imageUrl = await uploadToSupabase(pendingImageFile, pendingImageFile.name || 'image.jpg', 'images');
+                if (pendingAudioBlob) out.audioUrl = await uploadToSupabase(pendingAudioBlob, `voice-${Date.now()}.webm`, 'audio');
+                if (addScheduled(out, when)) clearAll();
             } catch (error) {
                 console.error(error);
-                showToast('Не удалось отправить: ' + (error.message || error));
+                showToast('Не удалось запланировать: ' + (error.message || error));
             } finally {
                 sendBtn.disabled = false;
                 attachmentPreview.classList.remove('sending');
@@ -3637,39 +3886,19 @@
             } catch (_) {}
         }
 
-        async function updateChatSummary(chatId, lastText, recipientUid) {
+        function chatSummaryPatch(chatId, lastText, recipientUid) {
             const gc = allChatsCache.find(x => x.id === chatId);
-            if (gc?.isGroup) {
-                const upd = { lastMessage: lastText, lastSenderId: currentUser.uid, lastMessageAt: serverTimestamp() };
-                (gc.members || []).forEach(u => { if (u !== currentUser.uid) upd[`unread_${u}`] = increment(1); });
-                try { await updateDoc(doc(db, 'chats', chatId), upd); } catch (e) { console.error(e); }
-                return;
-            }
-            try {
-                const chatRef = doc(db, 'chats', chatId);
-                const chatSnap = await getDoc(chatRef);
-                let currentUnread = 0;
-                if (chatSnap.exists()) {
-                    currentUnread = chatSnap.data()[`unread_${recipientUid}`] || 0;
-                }
-                
-                await updateDoc(chatRef, {
-                    lastMessage: lastText,
-                    lastSenderId: currentUser.uid,
-                    lastMessageAt: serverTimestamp(),
-                    [`unread_${recipientUid}`]: currentUnread + 1
-                });
-            } catch (e) {
-                try {
-                    await setDoc(doc(db, 'chats', chatId), {
-                        lastMessage: lastText,
-                        lastSenderId: currentUser.uid,
-                        lastMessageAt: serverTimestamp(),
-                        [`unread_${recipientUid}`]: 1
-                    }, { merge: true });
-                } catch (err) {
-                    console.warn('Не удалось обновить чат:', err);
-                }
+            const upd = { lastMessage: lastText, lastSenderId: currentUser.uid, lastMessageAt: serverTimestamp() };
+            if (gc?.isGroup) (gc.members || []).forEach(u => { if (u !== currentUser.uid) upd[`unread_${u}`] = increment(1); });
+            else if (recipientUid) upd[`unread_${recipientUid}`] = increment(1);
+            return upd;
+        }
+        async function updateChatSummary(chatId, lastText, recipientUid) {
+            const upd = chatSummaryPatch(chatId, lastText, recipientUid);
+            try { await updateDoc(doc(db, 'chats', chatId), upd); }
+            catch (e) {
+                try { await setDoc(doc(db, 'chats', chatId), upd, { merge: true }); }
+                catch (err) { console.warn('Не удалось обновить чат:', err); }
             }
         }
 
@@ -3764,7 +3993,7 @@
                 });
 
                 const seq = ++msgSeq;
-                const plainList = await Promise.all(snapshot.docs.map(d => decryptMsg(d.data())));
+                const plainList = await Promise.all(snapshot.docs.map(d => decryptMsg(d.data({ serverTimestamps: 'estimate' }))));
                 if (seq !== msgSeq || chatId !== currentChatId) return;
                 const plain = new Map(snapshot.docs.map((d, i) => [d.id, plainList[i]]));
                 dsNewestId = snapshot.docs[0]?.id || null;
@@ -3785,7 +4014,7 @@
                     const sig = sigOf(m, snap.metadata.hasPendingWrites);
                     const old = oldEls.get(snap.id);
                     if (old && old._sig === sig) { want.push(old); return; }
-                    const el = createMessageElement(snap.id, m);
+                    const el = createMessageElement(snap.id, m, snap.metadata.hasPendingWrites);
                     el._sig = sig;
                     if (old) el._old = old;
                     else if (!first) { el.classList.add('msg-in'); el.addEventListener('animationend', () => el.classList.remove('msg-in'), { once: true }); }
@@ -3807,6 +4036,7 @@
                 while (cur) { const n = cur.nextSibling; cur.remove(); cur = n; }
                 rebuildDateSeparators();
 
+                obRenderLocal();
                 if (first || nearBottom || ownAdded) {
                     snapToBottomRobust();
                 } else {
@@ -3910,7 +4140,7 @@
             });
         }
 
-        function createMessageElement(id, msg) {
+        function createMessageElement(id, msg, pending) {
             const mine = msg.senderId === currentUser?.uid;
             const div = document.createElement('div');
             div.className = 'message ' + (mine ? 'me' : 'other') + (msg.deleted ? ' deleted' : '');
@@ -3940,7 +4170,7 @@
                 const chips = Object.entries(counts).map(([e, n]) => `<button class="reaction-chip${msg.reactions[currentUser.uid] === e ? ' mine' : ''}" data-emoji="${escapeHtml(e)}">${escapeHtml(e)}${n > 1 ? ' ' + n : ''}</button>`).join('');
                 if (chips) html += `<div class="reactions">${chips}</div>`;
             }
-            html += `<div class="msg-meta">${msg.edited && !msg.deleted ? '<span class="msg-edited">изменено</span>' : ''}${msg.expiresAt && !msg.deleted ? `<span class="msg-ds" title="Исчезающее сообщение">${ic('timer')}</span>` : ''}<span class="msg-time">${formatTime(msg.createdAt)}</span>${mine && !msg.deleted ? `<span class="ticks${(msg.read && myPriv().readReceipts) ? ' read' : ''}" title="${(msg.read && myPriv().readReceipts) ? 'Прочитано' : 'Отправлено'}">${(msg.read && myPriv().readReceipts) ? TICK2 : TICK1}</span>` : ''}</div>`;
+            html += `<div class="msg-meta">${msg.edited && !msg.deleted ? '<span class="msg-edited">изменено</span>' : ''}${msg.expiresAt && !msg.deleted ? `<span class="msg-ds" title="Исчезающее сообщение">${ic('timer')}</span>` : ''}<span class="msg-time">${formatTime(msg.createdAt || Date.now())}</span>${mine && !msg.deleted && pending ? `<span class="msg-state" title="Отправляется">${ic('timer')}</span>` : mine && !msg.deleted ? `<span class="ticks${(msg.read && myPriv().readReceipts) ? ' read' : ''}" title="${(msg.read && myPriv().readReceipts) ? 'Прочитано' : 'Отправлено'}">${(msg.read && myPriv().readReceipts) ? TICK2 : TICK1}</span>` : ''}</div>`;
             div.innerHTML = html;
             return div;
         }
@@ -4107,7 +4337,7 @@
                         const pm = prev?.lastMessageAt?.toMillis?.(), nm = data.lastMessageAt?.toMillis?.();
                         if (ready && pm && nm && nm > pm && data.lastSenderId && data.lastSenderId !== currentUser.uid && d.id !== currentChatId) { ping = true; pinged.push(d.id); }
                     });
-                    ready = true;
+                    if (!snap.metadata.fromCache) ready = true;
                     updateAndRenderChats();
                     window.__splashHide?.();
                     if (ping) { playNotificationSound(); pinged.forEach(id => { try { islMessage(id); } catch (_) {} }); }
@@ -5031,10 +5261,12 @@
             const sp = e.target.closest('.spoiler'); if (sp) { sp.classList.toggle('revealed'); return; }
             const quote = e.target.closest('.reply-quote');
             if (quote) { jumpToMessage(quote.dataset.reply); return; }
+            const lf = e.target.closest('.message.local.failed');
+            if (lf && !e.target.closest('.message-image')) { obFailedDialog(lf.dataset.id); return; }
             const chip = e.target.closest('.reaction-chip');
             if (chip) { toggleReaction(chip.closest('.message').dataset.id, chip.dataset.emoji); return; }
             const dc = e.target.closest('.doc-card');
-            if (dc) { openDoc(dc.dataset.url, dc.dataset.name); return; }
+            if (dc) { if (dc.dataset.url) openDoc(dc.dataset.url, dc.dataset.name); return; }
             const img = e.target.closest('.message-image');
             if (img) {
                 resetImageViewer();
@@ -5044,7 +5276,7 @@
                 return;
             }
             if (e.target.closest('audio') || Date.now() < suppressClickUntil) return;
-            const bubble = e.target.closest('.message'); if (bubble) openMsgMenu(bubble);
+            const bubble = e.target.closest('.message'); if (bubble && !bubble.classList.contains('local')) openMsgMenu(bubble);
         });
         messagesList.addEventListener('touchstart', e => {
             const b = e.target.closest('.message'); if (!b) return;
@@ -6133,7 +6365,7 @@
         window.__island = { isl, islIncoming, islMessage, islTyping, islVoiceStart, islRender, regeom: () => { isl.g = islGeom(); islRender(true); } };
 
         onAuthStateChanged(auth, user => {
-            if (!user) { leaveCall(); stopCallsWatch(); }
+            if (!user) { leaveCall(); stopCallsWatch(); obReset(); }
             Object.assign(E2E, { priv: null, pub: null, ready: false, initPromise: null }); E2E.keys.clear();
             currentUser = user;
             teardownWatchers();
@@ -6142,6 +6374,7 @@
                 setupPresence();
                 subscribeChats();
                 startCallsWatch();
+                obInit();
                 showScreen(chatsScreen);
                 syncSettingsUI();
                 handleDeepLink();
