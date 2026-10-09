@@ -2534,7 +2534,11 @@
         // Постоянный офлайн-кэш: чаты и сообщения открываются из IndexedDB мгновенно, записи без сети копятся в очереди Firestore
         let db;
         try {
-            db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+            db = initializeFirestore(app, {
+                localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+                // VPN/прокси/блокировки ломают WebChannel (потоковое соединение): при проблемах SDK сам переключится на long-polling
+                experimentalAutoDetectLongPolling: true
+            });
         } catch (e) {
             console.warn('Офлайн-кэш Firestore недоступен, работаем без него:', e);
             db = getFirestore(app);
@@ -5689,7 +5693,7 @@
 
         function ensurePeer(uid) {
             let p = rtc.peers.get(uid); if (p) return p;
-            const pc = new RTCPeerConnection({ iceServers: ICE });
+            const pc = new RTCPeerConnection({ iceServers: ICE, iceCandidatePoolSize: 4 });
             p = { uid, pc, stream: new MediaStream(), pend: [], snd: {} };
             rtc.peers.set(uid, p); addTile(uid, rtc.docs.get(uid)?.name || 'Участник', false); setTile(uid);
             pc.onicecandidate = e => { if (e.candidate) sendSig(uid, 'ice', e.candidate.toJSON()); };
@@ -5713,13 +5717,34 @@
                 if (pc.connectionState === 'connected') {
                     clearTimeout(rtc.ringT);
                     if (rtc.c.kind === 'direct') $c('call-title').textContent = rtc.docs.get(uid)?.name || 'Звонок';
-                } else if (pc.connectionState === 'failed') {
-                    showToast('Не удалось соединиться напрямую (возможно, нужен TURN-сервер)');
-                    closePeer(uid); if (rtc.c.kind === 'direct') leaveCall();
+                    clearTimeout(p.giveUp); p.giveUp = null; p.tries = 0;
+                } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                    // сеть сменилась (включили/выключили VPN, Wi-Fi ↔ LTE): пробуем пересогласовать маршрут, а не рвём звонок
+                    iceRecover(p);
+                    if (!p.giveUp) p.giveUp = setTimeout(() => {
+                        if (!rtc || rtc.peers.get(uid) !== p || p.pc.connectionState === 'connected') return;
+                        showToast('Не удалось соединиться (возможно, нужен свой TURN-сервер)');
+                        closePeer(uid); if (rtc?.c.kind === 'direct') leaveCall();
+                    }, 25000);
                 }
             };
             return p;
         }
+        // Перезапуск ICE: инициатор — участник с меньшим uid (чтобы два конца не слали offer одновременно)
+        async function iceRecover(p) {
+            if (!rtc || p.recovering || rtc.me > p.uid) return;
+            p.recovering = true; p.tries = (p.tries || 0) + 1;
+            try {
+                if (p.pc.signalingState === 'stable' && p.pc.remoteDescription) {
+                    p.pc.restartIce();
+                    await p.pc.setLocalDescription(await p.pc.createOffer({ iceRestart: true }));
+                    sendSig(p.uid, 'offer', p.pc.localDescription.toJSON());
+                }
+            } catch (e) { console.warn('ICE restart', e); }
+            setTimeout(() => { p.recovering = false; if (rtc && p.pc.connectionState !== 'connected' && p.pc.connectionState !== 'closed' && p.tries < 6) iceRecover(p); }, 4000);
+        }
+        window.addEventListener('online', () => { if (rtc) rtc.peers.forEach(p => { if (p.pc.connectionState !== 'connected') iceRecover(p); }); });
+        navigator.connection?.addEventListener?.('change', () => { if (rtc) rtc.peers.forEach(p => iceRecover(p)); });
         async function offerTo(p) {
             ['audio', 'video'].forEach(k => { p.snd[k] = p.pc.addTransceiver(rtc.tr[k] || k, { direction: 'sendrecv', streams: [rtc.local] }).sender; });
             await p.pc.setLocalDescription(await p.pc.createOffer());
