@@ -2062,6 +2062,14 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
 <style>
 .message-video{display:block;width:min(300px,70vw);max-width:100%;border-radius:12px;background:#000;margin-top:4px}
 </style>
+<style>
+.vid{position:relative;width:min(300px,70vw);max-width:100%;border-radius:12px;overflow:hidden;background:#000;margin-top:4px;cursor:pointer}
+.vid video{display:block;width:100%;max-height:420px;object-fit:cover;pointer-events:none}
+.vid-play{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;pointer-events:none;transition:opacity .2s}
+.vid-play svg{margin-left:3px}
+.vid.playing .vid-play{opacity:0}
+.vid-dur{position:absolute;left:8px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;padding:2px 6px;border-radius:6px;pointer-events:none;font-variant-numeric:tabular-nums}
+</style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -3792,6 +3800,12 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
         }
 
         // локальные пузыри: сообщения, которых ещё нет в ленте Firestore (грузятся, ждут сеть, не отправлены)
+        // Видео в ленте: кадр-превью, кнопка ▶ и длительность; тап — воспроизведение
+        function videoHtml(src) {
+            return `<div class="vid"><video playsinline preload="metadata" src="${escapeHtml(src)}#t=0.1"></video>` +
+                `<span class="vid-play"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7z" fill="#fff"/></svg></span>` +
+                `<span class="vid-dur"></span></div>`;
+        }
         // Альбом: несколько фото одним сообщением (сетка как в Telegram)
         function albumHtml(urls) {
             const list = urls.slice(0, 10);
@@ -3818,7 +3832,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
             if (imgs.length > 1) h += albumHtml(imgs);
             else if (imgs[0]) h += `<img src="${escapeHtml(imgs[0])}" alt="фото" class="message-image" decoding="async">`;
             const dn = it.docMeta?.fileName || it.docName;
-            if (dn && it.docBlob && isVideoFile(it.docBlob)) h += `<video controls playsinline preload="metadata" class="message-video" src="${escapeHtml(obBlobUrl(it.id, 'd', it.docBlob))}"></video>`;
+            if (dn && it.docBlob && isVideoFile(it.docBlob)) h += videoHtml(obBlobUrl(it.id, 'd', it.docBlob));
             else if (dn) h += docCardHtml({ fileUrl: '', fileName: dn, fileSize: it.docMeta?.fileSize || it.docSize });
             const au = obBlobUrl(it.id, 'a', it.audioBlob) || it.audioUrl;
             if (au) h += `<audio controls src="${escapeHtml(au)}"></audio>`;
@@ -4214,7 +4228,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
                 if (msg.text) html += jumbo ? `<div class="msg-jumbo">${escapeHtml(msg.text.trim())}</div>` : `<div>${msg.locked ? ic('lock') + ' ' : ''}${linkify(msg.text)}</div>`;
                 if (msg.imageUrls?.length > 1) html += albumHtml(msg.imageUrls);
                 else if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image" decoding="async">`;
-                if (msg.fileUrl && isVideoMsg(msg)) html += `<video controls playsinline preload="metadata" class="message-video" src="${escapeHtml(msg.fileUrl)}"></video>`;
+                if (msg.fileUrl && isVideoMsg(msg)) html += videoHtml(msg.fileUrl);
                 else if (msg.fileUrl) html += docCardHtml(msg);
                 if (msg.audioUrl) html += `<audio controls src="${escapeHtml(msg.audioUrl)}"></audio>`;
                 const counts = {};
@@ -5326,6 +5340,12 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
             if (chip) { toggleReaction(chip.closest('.message').dataset.id, chip.dataset.emoji); return; }
             const dc = e.target.closest('.doc-card');
             if (dc) { if (dc.dataset.url) openDoc(dc.dataset.url, dc.dataset.name); return; }
+            const vid = e.target.closest('.vid');
+            if (vid) {
+                const v = vid.querySelector('video');
+                if (v.paused) { v.muted = false; v.play().catch(() => {}); } else v.pause();
+                return;
+            }
             const img = e.target.closest('.message-image');
             if (img) {
                 resetImageViewer();
@@ -5337,6 +5357,17 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
             if (e.target.closest('audio, video') || Date.now() < suppressClickUntil) return;
             // обычное нажатие меню не открывает: меню — долгим удержанием (touchstart ниже) или правой кнопкой мыши
         });
+        // длительность видео и состояние «играет» (события не всплывают — слушаем в фазе захвата)
+        messagesList.addEventListener('loadedmetadata', e => {
+            if (e.target.tagName !== 'VIDEO' || !isFinite(e.target.duration)) return;
+            const d = e.target.parentElement?.querySelector('.vid-dur'); if (!d) return;
+            const t = Math.round(e.target.duration);
+            d.textContent = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+        }, true);
+        ['play', 'pause', 'ended'].forEach(ev => messagesList.addEventListener(ev, e => {
+            if (e.target.tagName !== 'VIDEO') return;
+            e.target.parentElement?.classList.toggle('playing', ev === 'play');
+        }, true));
         messagesList.addEventListener('touchstart', e => {
             const b = e.target.closest('.message'); if (!b) return;
             if (b.classList.contains('local')) return;
