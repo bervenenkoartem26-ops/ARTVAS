@@ -2075,6 +2075,11 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
 .message .sticker-img{width:180px;max-width:55vw;height:auto;border-radius:0!important;background:transparent!important}
 body.dropping::after{content:'Отпустите, чтобы прикрепить';position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font-size:18px;z-index:9999;pointer-events:none}
 </style>
+<style>
+.consent-row{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:10px 0;text-align:left;cursor:pointer}
+.consent-row input{margin-top:3px;flex-shrink:0;width:18px;height:18px}
+.consent-row a{color:var(--accent,#6366f1)}
+</style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -2133,6 +2138,14 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
                 <div id="nickname-group" class="input-group hidden">
                     <label for="nickname-input">Имя</label>
                     <input id="nickname-input" type="text" autocomplete="name" placeholder="Ваше имя">
+                </div>
+                <div id="signup-extra" class="hidden">
+                    <div class="input-group">
+                        <label for="bot-answer">Проверка: сколько будет <b id="bot-q"></b>?</label>
+                        <input id="bot-answer" type="number" inputmode="numeric" placeholder="Ответ">
+                    </div>
+                    <label class="consent-row"><input id="human-check" type="checkbox"> <span>Я не робот</span></label>
+                    <label class="consent-row"><input id="agree-check" type="checkbox"> <span>Я принимаю <a href="#" id="open-privacy">Политику конфиденциальности</a> и <a href="#" id="open-terms">Пользовательское соглашение</a></span></label>
                 </div>
                 <button id="auth-btn" class="btn btn-block">Войти</button>
                 <div id="switch-auth" class="switch-auth">Нет аккаунта? <span>Зарегистрироваться</span></div>
@@ -4797,6 +4810,43 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
             showToast(`${title}: ${body}`, false);
         });
 
+        // ===== Регистрация: согласие и простая проверка «не робот» =====
+        const PRIVACY_VERSION = '1.0 от 11.10.2026', TERMS_VERSION = '1.0 от 11.10.2026';
+        const PRIVACY_TEXT = `
+          <h3>Политика конфиденциальности</h3>
+          <p>Оператор: <b>[укажите ФИО или название, ИНН]</b>. Связаться: <b>[укажите email]</b>.</p>
+          <p><b>1. Какие данные мы собираем.</b> Email, имя (никнейм), пароль (хранится в виде защищённого хэша, сам пароль не видим), аватар и фон профиля, список ваших контактов в приложении, сообщения, файлы и голосовые, которые вы отправляете, данные о звонках (время, участники, статус), технические данные устройства и токен для push-уведомлений.</p>
+          <p><b>2. Зачем.</b> Чтобы работал аккаунт, доставлялись сообщения и звонки, работали уведомления, защищался сервис от ботов и злоупотреблений.</p>
+          <p><b>3. Шифрование.</b> Личные переписки шифруются сквозным шифрованием: ключи хранятся на ваших устройствах, оператор не может прочитать их содержимое. Групповые чаты сквозным шифрованием не защищены.</p>
+          <p><b>4. Где хранятся данные.</b> Используются сервисы Google Firebase (база данных, вход, уведомления) и Supabase (файлы). Эти сервисы могут хранить данные за пределами России. Передача выполняется для работы сервиса.</p>
+          <p><b>5. Сроки.</b> Данные хранятся, пока существует аккаунт. Сообщения с таймером исчезают по истечении срока. После удаления аккаунта данные удаляются, кроме случаев, когда закон требует хранить их дольше.</p>
+          <p><b>6. Ваши права.</b> Вы можете запросить копию своих данных, их исправление или удаление, а также отозвать согласие. Для этого напишите оператору.</p>
+          <p><b>7. Дети.</b> Сервис не предназначен для детей до 14 лет без согласия законных представителей.</p>
+          <p><b>8. Изменения.</b> Мы можем обновлять политику. О существенных изменениях сообщим в приложении.</p>
+          <p style="opacity:.7">Текст является черновиком и требует проверки юристом перед публичным запуском.</p>`;
+        const TERMS_TEXT = `
+          <h3>Пользовательское соглашение</h3>
+          <p><b>1. Предмет.</b> Сервис позволяет обмениваться сообщениями, файлами и совершать звонки. Регистрируясь, вы соглашаетесь с этими условиями и с Политикой конфиденциальности.</p>
+          <p><b>2. Аккаунт.</b> Вы отвечаете за сохранность пароля и за действия, совершённые из вашего аккаунта. Один человек — один аккаунт. Выдавать себя за другого человека запрещено.</p>
+          <p><b>3. Запрещено.</b> Незаконный контент, мошенничество, спам и массовые рассылки, распространение вредоносных программ, сбор данных других пользователей, попытки взлома или обхода защиты, автоматизированные аккаунты без разрешения, угрозы и травля.</p>
+          <p><b>4. Модерация.</b> Мы можем ограничить или удалить аккаунт, нарушающий соглашение, а также сообщения, которые нарушают его.</p>
+          <p><b>5. Ответственность.</b> Сервис предоставляется «как есть». Мы не отвечаем за содержание сообщений пользователей и за перебои связи, которые не зависят от нас.</p>
+          <p><b>6. Изменения.</b> Мы можем менять соглашение. Продолжая пользоваться сервисом, вы принимаете новую редакцию.</p>
+          <p><b>7. Право.</b> К отношениям применяется законодательство Российской Федерации.</p>
+          <p style="opacity:.7">Текст является черновиком и требует проверки юристом перед публичным запуском.</p>`;
+        function showLegal(html) {
+            const o = cmModal(`<div style="max-height:62vh;overflow:auto;text-align:left;font-size:14px;line-height:1.5">${html}</div><div class="cm-actions"><button class="cm-btn" data-x="close">Закрыть</button></div>`);
+            o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-x="close"]')) o.remove(); });
+        }
+        document.getElementById('open-privacy').addEventListener('click', e => { e.preventDefault(); showLegal(PRIVACY_TEXT); });
+        document.getElementById('open-terms').addEventListener('click', e => { e.preventDefault(); showLegal(TERMS_TEXT); });
+        let botA = 0, botB = 0;
+        function newBotQuestion() {
+            botA = 2 + Math.floor(Math.random() * 9); botB = 2 + Math.floor(Math.random() * 9);
+            document.getElementById('bot-q').textContent = `${botA} + ${botB}`;
+            document.getElementById('bot-answer').value = '';
+        }
+
         authBtn.addEventListener('click', async () => {
             setAuthError('');
             const email = emailInput.value.trim();
@@ -4810,12 +4860,16 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
                 if (isSignUp) {
                     const nickname = nicknameInput.value.trim();
                     if (!nickname) throw new Error('Введите имя.');
+                    if (!document.getElementById('agree-check').checked) throw new Error('Примите Политику конфиденциальности и Пользовательское соглашение.');
+                    if (!document.getElementById('human-check').checked) throw new Error('Подтвердите, что вы не робот.');
+                    if (Number(document.getElementById('bot-answer').value) !== botA + botB) { newBotQuestion(); throw new Error('Неверный ответ на проверку. Попробуйте ещё раз.'); }
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
                     await updateProfile(cred.user, { displayName: nickname });
                     await setDoc(doc(db, 'users', cred.user.uid), {
                         displayName: nickname,
                         email,
-                        createdAt: serverTimestamp()
+                        createdAt: serverTimestamp(),
+                        consent: { privacyVersion: PRIVACY_VERSION, termsVersion: TERMS_VERSION, acceptedAt: Date.now(), botCheck: true }
                     });
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
@@ -4839,6 +4893,8 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
             authTitle.textContent = isSignUp ? 'Регистрация в C Messenger' : 'Вход в C Messenger';
             authBtn.textContent = isSignUp ? 'Зарегистрироваться' : 'Войти';
             nicknameGroup.classList.toggle('hidden', !isSignUp);
+            document.getElementById('signup-extra').classList.toggle('hidden', !isSignUp);
+            if (isSignUp) newBotQuestion();
             setAuthError('');
         });
 
