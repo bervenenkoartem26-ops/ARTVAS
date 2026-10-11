@@ -2053,6 +2053,12 @@
 .album.n5,.album.n6,.album.n7,.album.n8,.album.n9,.album.n10{grid-template-columns:1fr 1fr 1fr}
 .album.n5 img:nth-child(-n+2){aspect-ratio:1.5}
 </style>
+<style>
+/* Сообщения не выделяются текстом: иначе при удержании iOS показывает Copy / Look Up / Translate */
+.message, .message * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.message img { -webkit-user-drag: none; user-drag: none; }
+input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
+</style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -5320,11 +5326,12 @@
                 return;
             }
             if (e.target.closest('audio') || Date.now() < suppressClickUntil) return;
-            const bubble = e.target.closest('.message'); if (bubble && !bubble.classList.contains('local')) openMsgMenu(bubble);
+            // обычное нажатие меню не открывает: меню — долгим удержанием (touchstart ниже) или правой кнопкой мыши
         });
         messagesList.addEventListener('touchstart', e => {
             const b = e.target.closest('.message'); if (!b) return;
-            pressTimer = setTimeout(() => { suppressClickUntil = Date.now() + 600; openMsgMenu(b); }, 450);
+            if (b.classList.contains('local')) return;
+            pressTimer = setTimeout(() => { suppressClickUntil = Date.now() + 600; if (navigator.vibrate) navigator.vibrate(12); openMsgMenu(b); }, 450);
         }, { passive: true });
         ['touchend', 'touchmove', 'touchcancel'].forEach(ev => messagesList.addEventListener(ev, () => clearTimeout(pressTimer), { passive: true }));
         messagesList.addEventListener('contextmenu', e => { const b = e.target.closest('.message'); if (b) { e.preventDefault(); openMsgMenu(b); } });
