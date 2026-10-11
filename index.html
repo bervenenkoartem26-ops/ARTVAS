@@ -2070,6 +2070,11 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
 .vid.playing .vid-play{opacity:0}
 .vid-dur{position:absolute;left:8px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;padding:2px 6px;border-radius:6px;pointer-events:none;font-variant-numeric:tabular-nums}
 </style>
+<style>
+.message.sticker-msg{background:transparent!important;box-shadow:none!important;border:0!important;padding:0!important}
+.message .sticker-img{width:180px;max-width:55vw;height:auto;border-radius:0!important;background:transparent!important}
+body.dropping::after{content:'Отпустите, чтобы прикрепить';position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font-size:18px;z-index:9999;pointer-events:none}
+</style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -2581,6 +2586,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
         let audioChunks = [];
         let typingTimeout = null;
         let pendingImages = [];
+        let pendingSticker = false;   // вырезанный объект (прозрачный PNG) уходит стикером
         let pendingDocFile = null;
         let pendingAudioBlob = null;
         let pendingAudioUrl = null;
@@ -3047,7 +3053,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
             try {
                 const otherUid = chat.isGroup ? null : getOtherUserInfo(chat, currentUser.uid).uid;
                 const from = msg.forwardedFrom || (msg.senderId === currentUser.uid ? normalizeName(currentUser) : (msg.senderName || displayNameFor(msg.senderId, chatTitle.textContent)));
-                const payload = { senderId: currentUser.uid, receiverId: otherUid, text: msg.text || '', imageUrl: msg.imageUrl || null, ...(msg.imageUrls?.length > 1 ? { imageUrls: msg.imageUrls } : {}), audioUrl: msg.audioUrl || null, fileUrl: msg.fileUrl || null, fileName: msg.fileName || null, fileSize: msg.fileSize || null, fileType: msg.fileType || null, chatId: chat.id, read: false, createdAt: serverTimestamp(), forwardedFrom: from };
+                const payload = { senderId: currentUser.uid, receiverId: otherUid, text: msg.text || '', imageUrl: msg.imageUrl || null, ...(msg.imageUrls?.length > 1 ? { imageUrls: msg.imageUrls } : {}), ...(msg.sticker ? { sticker: true } : {}), audioUrl: msg.audioUrl || null, fileUrl: msg.fileUrl || null, fileName: msg.fileName || null, fileSize: msg.fileSize || null, fileType: msg.fileType || null, chatId: chat.id, read: false, createdAt: serverTimestamp(), forwardedFrom: from };
                 if (chat.isGroup) payload.senderName = normalizeName(currentUser);
                 let preview = msg.text || (msg.fileUrl ? '📎 ' + (msg.fileName || 'Файл') : msg.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
                 const plainPrev = preview;
@@ -3492,6 +3498,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
             imgPrepToken++;
             pendingDocFile = null;
             pendingImages = [];
+            pendingSticker = false;
             revokeThumbs();
             attachmentThumb.classList.remove('multi');
             pendingAudioBlob = null;
@@ -3537,11 +3544,31 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
             }
         }
 
+        // Есть ли прозрачность (вырезанный объект): прозрачных пикселей заметная доля, но не весь кадр
+        function hasTransparency(bmp) {
+            try {
+                const n = 48, c = document.createElement('canvas'); c.width = n; c.height = n;
+                const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(bmp, 0, 0, n, n);
+                const d = x.getImageData(0, 0, n, n).data; let clear = 0;
+                for (let i = 3; i < d.length; i += 4) if (d[i] < 200) clear++;
+                const r = clear / (n * n);
+                return r > 0.05 && r < 0.95;
+            } catch (_) { return false; }
+        }
         // Сжимаем фото до отправки: 12-мегапиксельный снимок на 5–8 МБ грузил телефон и канал и вешал превью
         async function prepareImage(file) {
             try {
                 if (!/^image\//.test(file.type) || /gif|svg/.test(file.type)) return file;
                 const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+                if (/png|webp/.test(file.type) && hasTransparency(bmp)) {
+                    const k2 = Math.min(1, 512 / Math.max(bmp.width, bmp.height));
+                    const w2 = Math.max(1, Math.round(bmp.width * k2)), h2 = Math.max(1, Math.round(bmp.height * k2));
+                    const c = document.createElement('canvas'); c.width = w2; c.height = h2;
+                    c.getContext('2d').drawImage(bmp, 0, 0, w2, h2);
+                    const pb = await new Promise(r => c.toBlob(r, 'image/png'));
+                    bmp.close?.();
+                    if (pb) { const sf = new File([pb], (file.name || 'sticker').replace(/\.[^.]+$/, '') + '.png', { type: 'image/png' }); sf.sticker = true; return sf; }
+                }
                 const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
                 if (k === 1 && file.size < 400 * 1024 && /jpe?g|webp/.test(file.type)) { bmp.close?.(); return file; }
                 const w = Math.round(bmp.width * k), h = Math.round(bmp.height * k);
@@ -3570,6 +3597,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
             Promise.all(files.map(prepareImage)).then(arr => {
                 if (t !== imgPrepToken) return;   // вложение уже убрали
                 pendingImages = arr;
+                pendingSticker = arr.length === 1 && !!arr[0].sticker;
                 renderAttachmentPreview();
             });
         }
@@ -3640,7 +3668,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
                 imageUrls: o.imageUrls ? o.imageUrls.slice() : (o.imageUrl ? [o.imageUrl] : []),
                 audioBlob: o.audioBlob || null,
                 docBlob: o.docBlob || null, docName: o.docBlob?.name || '', docSize: o.docBlob?.size || 0, docType: o.docBlob?.type || '',
-                imageUrl: null, audioUrl: o.audioUrl || null, docMeta: o.docMeta || null,
+                imageUrl: null, sticker: !!o.sticker, audioUrl: o.audioUrl || null, docMeta: o.docMeta || null,
                 stage: ((o.imageBlobs?.length || o.imageBlob) || o.audioBlob || o.docBlob) ? 'media' : 'write', state: 'queued', tries: 0, err: ''
             };
             OB.items.set(it.id, it);
@@ -3690,7 +3718,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
                 }
                 const payload = {
                     senderId: currentUser.uid, receiverId: it.otherUid || null, text: it.text || '',
-                    imageUrl: it.imageUrls[0] || null, ...(it.imageUrls.length > 1 ? { imageUrls: it.imageUrls } : {}),
+                    imageUrl: it.imageUrls[0] || null, ...(it.imageUrls.length > 1 ? { imageUrls: it.imageUrls } : {}), ...(it.sticker ? { sticker: true } : {}),
                     audioUrl: it.audioUrl || null, ...(it.docMeta || {}),
                     chatId: it.chatId, read: false, createdAt: serverTimestamp()
                 };
@@ -3820,7 +3848,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
         function obElement(it) {
             it.imageBlobs = it.imageBlobs || []; it.imageUrls = it.imageUrls || [];
             const div = document.createElement('div');
-            div.className = 'message me local' + (it.state === 'failed' ? ' failed' : '');
+            div.className = 'message me local' + (it.state === 'failed' ? ' failed' : '') + (it.sticker ? ' sticker-msg' : '');
             div.dataset.id = it.id;
             let h = '';
             if (it.reply?.id) h += `<div class="reply-quote" data-reply="${escapeHtml(it.reply.id)}"><b>${escapeHtml(authorLabel(it.reply.senderId))}</b><span>${iconLead(String(it.reply.text || '').slice(0, 140))}</span></div>`;
@@ -3830,7 +3858,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
             }
             const imgs = it.imageBlobs.length ? it.imageBlobs.map((b, i) => obBlobUrl(it.id, 'i' + i, b)).filter(Boolean) : (it.imageUrls || []);
             if (imgs.length > 1) h += albumHtml(imgs);
-            else if (imgs[0]) h += `<img src="${escapeHtml(imgs[0])}" alt="фото" class="message-image" decoding="async">`;
+            else if (imgs[0]) h += `<img src="${escapeHtml(imgs[0])}" alt="фото" class="message-image${it.sticker ? ' sticker-img' : ''}" decoding="async">`;
             const dn = it.docMeta?.fileName || it.docName;
             if (dn && it.docBlob && isVideoFile(it.docBlob)) h += videoHtml(obBlobUrl(it.id, 'd', it.docBlob));
             else if (dn) h += docCardHtml({ fileUrl: '', fileName: dn, fileSize: it.docMeta?.fileSize || it.docSize });
@@ -3898,6 +3926,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
             if (!when) {
                 // мгновенно: сообщение появляется в чате сразу, загрузка и отправка идут в фоне
                 out.imageBlobs = pendingImages.slice(); out.audioBlob = pendingAudioBlob; out.docBlob = pendingDocFile;
+                out.sticker = pendingSticker && pendingImages.length === 1;
                 obEnqueue(out);
                 clearAll();
                 snapToBottomRobust();
@@ -3913,7 +3942,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
                 }
                 const imgUrls = []; for (const f of pendingImages.slice()) imgUrls.push(await uploadToSupabase(f, f.name || 'image.jpg', 'images'));
                 if (pendingAudioBlob) out.audioUrl = await uploadToSupabase(pendingAudioBlob, `voice-${Date.now()}.webm`, 'audio');
-                if (imgUrls.length) { out.imageUrls = imgUrls; out.imageUrl = imgUrls[0]; }
+                if (imgUrls.length) { out.imageUrls = imgUrls; out.imageUrl = imgUrls[0]; if (pendingSticker && imgUrls.length === 1) out.sticker = true; }
                 if (addScheduled(out, when)) clearAll();
             } catch (error) {
                 console.error(error);
@@ -4207,7 +4236,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
         function createMessageElement(id, msg, pending) {
             const mine = msg.senderId === currentUser?.uid;
             const div = document.createElement('div');
-            div.className = 'message ' + (mine ? 'me' : 'other') + (msg.deleted ? ' deleted' : '');
+            div.className = 'message ' + (mine ? 'me' : 'other') + (msg.deleted ? ' deleted' : '') + (msg.sticker ? ' sticker-msg' : '');
             div.dataset.id = id;
             let html = '';
             if (msg.deleted) {
@@ -4227,7 +4256,7 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
                 const jumbo = msg.text && !msg.replyTo && !msg.forwardedFrom && !msg.imageUrl && !msg.fileUrl && JUMBO_RE.test(msg.text.trim());
                 if (msg.text) html += jumbo ? `<div class="msg-jumbo">${escapeHtml(msg.text.trim())}</div>` : `<div>${msg.locked ? ic('lock') + ' ' : ''}${linkify(msg.text)}</div>`;
                 if (msg.imageUrls?.length > 1) html += albumHtml(msg.imageUrls);
-                else if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image" decoding="async">`;
+                else if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image${msg.sticker ? ' sticker-img' : ''}" decoding="async">`;
                 if (msg.fileUrl && isVideoMsg(msg)) html += videoHtml(msg.fileUrl);
                 else if (msg.fileUrl) html += docCardHtml(msg);
                 if (msg.audioUrl) html += `<audio controls src="${escapeHtml(msg.audioUrl)}"></audio>`;
@@ -5539,6 +5568,33 @@ input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-sele
         messageInput.addEventListener('input', saveDraft);
 
         // ===== Вставка фото из буфера обмена (Ctrl+V / долгий тап → Вставить) =====
+        // Перетаскивание и вставка файлов в любое место чата (фото, видео, документы)
+        function attachFiles(files) {
+            if (!currentUser || !currentChatId || editingMessageId) return;
+            const list = [...files];
+            const imgs = list.filter(f => f.type.startsWith('image/'));
+            if (imgs.length) { setPendingImages(imgs.slice(0, 10)); return; }
+            const f = list[0];
+            if (!f) return;
+            const lim = isVideoFile(f) ? VIDEO_MAX : DOC_MAX;
+            if (f.size > lim) { showToast('Файл больше ' + (lim / 1048576) + ' МБ — слишком большой.'); return; }
+            setPendingDoc(f);
+        }
+        document.addEventListener('paste', e => {
+            if (!currentChatId || editingMessageId || e.target.closest?.('input, textarea, [contenteditable="true"]')) return;
+            const files = e.clipboardData?.files; if (!files || !files.length) return;
+            e.preventDefault(); attachFiles(files);
+        });
+        let dragDepth = 0;
+        const hasFiles = e => [...(e.dataTransfer?.types || [])].includes('Files');
+        document.addEventListener('dragenter', e => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; document.body.classList.add('dropping'); });
+        document.addEventListener('dragover', e => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+        document.addEventListener('dragleave', e => { if (!hasFiles(e)) return; dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) document.body.classList.remove('dropping'); });
+        document.addEventListener('drop', e => {
+            if (!hasFiles(e)) return;
+            e.preventDefault(); dragDepth = 0; document.body.classList.remove('dropping');
+            if (currentChatId) attachFiles(e.dataTransfer.files);
+        });
         messageInput.addEventListener('paste', e => {
             const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
             if (!item || editingMessageId) return;
