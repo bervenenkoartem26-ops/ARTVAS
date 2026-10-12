@@ -2080,6 +2080,17 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
 .consent-row input{margin-top:3px;flex-shrink:0;width:18px;height:18px}
 .consent-row a{color:var(--accent,#6366f1)}
 </style>
+<style>
+.side-drawer{position:fixed;inset:0;z-index:950}
+.side-drawer.hidden{display:none}
+.sd-scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;transition:opacity .25s}
+.side-drawer.open .sd-scrim{opacity:1}
+.sd-panel{position:absolute;left:0;top:0;bottom:0;width:min(280px,78vw);background:var(--surface-color,#18181b);padding:calc(env(safe-area-inset-top,0px) + 24px) 12px 20px;transform:translateX(-100%);transition:transform .25s ease;box-shadow:4px 0 24px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:4px}
+.side-drawer.open .sd-panel{transform:none}
+.sd-head{font-weight:700;font-size:18px;margin:4px 10px 14px}
+.sd-item{display:block;width:100%;text-align:left;padding:14px 12px;border:0;background:transparent;color:inherit;font-size:16px;border-radius:12px;cursor:pointer}
+.sd-item:active{background:rgba(127,127,127,.15)}
+</style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -4809,6 +4820,75 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
             const body = payload.notification?.body || '';
             showToast(`${title}: ${body}`, false);
         });
+
+        // ===== Боковое меню: свайп вправо от левого края на списке чатов =====
+        // Свайп вправо от левого края в открытом чате — назад к списку диалогов
+        const sideDrawer = document.createElement('div');
+        sideDrawer.id = 'side-drawer'; sideDrawer.className = 'side-drawer hidden';
+        sideDrawer.innerHTML = `<div class="sd-scrim"></div><aside class="sd-panel">
+            <div class="sd-head">C Messenger</div>
+            <button class="sd-item" data-act="google">🌐 Открыть Google</button>
+            <button class="sd-item" data-act="translate">🈯 Переводчик</button>
+        </aside>`;
+        document.body.appendChild(sideDrawer);
+        function openSide() { sideDrawer.classList.remove('hidden'); requestAnimationFrame(() => sideDrawer.classList.add('open')); if (navigator.vibrate) navigator.vibrate(8); }
+        function closeSide() { sideDrawer.classList.remove('open'); setTimeout(() => sideDrawer.classList.add('hidden'), 260); }
+        sideDrawer.querySelector('.sd-scrim').addEventListener('click', closeSide);
+        sideDrawer.querySelector('[data-act="google"]').addEventListener('click', () => { closeSide(); window.open('https://www.google.com', '_blank', 'noopener'); });
+        sideDrawer.querySelector('[data-act="translate"]').addEventListener('click', () => { closeSide(); setTimeout(openTranslator, 200); });
+
+        function openTranslator() {
+            const o = cmModal(`<h3>🈯 Переводчик</h3>
+                <textarea id="tr-src" rows="4" placeholder="Текст для перевода" style="width:100%;box-sizing:border-box;border-radius:12px;padding:10px;font:inherit;background:transparent;color:inherit;border:1px solid var(--border-color,#333)"></textarea>
+                <div style="display:flex;gap:8px;margin:10px 0;align-items:center">
+                    <select id="tr-to" style="flex:1;padding:10px;border-radius:10px">
+                        <option value="en">Английский</option><option value="ru">Русский</option><option value="de">Немецкий</option>
+                        <option value="fr">Французский</option><option value="es">Испанский</option><option value="zh-CN">Китайский</option><option value="tr">Турецкий</option>
+                    </select>
+                    <button class="cm-btn" id="tr-go">Перевести</button>
+                </div>
+                <div id="tr-out" style="min-height:44px;white-space:pre-wrap;text-align:left;padding:10px;border-radius:12px;background:rgba(127,127,127,.12)">Результат появится здесь</div>
+                <div class="cm-actions"><button class="cm-btn" data-x="close">Закрыть</button></div>`);
+            o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-x="close"]')) o.remove(); });
+            o.querySelector('#tr-go').addEventListener('click', async () => {
+                const q = o.querySelector('#tr-src').value.trim(); if (!q) return;
+                const out = o.querySelector('#tr-out'); out.textContent = 'Перевожу…';
+                try {
+                    const to = o.querySelector('#tr-to').value;
+                    const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(to)}&dt=t&q=${encodeURIComponent(q)}`);
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    const j = await r.json();
+                    out.textContent = j[0].map(x => x[0]).join('');
+                } catch (err) {
+                    console.error('translate', err);
+                    out.textContent = 'Не удалось перевести: нет сети или сервис недоступен.';
+                }
+            });
+        }
+
+        // Жесты от левого края: вправо на списке — меню, вправо в чате — назад, влево в меню — закрыть
+        let edgeX = null, edgeY = 0;
+        document.addEventListener('touchstart', e => {
+            const t = e.touches[0];
+            edgeX = t.clientX <= 28 && !sideDrawer.classList.contains('open') ? t.clientX : null;
+            edgeY = t.clientY;
+        }, { passive: true });
+        document.addEventListener('touchend', e => {
+            const t = e.changedTouches[0];
+            if (sideDrawer.classList.contains('open')) return;
+            if (edgeX == null) return;
+            const dx = t.clientX - edgeX, dy = Math.abs(t.clientY - edgeY);
+            edgeX = null;
+            if (dx < 70 || dy > 60) return;
+            if (chatScreen.classList.contains('active')) document.getElementById('back-to-chats').click();
+            else if (chatsScreen.classList.contains('active')) openSide();
+        }, { passive: true });
+        // свайп влево по открытому меню — закрыть
+        sideDrawer.addEventListener('touchstart', e => { sideDrawer._sx = e.touches[0].clientX; }, { passive: true });
+        sideDrawer.addEventListener('touchend', e => {
+            if (sideDrawer._sx != null && sideDrawer._sx - e.changedTouches[0].clientX > 60) closeSide();
+            sideDrawer._sx = null;
+        }, { passive: true });
 
         // ===== Регистрация: согласие и простая проверка «не робот» =====
         const PRIVACY_VERSION = '1.0 от 11.10.2026', TERMS_VERSION = '1.0 от 11.10.2026';
