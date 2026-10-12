@@ -1889,6 +1889,13 @@
         .call-ctl .call-round.cc .ic{width:22px;height:22px}
         .call-end{width:68px;height:68px;border-radius:50%;border:0;padding:0;background:#ff3b30;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(255,59,48,.45),inset 0 .5px 0 rgba(255,255,255,.35);transition:transform .15s,background .15s}
         .call-end:active{transform:scale(.92);background:#e0281f}
+        .env-send-btn{color:var(--accent,#0a84ff)}
+        .input-row:not(.has-text) .env-send-btn{display:none}
+        .env-card{display:flex;align-items:center;gap:12px;min-width:200px;padding:10px 12px;border-radius:14px;cursor:pointer;background:rgba(127,127,127,.14);border:1px dashed rgba(127,127,127,.45)}
+        .env-ico{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;background:#1f2937;color:#fff}
+        .env-txt{display:flex;flex-direction:column;min-width:0}
+        .env-txt b{font-size:15px}
+        .env-txt span{font-size:12px;opacity:.7}
         .call-end svg{width:30px;height:30px;fill:currentColor;stroke:currentColor;stroke-width:.6;stroke-linejoin:round;transform:rotate(135deg)}
         /* мини-окно: только красная кнопка сброса */
         .call-overlay.mini .call-ctl{display:flex;background:transparent;padding:6px}
@@ -2392,6 +2399,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                         <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18.5V23"></path></svg>
                     </button>
                     <button id="sched-btn" class="file-btn sched-btn" title="Отправить позже" type="button"><svg class="ic"><use href="#i-sched"/></svg></button>
+                    <button id="env-btn" class="file-btn env-send-btn" title="Отправить в конверте (с паролем)" type="button" aria-label="Отправить в конверте"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
                     <button id="send-btn" class="send-btn" title="Отправить">
                         <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"></path></svg>
                     </button>
@@ -3220,12 +3228,70 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc8.encode(JSON.stringify(obj)));
             return { iv: b64(iv), ct: b64(ct) };
         }
+        async function canEncryptTo(uid) {
+            await ensureE2EE(); if (!E2E.ready || !uid) return false;
+            try { return !!(await chatKeyWith(uid)); } catch (_) { return false; }
+        }
+        // Файл для загрузки: новый случайный ключ AES-GCM на каждый файл; ключ уходит получателю внутри зашифрованного сообщения
+        async function encryptBlobForUpload(blob) {
+            const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, await blob.arrayBuffer());
+            return { blob: new Blob([ct], { type: 'application/octet-stream' }), k: b64(await crypto.subtle.exportKey('raw', key)), i: b64(iv) };
+        }
         const __decCache = new Map();   // расшифровка один раз на сообщение, а не при каждом обновлении чата
+        const __mediaCache = new Map(); // скачивание и расшифровка вложений один раз на сообщение
+        function resolveMedia(ck, list) {
+            if (!__mediaCache.has(ck)) __mediaCache.set(ck, (async () => {
+                const imageUrls = [];
+                let audioUrl = null, docMeta = null;
+                for (const f of list) {
+                    const r = await fetch(f.u); if (!r.ok) throw new Error('media ' + r.status);
+                    const key = await crypto.subtle.importKey('raw', unb64(f.k), 'AES-GCM', false, ['decrypt']);
+                    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(f.i) }, key, await r.arrayBuffer());
+                    const url = URL.createObjectURL(new Blob([pt], { type: f.t || 'application/octet-stream' }));
+                    if (f.c === 'img') imageUrls.push(url);
+                    else if (f.c === 'aud') audioUrl = url;
+                    else if (f.c === 'doc') docMeta = { fileUrl: url, fileName: f.n, fileSize: pt.byteLength, fileType: f.t };
+                }
+                return { imageUrl: imageUrls[0] || null, ...(imageUrls.length > 1 ? { imageUrls } : {}), audioUrl, ...(docMeta || {}) };
+            })().catch(e => { __mediaCache.delete(ck); throw e; }));
+            return __mediaCache.get(ck);
+        }
+        // ===== Конверт: второй слой шифрования паролем отправителя поверх сквозного шифрования чата =====
+        const __openEnv = new Map();   // ck → открытое содержимое конверта (только в памяти, после ввода пароля)
+        async function makeEnvelope(pass) {
+            const salt = crypto.getRandomValues(new Uint8Array(16)), iter = 250000;
+            const key = await passKey(pass, salt, iter);   // ключ не извлекаем, пароль нигде не сохраняется
+            return { s: b64(salt), it: iter, key };
+        }
+        async function sealEnvelope(it, inner) {
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, it.env.key, enc8.encode(JSON.stringify(inner)));
+            return { s: it.env.s, it: it.env.it, i: b64(iv), c: b64(ct) };
+        }
+        async function openEnvelope(id) {
+            const msg = messagesCache.get(id); if (!msg?.envLocked) return;
+            const pass = await askText({ title: '🔒 Конверт', text: 'Введите пароль, который задал отправитель.', ph: 'Пароль', ok: 'Открыть', skip: 'Отмена' });
+            if (!pass) return;
+            try {
+                const env = msg.env, key = await passKey(pass, unb64(env.s), env.it);
+                const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(env.i) }, key, unb64(env.c));
+                __openEnv.set(msg.envCk, JSON.parse(dec8.decode(pt)));
+            } catch (_) { showToast('Неверный пароль'); return; }
+            const nm = await decryptMsg(msg._raw);
+            messagesCache.set(id, nm);
+            const el = messagesList.querySelector(`.message[data-id="${CSS.escape(id)}"]`);
+            if (el) el.replaceWith(createMessageElement(id, nm, false));
+            showToast('Конверт открыт', false);
+        }
+
         async function decryptMsg(data) {
             if (!data.e2e) return data;
+            let o;
             try {
                 const ck = data.e2e.iv + data.e2e.ct;
-                let o = __decCache.get(ck);
+                o = __decCache.get(ck);
                 if (!o) {
                     const other = data.senderId === currentUser.uid ? data.receiverId : data.senderId;
                     const key = await chatKeyWith(other); if (!key) throw 0;
@@ -3234,8 +3300,20 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                     if (__decCache.size > 800) __decCache.delete(__decCache.keys().next().value);
                     __decCache.set(ck, o);
                 }
-                return { ...data, text: o.text || '', replyPreview: o.rp || data.replyPreview };
             } catch (_) { return { ...data, text: 'Не удалось расшифровать', locked: true }; }
+            const ck = data.e2e.iv + data.e2e.ct;
+            const sealedMsg = !!o.env;
+            if (o.env) {
+                const inner = __openEnv.get(ck);
+                if (!inner) return { ...data, text: '', envLocked: true, sealed: true, env: o.env, envCk: ck, _raw: data, imageUrl: null, audioUrl: null, fileUrl: null, replyPreview: null };
+                o = inner;
+            }
+            let media = {};
+            if (o.m?.length) {
+                try { media = await resolveMedia(ck, o.m); }
+                catch (_) { media = { imageUrl: null }; o = { ...o, text: (o.text ? o.text + '\n' : '') + '🔒 Вложение не удалось загрузить' }; }
+            }
+            return { ...data, text: o.text || '', replyPreview: o.rp || data.replyPreview, ...media, ...(sealedMsg ? { sealed: true } : {}) };
         }
         async function securityInfo(uid) { // код безопасности для сверки с собеседником
             await ensureE2EE(); const p = await peerPub(uid);
@@ -3272,6 +3350,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         // ===== Пересылка =====
         async function forwardMessage(id) {
             const msg = messagesCache.get(id); if (!msg || msg.deleted) return;
+            if (msg.sealed) { showToast('Сообщение в конверте нельзя переслать'); return; }
             const items = allChatsCache.map(c => ({ id: c.id, label: c.isGroup ? '👥 ' + (c.title || 'Группа') : (() => { const i = getOtherUserInfo(c, currentUser.uid); return displayNameFor(i.uid, i.name); })() }));
             if (!items.length) { showToast('Нет чатов для пересылки'); return; }
             const r = await openPicker({ title: 'Переслать в…', items });
@@ -3280,11 +3359,37 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             try {
                 const otherUid = chat.isGroup ? null : getOtherUserInfo(chat, currentUser.uid).uid;
                 const from = msg.forwardedFrom || (msg.senderId === currentUser.uid ? normalizeName(currentUser) : (msg.senderName || displayNameFor(msg.senderId, chatTitle.textContent)));
-                const payload = { senderId: currentUser.uid, receiverId: otherUid, text: msg.text || '', imageUrl: msg.imageUrl || null, ...(msg.imageUrls?.length > 1 ? { imageUrls: msg.imageUrls } : {}), ...(msg.sticker ? { sticker: true } : {}), audioUrl: msg.audioUrl || null, fileUrl: msg.fileUrl || null, fileName: msg.fileName || null, fileSize: msg.fileSize || null, fileType: msg.fileType || null, chatId: chat.id, read: false, createdAt: serverTimestamp(), forwardedFrom: from };
+                // Вложения (в том числе расшифрованные, у них ссылки локальные blob:) загружаются заново: в 1:1 — зашифрованно, в группах — как обычно
+                const hasMedia = !!(msg.imageUrl || msg.audioUrl || msg.fileUrl);
+                const secureF = !chat.isGroup && !!otherUid && await canEncryptTo(otherUid);
+                let encMedia = null, mediaOut = null;
+                if (hasMedia) {
+                    if (!chat.isGroup && !secureF) { showToast('Чтобы переслать вложение, у собеседника должно быть включено шифрование'); return; }
+                    const srcs = [];
+                    (msg.imageUrls?.length ? msg.imageUrls : msg.imageUrl ? [msg.imageUrl] : []).forEach(u => srcs.push({ c: 'img', u, folder: 'images', name: 'image.jpg' }));
+                    if (msg.audioUrl) srcs.push({ c: 'aud', u: msg.audioUrl, folder: 'audio', name: 'voice.webm' });
+                    if (msg.fileUrl) srcs.push({ c: 'doc', u: msg.fileUrl, folder: 'files', name: msg.fileName || 'file' });
+                    const out = [];
+                    for (const s of srcs) {
+                        const blob = await (await fetch(s.u)).blob();
+                        if (secureF) {
+                            const r = await encryptBlobForUpload(blob);
+                            out.push({ c: s.c, u: await uploadToSupabase(r.blob, 'e.bin', s.folder), k: r.k, i: r.i, n: s.name, t: blob.type || '', s: blob.size });
+                        } else {
+                            out.push({ c: s.c, u: await uploadToSupabase(blob, s.name, s.folder), n: s.name, t: blob.type || '', s: blob.size });
+                        }
+                    }
+                    if (secureF) encMedia = out; else mediaOut = out;
+                }
+                const imgs = (mediaOut || []).filter(x => x.c === 'img').map(x => x.u);
+                const aud = (mediaOut || []).find(x => x.c === 'aud'), doc = (mediaOut || []).find(x => x.c === 'doc');
+                const payload = { senderId: currentUser.uid, receiverId: otherUid, text: msg.text || '', imageUrl: hasMedia && !secureF ? (imgs[0] || null) : (hasMedia ? null : msg.imageUrl || null), ...(imgs.length > 1 ? { imageUrls: imgs } : (!hasMedia && msg.imageUrls?.length > 1 ? { imageUrls: msg.imageUrls } : {})), ...(msg.sticker ? { sticker: true } : {}), audioUrl: hasMedia ? (aud?.u || null) : null, fileUrl: doc?.u || null, fileName: doc?.n || null, fileSize: doc?.s || null, fileType: doc?.t || null, chatId: chat.id, read: false, createdAt: serverTimestamp(), forwardedFrom: from };
+                if (secureF && hasMedia) { payload.imageUrl = null; payload.audioUrl = null; payload.fileUrl = null; payload.fileName = null; payload.fileSize = null; payload.fileType = null; }
                 if (chat.isGroup) payload.senderName = normalizeName(currentUser);
                 let preview = msg.text || (msg.fileUrl ? '📎 ' + (msg.fileName || 'Файл') : msg.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
                 const plainPrev = preview;
-                if (msg.text && otherUid) { const e = await encryptFor(otherUid, { text: msg.text, rp: '' }); if (e) { payload.e2e = e; payload.text = ''; preview = '🔒 Сообщение'; } }
+                if (encMedia) { const e = await encryptFor(otherUid, { text: msg.text || '', rp: '', m: encMedia }); if (!e) throw new Error('шифрование недоступно'); payload.e2e = e; payload.text = ''; preview = '🔒 Сообщение'; }
+                else if (msg.text && otherUid) { const e = await encryptFor(otherUid, { text: msg.text, rp: '' }); if (e) { payload.e2e = e; payload.text = ''; preview = '🔒 Сообщение'; } }
                 const ttlF = Number(chat.disappearAfter) || 0; if (ttlF > 0) payload.expiresAt = Date.now() + ttlF * 1000;
                 await addDoc(collection(db, 'messages'), payload);
                 await updateChatSummary(chat.id, preview, otherUid);
@@ -3300,6 +3405,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         function authorLabel(uid) { return uid === currentUser?.uid ? 'Вы' : (chatTitle.textContent || 'Собеседник'); }
         function startReply(id) {
             const msg = messagesCache.get(id); if (!msg || msg.deleted) return;
+            if (msg.sealed) { showToast('На сообщение в конверте нельзя ответить'); return; }
             cancelEdit();
             replyingTo = { id, text: previewOf(msg).slice(0, 140), senderId: msg.senderId };
             document.getElementById('reply-banner-author').textContent = 'Ответ: ' + authorLabel(msg.senderId);
@@ -3491,6 +3597,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         function startEdit(id) {
             cancelReply();
             const msg = messagesCache.get(id); if (!msg) return;
+            if (msg.sealed) { showToast('Сообщение в конверте нельзя изменить'); return; }
             clearAttachment(); editingMessageId = id;
             messageInput.value = msg.text || '';
             document.getElementById('edit-banner-preview').textContent = msg.text || '';
@@ -3900,6 +4007,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 audioBlob: o.audioBlob || null,
                 docBlob: o.docBlob || null, docName: o.docBlob?.name || '', docSize: o.docBlob?.size || 0, docType: o.docBlob?.type || '',
                 imageUrl: null, sticker: !!o.sticker, audioUrl: o.audioUrl || null, docMeta: o.docMeta || null,
+                env: o.env || null, encMode: !!o.env,
                 stage: ((o.imageBlobs?.length || o.imageBlob) || o.audioBlob || o.docBlob) ? 'media' : 'write', state: 'queued', tries: 0, err: ''
             };
             OB.items.set(it.id, it);
@@ -3910,13 +4018,15 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         }
 
         async function obEncrypt(it) {
-            if (it.isGroup || !it.text || !it.otherUid) return null;
+            if (it.isGroup || !it.otherUid || (!it.text && !it.encMode)) return null;
             await ensureE2EE();
             if (!E2E.ready) return null;
             let p = profiles.get(it.otherUid)?.e2eePub;
             if (!p) p = (await getDoc(doc(db, 'users', it.otherUid))).data()?.e2eePub;   // нет сети и нет кэша → ошибка → ждём, а не шлём открытым текстом
             if (!p) return null;
-            return encryptFor(it.otherUid, { text: it.text, rp: it.reply?.text || '' });
+            const m = it.encMode ? [...(it.encFiles || []), ...(it.encDoc ? [it.encDoc] : []), ...(it.encAudio ? [it.encAudio] : [])] : undefined;
+            const inner = { text: it.text, rp: it.reply?.text || '', m };
+            return encryptFor(it.otherUid, it.env ? { env: await sealEnvelope(it, inner) } : inner);
         }
 
         function obDone(it, push) {
@@ -3936,14 +4046,33 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             it.state = 'sending'; obRenderLocal();
             try {
                 if (it.stage === 'media') {
-                    if (it.docBlob && !it.docMeta) it.docMeta = { fileUrl: await obWithTimeout(uploadToSupabase(it.docBlob, it.docName || 'file', 'files'), 90000), fileName: it.docName, fileSize: it.docSize, fileType: it.docType };
-                    while (it.imageBlobs.length > it.imageUrls.length) {   // догружаем по одному, прогресс сохраняем: повтор не грузит заново
-                        const b = it.imageBlobs[it.imageUrls.length];
-                        it.imageUrls.push(await obWithTimeout(uploadToSupabase(b, b.name || 'image.jpg', 'images'), 90000));
-                        await obPut(it);
+                    const secure = !it.isGroup && !!it.otherUid && await canEncryptTo(it.otherUid);
+                    if (it.encMode && !secure) { it.state = 'queued'; obRenderLocal(); return 'wait'; }   // начали шифровать — без шифрования не досылаем
+                    if (secure) {
+                        // Файлы шифруются на устройстве (AES-GCM, свой ключ на каждый файл), в Supabase уходит только шифротекст
+                        it.encMode = true; it.encFiles = it.encFiles || [];
+                        const up = async (blob, c, folder, name) => {
+                            const r = await encryptBlobForUpload(blob);
+                            return { c, u: await obWithTimeout(uploadToSupabase(r.blob, 'e.bin', folder), 90000), k: r.k, i: r.i, n: name || blob.name || '', t: blob.type || '' };
+                        };
+                        if (it.docBlob && !it.encDoc) it.encDoc = await up(it.docBlob, 'doc', 'files', it.docName || 'file');
+                        while (it.encFiles.length < it.imageBlobs.length) {   // догружаем по одному, прогресс сохраняем
+                            it.encFiles.push(await up(it.imageBlobs[it.encFiles.length], 'img', 'images', 'image.jpg'));
+                            await obPut(it);
+                        }
+                        if (it.audioBlob && !it.encAudio) it.encAudio = await up(it.audioBlob, 'aud', 'audio', `voice-${it.created}.webm`);
+                        it.plainHint = it.encDoc ? '📎 ' + (it.encDoc.n || 'Файл') : it.encFiles.length ? '📷 Фото' : it.encAudio ? '🎤 Голосовое сообщение' : '';
+                        it.imageUrl = null; it.imageUrls = []; it.audioUrl = null; it.docMeta = null;
+                    } else {
+                        if (it.docBlob && !it.docMeta) it.docMeta = { fileUrl: await obWithTimeout(uploadToSupabase(it.docBlob, it.docName || 'file', 'files'), 90000), fileName: it.docName, fileSize: it.docSize, fileType: it.docType };
+                        while (it.imageBlobs.length > it.imageUrls.length) {   // догружаем по одному, прогресс сохраняем: повтор не грузит заново
+                            const b = it.imageBlobs[it.imageUrls.length];
+                            it.imageUrls.push(await obWithTimeout(uploadToSupabase(b, b.name || 'image.jpg', 'images'), 90000));
+                            await obPut(it);
+                        }
+                        it.imageUrl = it.imageUrls[0] || null;
+                        if (it.audioBlob && !it.audioUrl) it.audioUrl = await obWithTimeout(uploadToSupabase(it.audioBlob, `voice-${it.created}.webm`, 'audio'), 90000);
                     }
-                    it.imageUrl = it.imageUrls[0] || null;
-                    if (it.audioBlob && !it.audioUrl) it.audioUrl = await obWithTimeout(uploadToSupabase(it.audioBlob, `voice-${it.created}.webm`, 'audio'), 90000);
                     it.stage = 'write'; it.imageBlobs = []; it.audioBlob = it.docBlob = null;
                     await obPut(it);
                 }
@@ -3954,16 +4083,17 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                     chatId: it.chatId, read: false, createdAt: serverTimestamp()
                 };
                 if (it.reply?.id) { payload.replyTo = it.reply.id; payload.replyPreview = it.reply.text || ''; payload.replyAuthorId = it.reply.senderId || null; }
-                const plain = it.text || (it.docMeta ? '📎 ' + (it.docMeta.fileName || 'Файл') : it.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
+                const plain = it.text || it.plainHint || (it.docMeta ? '📎 ' + (it.docMeta.fileName || 'Файл') : it.imageUrl ? '📷 Фото' : '🎤 Голосовое сообщение');
                 let encrypted = false;
                 if (it.isGroup) payload.senderName = normalizeName(currentUser);
                 else {
                     const e = await obEncrypt(it);
                     if (e) { payload.e2e = e; payload.text = ''; delete payload.replyPreview; encrypted = true; }
+                    else if (it.encMode) { it.state = 'queued'; obRenderLocal(); return 'wait'; }
                 }
                 if (it.ttl > 0) payload.expiresAt = it.created + it.ttl * 1000;
                 const summary = it.ttl > 0 ? 'Исчезающее сообщение' : (encrypted ? '🔒 Сообщение' : plain);
-                it.pushBody = encrypted ? (pushTextOk(it.otherUid) ? clipPush(plain) : '🔒 Сообщение') : plain;
+                it.pushBody = it.env ? '🔒 Конверт' : encrypted ? (pushTextOk(it.otherUid) ? clipPush(plain) : '🔒 Сообщение') : plain;
                 const batch = writeBatch(db);
                 batch.set(doc(db, 'messages', it.id), payload);
                 batch.set(doc(db, 'chats', it.chatId), chatSummaryPatch(it.chatId, summary, it.otherUid), { merge: true });
@@ -4162,6 +4292,16 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 if (iBlocked(currentChatOtherUid)) { showToast('Вы заблокировали этого пользователя. Разблокируйте его, чтобы написать.'); return; }
                 if (blockedMe(currentChatOtherUid)) { showToast('Не удалось отправить сообщение.'); return; }
             }
+            let envSpec = null;
+            if (opts?.envelope) {
+                if (when) { showToast('Конверт нельзя запланировать'); return; }
+                if (getCurrentChat()?.isGroup || !currentChatOtherUid) { showToast('Конверт доступен только в личном чате'); return; }
+                if (!(await canEncryptTo(currentChatOtherUid))) { showToast('Конверт доступен, когда у собеседника включено шифрование'); return; }
+                const pass = await askText({ title: '🔒 Конверт', text: 'Придумайте пароль (от 4 символов). Получатель откроет сообщение только с ним. Передайте пароль собеседнику отдельно.', ph: 'Пароль', ok: 'Отправить', skip: 'Отмена' });
+                if (!pass) return;
+                if (pass.length < 4) { showToast('Пароль короче 4 символов'); return; }
+                envSpec = await makeEnvelope(pass);
+            }
             const chatId = currentChatId;
             const out = {
                 chatId, otherUid: currentChatOtherUid || null, isGroup: !!getCurrentChat()?.isGroup, text,
@@ -4170,6 +4310,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             const clearAll = () => { messageInput.value = ''; clearAttachment(); cancelReply(); clearDraft(chatId); };
             if (!when) {
                 // мгновенно: сообщение появляется в чате сразу, загрузка и отправка идут в фоне
+                out.env = envSpec;
                 out.imageBlobs = pendingImages.slice(); out.audioBlob = pendingAudioBlob; out.docBlob = pendingDocFile;
                 out.sticker = pendingSticker && pendingImages.length === 1;
                 obEnqueue(out);
@@ -4485,6 +4626,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             });
         }
 
+        const ENV_CARD = '<div class="env-card"><div class="env-ico">' + '🔒' + '</div><div class="env-txt"><b>Конверт</b><span>Нажмите и введите пароль, чтобы открыть</span></div></div>';
         function createMessageElement(id, msg, pending) {
             const mine = msg.senderId === currentUser?.uid;
             const div = document.createElement('div');
@@ -4505,6 +4647,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                     const qAuthor = authorLabel(src ? src.senderId : msg.replyAuthorId);
                     html += `<div class="reply-quote" data-reply="${escapeHtml(msg.replyTo)}"><b>${escapeHtml(qAuthor)}</b><span>${iconLead(qText.slice(0, 140))}</span></div>`;
                 }
+                if (msg.envLocked) html += ENV_CARD;
                 const jumbo = msg.text && !msg.replyTo && !msg.forwardedFrom && !msg.imageUrl && !msg.fileUrl && JUMBO_RE.test(msg.text.trim());
                 if (msg.text) html += jumbo ? `<div class="msg-jumbo">${escapeHtml(msg.text.trim())}</div>` : `<div>${msg.locked ? ic('lock') + ' ' : ''}${linkify(msg.text)}</div>`;
                 if (msg.imageUrls?.length > 1) html += albumHtml(msg.imageUrls);
@@ -4743,6 +4886,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             });
         }
         function renderChatsNow() {
+            if (window.__shareWanted) maybeShare();
             chatsList.innerHTML = '';
             updateRailBadges();
 
@@ -5437,6 +5581,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         emailInput.addEventListener('keydown', e => { if (e.key === 'Enter') passwordInput.focus(); });
 
         sendBtn.addEventListener('click', sendMessage);
+        document.getElementById('env-btn').addEventListener('click', () => { if (navigator.vibrate) navigator.vibrate(8); sendMessage({ envelope: true }); });
         messageInput.addEventListener('keydown', e => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -5966,6 +6111,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             if (lf && !e.target.closest('.message-image')) { obFailedDialog(lf.dataset.id); return; }
             const chip = e.target.closest('.reaction-chip');
             if (chip) { toggleReaction(chip.closest('.message').dataset.id, chip.dataset.emoji); return; }
+            const envEl = e.target.closest('.env-card');
+            if (envEl) { openEnvelope(envEl.closest('.message').dataset.id); return; }
             const dc = e.target.closest('.doc-card');
             if (dc) { if (dc.dataset.url) openDoc(dc.dataset.url, dc.dataset.name); return; }
             const vid = e.target.closest('.vid');
@@ -6168,6 +6315,44 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 
         // ===== Вставка фото из буфера обмена (Ctrl+V / долгий тап → Вставить) =====
         // Перетаскивание и вставка файлов в любое место чата (фото, видео, документы)
+        // ---- Отправка через «Поделиться» (Android, установленное приложение) ----
+        // Service worker кладёт присланные файлы в кэш 'share-inbox' и открывает ./?share=1
+        window.__shareWanted = /[?&]share=1/.test(location.search);
+        async function readShareInbox() {
+            const files = [];
+            try {
+                const c = await caches.open('share-inbox');
+                for (const req of await c.keys()) {
+                    const r = await c.match(req);
+                    if (r) {
+                        const b = await r.blob();
+                        const name = decodeURIComponent(r.headers.get('X-Name') || 'file');
+                        files.push(new File([b], name, { type: r.headers.get('Content-Type') || b.type }));
+                    }
+                    await c.delete(req);
+                }
+            } catch (_) {}
+            return files;
+        }
+        async function maybeShare() {
+            if (!window.__shareWanted || !currentUser || !allChatsCache.length) return;
+            window.__shareWanted = false;
+            try { history.replaceState(null, '', location.pathname); } catch (_) {}
+            const files = await readShareInbox();
+            if (!files.length) return;
+            const rows = allChatsCache.map((c, i) => {
+                const mt = chatMeta(c);
+                return `<button class="cm-btn share-pick" data-i="${i}" style="width:100%;margin:4px 0;text-align:left">${escapeHtml(mt.name)}</button>`;
+            }).join('');
+            const o = cmModal(`<h3>Отправить в чат</h3><p>Файлов: ${files.length}. Выберите, кому отправить.</p><div style="max-height:50vh;overflow:auto">${rows}</div><div class="cm-actions"><button class="cm-btn" data-x="skip">Отмена</button></div>`);
+            o.addEventListener('click', e => {
+                if (e.target.closest('[data-x="skip"]') || e.target === o) { o.remove(); return; }
+                const b = e.target.closest('.share-pick'); if (!b) return;
+                const c = allChatsCache[+b.dataset.i]; const mt = chatMeta(c);
+                o.remove();
+                openChat(c.id, mt.otherUid, mt.name).then(() => attachFiles(files));
+            });
+        }
         function attachFiles(files) {
             if (!currentUser || !currentChatId || editingMessageId) return;
             const list = [...files];
