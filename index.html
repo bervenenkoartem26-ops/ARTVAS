@@ -1871,6 +1871,31 @@
         .incoming-call .nm{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.012em}
         .incoming-call .kd{font-size:13px;line-height:18px}
         .incoming-call .call-round{width:48px;height:48px}
+        .incoming-call #incoming-no{background:#ff453a}
+        .incoming-call #incoming-no svg{transform:rotate(135deg)}
+
+        /* Экран звонка: тёмный фон, прозрачная шапка, нижняя панель с кнопками и красная кнопка сброса */
+        .call-overlay{background:radial-gradient(120% 70% at 50% 0%,#1c2230 0%,#07080b 62%);color:#fff}
+        .call-overlay .call-grid{background:transparent}
+        .call-bar{background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));color:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px}
+        .call-bar .t{text-align:center;font-size:17px;font-weight:600;letter-spacing:-.012em}
+        .call-bar #call-min{position:absolute;right:14px;top:calc(10px + env(safe-area-inset-top,0px));width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+        .call-bar #call-min svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .call-overlay .call-bar{position:relative}
+        .call-ctl{background:transparent;justify-content:center;align-items:center;gap:14px;padding:14px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+        .call-ctl .call-round.cc{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#fff}
+        .call-ctl .call-round.cc:active{transform:scale(.92)}
+        .call-ctl .call-round.cc.off{background:#fff;color:#111}
+        .call-ctl .call-round.cc .ic{width:22px;height:22px}
+        .call-end{width:68px;height:68px;border-radius:50%;border:0;padding:0;background:#ff3b30;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(255,59,48,.45),inset 0 .5px 0 rgba(255,255,255,.35);transition:transform .15s,background .15s}
+        .call-end:active{transform:scale(.92);background:#e0281f}
+        .call-end svg{width:30px;height:30px;fill:currentColor;stroke:currentColor;stroke-width:.6;stroke-linejoin:round;transform:rotate(135deg)}
+        /* мини-окно: только красная кнопка сброса */
+        .call-overlay.mini .call-ctl{display:flex;background:transparent;padding:6px}
+        .call-overlay.mini .call-ctl .call-round.cc{display:none}
+        .call-overlay.mini .call-end{width:44px;height:44px;box-shadow:none}
+        .call-overlay.mini .call-end svg{width:20px;height:20px}
+        @media (prefers-reduced-motion:reduce){.call-end,.call-ctl .call-round.cc{transition:none}}
 
         /* =====================================================================
            ВСТРОЕННЫЙ БРАУЗЕР
@@ -2375,7 +2400,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         </div>
 
         <div id="call-overlay" class="call-overlay">
-            <div class="call-bar"><div id="call-title" class="t">Звонок</div><button id="call-min" class="icon-btn" title="Свернуть/развернуть"><svg viewBox="0 0 24 24"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg></button><button id="call-hangup" class="icon-btn call-hang" title="Завершить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>
+            <div class="call-bar"><div id="call-title" class="t">Звонок</div><button id="call-min" class="icon-btn" title="Свернуть/развернуть"><svg viewBox="0 0 24 24"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg></button></div>
             <div id="call-grid" class="call-grid"></div>
             <div class="call-ctl">
                 <button id="cc-mic" class="call-round cc" title="Микрофон"><svg class="ic"><use href="#i-mic"/></svg></button>
@@ -2383,6 +2408,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 <button id="cc-scr" class="call-round cc" title="Показ экрана"><svg class="ic"><use href="#i-monitor"/></svg></button>
                 <button id="cc-inv" class="call-round cc" title="Пригласить в комнату"><svg class="ic"><use href="#i-plus"/></svg></button>
                 <button id="cc-close" class="call-round cc" title="Закрыть комнату для всех"><svg class="ic"><use href="#i-ban"/></svg></button>
+                <button id="call-hangup" class="call-end" title="Завершить звонок" aria-label="Завершить звонок"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button>
             </div>
         </div>
         <div id="incoming-call" class="incoming-call"><div class="info"><div id="incoming-name" class="nm"></div><div id="incoming-kind" class="kd"></div></div><button id="incoming-no" class="call-round no" title="Отклонить"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button><button id="incoming-yes" class="call-round ok" title="Принять"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>
