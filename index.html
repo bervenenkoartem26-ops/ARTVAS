@@ -2091,6 +2091,40 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
 .sd-item{display:block;width:100%;text-align:left;padding:14px 12px;border:0;background:transparent;color:inherit;font-size:16px;border-radius:12px;cursor:pointer}
 .sd-item:active{background:rgba(127,127,127,.15)}
 </style>
+<style>
+/* В приложении ничего не выделяется и не копируется, кроме кнопки «Копировать» в меню сообщения.
+   Поля ввода остаются рабочими, чтобы можно было печатать. */
+html, body, body * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+body input, body textarea, body [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
+</style>
+<style>
+.legal-sheet{position:fixed;inset:0;z-index:3000;background:var(--surface-color,#18181b);color:inherit;display:flex;flex-direction:column}
+.legal-top{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;border-bottom:1px solid rgba(127,127,127,.2);font-weight:600;font-size:16px}
+.legal-x{width:36px;height:36px;border:0;border-radius:50%;background:rgba(127,127,127,.15);color:inherit;font-size:18px;cursor:pointer}
+.legal-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;font-size:14px;line-height:1.55;text-align:left}
+.legal-body h3{margin:0 0 12px;font-size:18px}
+.legal-body p{margin:0 0 10px}
+.legal-foot{padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);border-top:1px solid rgba(127,127,127,.2)}
+.legal-ok{width:100%;padding:12px;border:0;border-radius:12px;background:var(--accent,#6366f1);color:#fff;font-size:16px;cursor:pointer}
+</style>
+<style>
+.st-hero{position:relative;display:flex;flex-direction:column;align-items:center;padding:18px 0 22px;transition:padding .3s ease}
+.st-hero-avatar{width:132px;height:132px;border-radius:50%;overflow:hidden;font-size:52px;transition:all .3s ease}
+.st-hero-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.st-hero-info{display:flex;flex-direction:column;align-items:center;margin-top:12px;text-align:center}
+.st-hero-name{font-size:24px;font-weight:700}
+.st-hero-sub{font-size:15px;opacity:.6;margin-top:2px}
+.st-hero.expanded{padding:0}
+.st-hero.expanded .st-hero-avatar{width:100%;height:min(100vw,420px);border-radius:0;font-size:120px}
+.st-hero.expanded .st-hero-avatar img{height:100%}
+.st-hero.expanded .st-hero-info{position:absolute;left:16px;bottom:14px;margin:0;align-items:flex-start;text-align:left;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.st-hero.expanded .st-hero-sub{opacity:.85}
+.tg-chev{margin-left:auto;opacity:.4;font-size:20px;line-height:1}
+.pm-row{flex-wrap:wrap;gap:6px 14px;cursor:default}
+.pm-row .tg-title{flex-basis:100%}
+.pm-sw{display:flex;align-items:center;gap:8px;font-size:13px;opacity:.9}
+.pm-sw small{opacity:.7}
+</style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -2350,12 +2384,59 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
                 <button id="back-from-settings" class="icon-btn" title="Назад">
                     <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
                 </button>
-                <div class="top-bar-title">Настройки приложения</div>
+                <div class="top-bar-title">Настройки</div>
             </div>
             <div class="settings-body">
-                <div class="tg-list">
-                    <button id="open-privacy" class="tg-row"><span class="tg-ico" style="background:#6b7280"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><span class="tg-title">Конфиденциальность</span><svg class="tg-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+                <div id="st-hero" class="st-hero" title="Потяните вверх, чтобы развернуть фото">
+                    <div id="st-hero-avatar" class="st-hero-avatar avatar"></div>
+                    <div class="st-hero-info"><div id="st-hero-name" class="st-hero-name"></div><div id="st-hero-sub" class="st-hero-sub"></div></div>
                 </div>
+                <div class="tg-list">
+                    <button id="st-profile" class="tg-row"><span class="tg-ico" style="background:#ef4444"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="tg-title">Мой профиль</span><span class="tg-chev">›</span></button>
+                    <button id="open-privacy" class="tg-row"><span class="tg-ico" style="background:#6b7280"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><span class="tg-title">Конфиденциальность</span><span class="tg-chev">›</span></button>
+                    <button id="st-calls" class="tg-row"><span class="tg-ico" style="background:#10b981"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2z"/></svg></span><span class="tg-title">Недавние звонки</span><span class="tg-chev">›</span></button>
+                </div>
+                <div class="tg-list">
+                    <button id="st-notif" class="tg-row"><span class="tg-ico" style="background:#f59e0b"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span><span class="tg-title">Уведомления и звуки</span><span class="tg-chev">›</span></button>
+                    <button id="st-appear" class="tg-row"><span class="tg-ico" style="background:#6366f1"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M12 3a9 9 0 0 1 0 18"/></svg></span><span class="tg-title">Оформление</span><span class="tg-chev">›</span></button>
+                </div>
+                <button id="settings-logout-btn" class="btn btn-danger btn-block" style="margin-top: 12px;">Выйти из аккаунта</button>
+            </div>
+        </div>
+
+        <div id="notif-screen" class="screen">
+            <div class="top-bar">
+                <button id="back-from-notif" class="icon-btn" title="Назад">
+                    <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+                </button>
+                <div class="top-bar-title">Уведомления и звуки</div>
+            </div>
+            <div class="settings-body">
+                <div class="settings-section settings-toggle-row">
+                    <div class="settings-toggle-label">Уведомления о сообщениях</div>
+                    <label class="switch"><input type="checkbox" id="notif-toggle"><span class="slider"></span></label>
+                </div>
+                <div class="settings-toggle-hint">Работают в фоновом режиме через Firebase Cloud Messaging. Это основной переключатель для всего приложения.</div>
+                <button id="notif-diagnose" class="btn" style="margin-top:8px"><svg class="ic"><use href="#i-bell"/></svg> Проверить уведомления</button>
+                <div class="settings-section settings-toggle-row" style="margin-top:16px">
+                    <div class="settings-toggle-label">Звук новых сообщений</div>
+                    <label class="switch"><input type="checkbox" id="sound-toggle"><span class="slider"></span></label>
+                </div>
+                <div class="settings-toggle-hint">В режиме «Не беспокоить» звук отключается.</div>
+                <div class="tg-head" style="margin-top:20px">Отдельные люди</div>
+                <div class="tg-list" id="person-mutes"></div>
+                <div class="settings-toggle-hint">«Уведомления» — не присылать push от этого человека. «Звук» — не проигрывать звук при его сообщениях в приложении.</div>
+            </div>
+        </div>
+
+        <div id="appear-screen" class="screen">
+            <div class="top-bar">
+                <button id="back-from-appear" class="icon-btn" title="Назад">
+                    <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+                </button>
+                <div class="top-bar-title">Оформление</div>
+            </div>
+            <div class="settings-body">
                 <div class="settings-section settings-toggle-row">
                     <div class="settings-toggle-label">Тёмная тема</div>
                     <label class="switch"><input type="checkbox" id="theme-toggle"><span class="slider"></span></label>
@@ -2364,22 +2445,6 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
                     <label class="settings-label">Цвет акцента</label>
                     <div class="accent-row" id="accent-row"></div>
                 </div>
-                <div class="settings-section">
-                    <div class="settings-toggle-row">
-                        <div class="settings-toggle-label">Уведомления о сообщениях</div>
-                        <label class="switch"><input type="checkbox" id="notif-toggle"><span class="slider"></span></label>
-                    </div>
-                    <div class="settings-toggle-hint">Работают в фоновом режиме через Firebase Cloud Messaging.</div>
-                    <button id="notif-diagnose" class="btn" style="margin-top:8px"><svg class="ic"><use href="#i-bell"/></svg> Проверить уведомления</button>
-                </div>
-                <div class="settings-section">
-                    <div class="settings-toggle-row">
-                        <div class="settings-toggle-label">Звук новых сообщений</div>
-                        <label class="switch"><input type="checkbox" id="sound-toggle"><span class="slider"></span></label>
-                    </div>
-                    <div class="settings-toggle-hint">В режиме «Не беспокоить» звук отключается.</div>
-                </div>
-                <button id="settings-logout-btn" class="btn btn-danger btn-block" style="margin-top: 12px;">Выйти из аккаунта</button>
             </div>
         </div>
 
@@ -3172,7 +3237,7 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
             } catch (_) {}
             try {   // запасной способ для браузеров без Clipboard API для картинок
                 const blob = await fetchImageBlob(url), obj = URL.createObjectURL(blob);
-                const box = document.createElement('div'); box.contentEditable = 'true'; box.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+                const box = document.createElement('div'); box.contentEditable = 'true'; box.dataset.copyOk = '1'; box.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
                 const im = new Image(); im.src = obj; await im.decode().catch(() => {});
                 box.appendChild(im); document.body.appendChild(box);
                 const sel = getSelection(), rg = document.createRange(); rg.selectNode(im); sel.removeAllRanges(); sel.addRange(rg);
@@ -3359,6 +3424,8 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
         const chatsScreen = document.getElementById('chats-screen');
         const chatScreen = document.getElementById('chat-screen');
         const settingsScreen = document.getElementById('settings-screen');
+        const notifScreen = document.getElementById('notif-screen');
+        const appearScreen = document.getElementById('appear-screen');
         const profileScreen = document.getElementById('profile-screen');
         const privacyScreen = document.getElementById('privacy-screen');
         const chatsList = document.getElementById('chats-list');
@@ -3405,14 +3472,14 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
             else renderChats();
         }
         function showScreen(screen) {
-            [authScreen, chatsScreen, chatScreen, settingsScreen, profileScreen, privacyScreen].forEach(el => el.classList.remove('active'));
+            [authScreen, chatsScreen, chatScreen, settingsScreen, profileScreen, privacyScreen, notifScreen, appearScreen].forEach(el => el.classList.remove('active'));
             screen.classList.add('active');
             // левое меню и плашка профиля видны на чатах/профиле/настройках; в самом чате и на входе скрыты
-            const showNav = screen === chatsScreen || screen === profileScreen || screen === settingsScreen || screen === privacyScreen;
+            const showNav = screen === chatsScreen || screen === profileScreen || screen === settingsScreen || screen === privacyScreen || screen === notifScreen || screen === appearScreen;
             rail.classList.toggle('nav-hidden', !showNav);
             userBar.classList.toggle('nav-hidden', !showNav);
             document.body.classList.toggle('has-nav', showNav);
-            if (showNav) setRailActive(screen === settingsScreen || screen === privacyScreen ? 'nav-settings-btn' : screen === profileScreen ? '' : (activeTab === 'calls' ? 'nav-calls-btn' : 'nav-chats-btn'));
+            if (showNav) setRailActive(screen === settingsScreen || screen === privacyScreen || screen === notifScreen || screen === appearScreen ? 'nav-settings-btn' : screen === profileScreen ? '' : (activeTab === 'calls' ? 'nav-calls-btn' : 'nav-chats-btn'));
         }
 
         function setAuthError(message) {
@@ -3984,9 +4051,10 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
                 const targets = (chat.members || chat.participants || []).filter(u => u !== currentUser.uid);
                 const tokens = [];
                 for (const u of targets) {
-                    let t = profiles.get(u)?.fcmToken;
-                    if (t === undefined) { try { t = (await getDoc(doc(db, 'users', u))).data()?.fcmToken; } catch (_) {} }
-                    if (t) tokens.push(t);
+                    let pd = profiles.get(u);
+                    if (!pd) { try { pd = (await getDoc(doc(db, 'users', u))).data() || {}; } catch (_) { pd = {}; } }
+                    if (pd.mutePush?.[currentUser.uid]) continue;   // получатель отключил уведомления от этого человека
+                    if (pd.fcmToken) tokens.push(pd.fcmToken);
                 }
                 if (!tokens.length) return;
                 const me = normalizeName(currentUser);
@@ -4106,7 +4174,7 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
                 snapshot.docChanges().forEach(ch => {
                     if (ch.type !== 'added') return;
                     if (ch.doc.data().senderId === currentUser.uid) ownAdded = true;
-                    else if (!first && !ch.doc.metadata.hasPendingWrites) incoming = true;
+                    else if (!first && !ch.doc.metadata.hasPendingWrites && !isSoundMuted(ch.doc.data().senderId)) incoming = true;
                 });
 
                 const seq = ++msgSeq;
@@ -4821,6 +4889,60 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
             showToast(`${title}: ${body}`, false);
         });
 
+        // ===== Настройки: шапка с аватаром, личные уведомления и звук =====
+        let prefsUnsub = null, myPrefs = {};
+        const isSoundMuted = uid => !!myPrefs.muteSound?.[uid];
+        function startPrefsWatch() {
+            if (prefsUnsub) prefsUnsub();
+            prefsUnsub = onSnapshot(doc(db, 'users', currentUser.uid), s => { myPrefs = s.data() || {}; }, () => {});
+        }
+        function renderHero() {
+            if (!currentUser) return;
+            const name = displayNameFor(currentUser.uid, normalizeName(currentUser));
+            applyAvatar(document.getElementById('st-hero-avatar'), currentUser.uid, normalizeName(currentUser));
+            document.getElementById('st-hero-name').textContent = name;
+            const u = profiles.get(currentUser.uid)?.username;
+            document.getElementById('st-hero-sub').textContent = u ? '@' + u : (currentUser.email || '');
+        }
+        const stHero = document.getElementById('st-hero');
+        let stHeroY = null, stHeroSwipeAt = 0;
+        stHero.addEventListener('click', () => { if (Date.now() - stHeroSwipeAt < 400) return; stHero.classList.toggle('expanded'); });
+        stHero.addEventListener('touchstart', e => { stHeroY = e.touches[0].clientY; }, { passive: true });
+        stHero.addEventListener('touchend', e => {
+            if (stHeroY == null) return;
+            const dy = e.changedTouches[0].clientY - stHeroY; stHeroY = null;
+            if (Math.abs(dy) > 40) { stHero.classList.toggle('expanded', dy < 0); stHeroSwipeAt = Date.now(); }
+        }, { passive: true });
+
+        function renderPersonMutes() {
+            const box = document.getElementById('person-mutes'); if (!box) return;
+            const list = contactsList();
+            box.innerHTML = list.length ? list.map(c => `<div class="tg-row pm-row"><span class="tg-title">${escapeHtml(c.label)}</span>
+                <label class="pm-sw"><small>Уведомления</small><span class="switch"><input type="checkbox" data-mute="push" data-uid="${escapeHtml(c.id)}" ${myPrefs.mutePush?.[c.id] ? '' : 'checked'}><span class="slider"></span></span></label>
+                <label class="pm-sw"><small>Звук</small><span class="switch"><input type="checkbox" data-mute="sound" data-uid="${escapeHtml(c.id)}" ${myPrefs.muteSound?.[c.id] ? '' : 'checked'}><span class="slider"></span></span></label>
+            </div>`).join('') : '<div class="settings-toggle-hint" style="padding:12px 16px">Собеседников пока нет: они появятся после первого чата.</div>';
+        }
+        document.getElementById('person-mutes').addEventListener('change', async e => {
+            const inp = e.target.closest('input[data-mute]'); if (!inp || !currentUser) return;
+            const field = inp.dataset.mute === 'push' ? 'mutePush' : 'muteSound';
+            const uid = inp.dataset.uid;
+            try {
+                // включено = не глушим; выключено = запоминаем человека в списке
+                await setDoc(doc(db, 'users', currentUser.uid), { [field]: { [uid]: inp.checked ? deleteField() : true } }, { merge: true });
+            } catch (err) {
+                console.error('mute', err); inp.checked = !inp.checked; showToast('Не удалось сохранить');
+            }
+        });
+
+        // ===== Запрет выделения и копирования: копирует только кнопка «Копировать» в меню сообщения =====
+        const isTypable = t => !!t?.closest?.('input, textarea, [contenteditable="true"]');
+        ['copy', 'cut'].forEach(ev => document.addEventListener(ev, e => {
+            if (document.querySelector('[data-copy-ok]') || isTypable(e.target)) return;   // служебное копирование кнопки и свои поля
+            e.preventDefault();
+        }, true));
+        document.addEventListener('selectstart', e => { if (!isTypable(e.target)) e.preventDefault(); }, true);
+        document.addEventListener('dragstart', e => { if (!isTypable(e.target)) e.preventDefault(); }, true);
+
         // ===== Боковое меню: свайп вправо от левого края на списке чатов =====
         // Свайп вправо от левого края в открытом чате — назад к списку диалогов
         const sideDrawer = document.createElement('div');
@@ -4914,9 +5036,19 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
           <p><b>6. Изменения.</b> Мы можем менять соглашение. Продолжая пользоваться сервисом, вы принимаете новую редакцию.</p>
           <p><b>7. Право.</b> К отношениям применяется законодательство Российской Федерации.</p>
           <p style="opacity:.7">Текст является черновиком и требует проверки юристом перед публичным запуском.</p>`;
+        // Документ открывается на весь экран: есть крестик, кнопка «Закрыть» и Esc. Не зависит от всплывающих окон.
         function showLegal(html) {
-            const o = cmModal(`<div style="max-height:62vh;overflow:auto;text-align:left;font-size:14px;line-height:1.5">${html}</div><div class="cm-actions"><button class="cm-btn" data-x="close">Закрыть</button></div>`);
-            o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-x="close"]')) o.remove(); });
+            const sheet = document.createElement('div');
+            sheet.className = 'legal-sheet';
+            sheet.innerHTML = `<div class="legal-top"><span>Документ</span><button class="legal-x" aria-label="Закрыть">✕</button></div>
+                <div class="legal-body">${html}</div>
+                <div class="legal-foot"><button class="legal-ok">Закрыть</button></div>`;
+            document.body.appendChild(sheet);
+            const onKey = e => { if (e.key === 'Escape') close(); };
+            const close = () => { sheet.remove(); document.removeEventListener('keydown', onKey); };
+            sheet.querySelector('.legal-x').addEventListener('click', close);
+            sheet.querySelector('.legal-ok').addEventListener('click', close);
+            document.addEventListener('keydown', onKey);
         }
         document.getElementById('open-privacy').addEventListener('click', e => { e.preventDefault(); showLegal(PRIVACY_TEXT); });
         document.getElementById('open-terms').addEventListener('click', e => { e.preventDefault(); showLegal(TERMS_TEXT); });
@@ -5064,10 +5196,17 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
             const theme = localStorage.getItem('theme-pref') || 'dark';
             document.getElementById('theme-toggle').checked = theme === 'dark';
             document.getElementById('sound-toggle').checked = soundEnabled;
+            renderHero();
             showScreen(settingsScreen);
         });
         document.getElementById('back-from-profile').addEventListener('click', () => showScreen(chatsScreen));
         document.getElementById('back-from-settings').addEventListener('click', () => showScreen(chatsScreen));
+        document.getElementById('back-from-notif').addEventListener('click', () => showScreen(settingsScreen));
+        document.getElementById('back-from-appear').addEventListener('click', () => showScreen(settingsScreen));
+        document.getElementById('st-profile').addEventListener('click', () => document.getElementById('user-bar-profile').click());
+        document.getElementById('st-calls').addEventListener('click', () => { activeTab = 'calls'; applyTab(); showScreen(chatsScreen); });
+        document.getElementById('st-notif').addEventListener('click', () => { renderPersonMutes(); showScreen(notifScreen); });
+        document.getElementById('st-appear').addEventListener('click', () => showScreen(appearScreen));
         document.getElementById('back-to-chats').addEventListener('click', () => {
             if (messagesUnsub) messagesUnsub();
             if (chatDetailsUnsub) chatDetailsUnsub();
@@ -6649,7 +6788,7 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
         window.__island = { isl, islIncoming, islMessage, islTyping, islVoiceStart, islRender, regeom: () => { isl.g = islGeom(); islRender(true); } };
 
         onAuthStateChanged(auth, user => {
-            if (!user) { leaveCall(); stopCallsWatch(); obReset(); }
+            if (!user) { leaveCall(); stopCallsWatch(); obReset(); if (prefsUnsub) prefsUnsub(); myPrefs = {}; }
             Object.assign(E2E, { priv: null, pub: null, ready: false, initPromise: null }); E2E.keys.clear();
             currentUser = user;
             teardownWatchers();
@@ -6659,6 +6798,7 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
                 subscribeChats();
                 startCallsWatch();
                 obInit();
+                startPrefsWatch();
                 showScreen(chatsScreen);
                 syncSettingsUI();
                 handleDeepLink();
