@@ -2188,6 +2188,24 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 .rail .rail-btn.tab-pop::after { animation: tabLabel .3s ease both; }
 @media (prefers-reduced-motion: reduce) { .rail .rail-btn.tab-pop svg, .rail .rail-btn.tab-pop::after { animation: none; } }
 </style>
+<style>
+/* мягкое обновление сообщения (правка, переход из очереди в отправленное) */
+@keyframes msgUpd { from { opacity: .6; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+.message.msg-upd { animation: msgUpd .28s ease both; }
+.message-image, .message .vid video { transition: opacity .3s ease; }
+</style>
+<style>
+/* реакции: вылет эмодзи и лёгкий толчок сообщения */
+.react-fly{position:fixed;z-index:4000;font-size:26px;line-height:1;pointer-events:none;opacity:0;animation:reactFly 1.1s cubic-bezier(.2,.8,.3,1) both}
+@keyframes reactFly{
+  0%{opacity:0;transform:translate(-50%,0) scale(.4)}
+  15%{opacity:1;transform:translate(-50%,-14px) scale(1.25)}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),-130px) scale(.9)}
+}
+.message.react-hit{animation:reactHit .42s cubic-bezier(.3,1.4,.5,1)}
+@keyframes reactHit{0%{transform:scale(1)}40%{transform:scale(1.025)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.react-fly,.message.react-hit{animation:none}.react-fly{display:none}}
+</style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -3027,9 +3045,28 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             }
         }
 
+        // Эффект реакции: эмодзи вылетает из сообщения и тает; у сообщения лёгкий «толчок»
+        function burstReaction(id, emoji) {
+            const el = messagesList.querySelector(`.message[data-id="${CSS.escape(id)}"]`); if (!el) return;
+            el.classList.remove('react-hit'); void el.offsetWidth; el.classList.add('react-hit');
+            setTimeout(() => el.classList.remove('react-hit'), 500);
+            const r = el.getBoundingClientRect();
+            for (let i = 0; i < 6; i++) {
+                const sp = document.createElement('span');
+                sp.className = 'react-fly'; sp.textContent = emoji;
+                sp.style.left = (r.left + r.width * (0.25 + Math.random() * 0.5)) + 'px';
+                sp.style.top = (r.top + r.height * 0.5) + 'px';
+                sp.style.setProperty('--dx', ((Math.random() - 0.5) * 110) + 'px');
+                sp.style.animationDelay = (i * 45) + 'ms';
+                document.body.appendChild(sp);
+                setTimeout(() => sp.remove(), 1400);
+            }
+            if (navigator.vibrate) navigator.vibrate(8);
+        }
         async function toggleReaction(id, emoji) {
             const msg = messagesCache.get(id); if (!msg || msg.deleted) return;
             const same = msg.reactions?.[currentUser.uid] === emoji;
+            if (!same) burstReaction(id, emoji);
             try { await updateDoc(doc(db, 'messages', id), { [`reactions.${currentUser.uid}`]: same ? deleteField() : emoji }); }
             catch (e) { showToast('Не удалось поставить реакцию: ' + e.message); }
         }
@@ -4002,6 +4039,20 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 `<span class="vid-play"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7z" fill="#fff"/></svg></span>` +
                 `<span class="vid-dur"></span></div>`;
         }
+        // При обновлении сообщения переиспользуем уже загруженные картинки/видео (без мигания и повторной загрузки).
+        // Локальный пузырь (blob:) тоже отдаёт свою картинку серверной версии.
+        function keepMedia(oldEl, newEl) {
+            const pool = [...oldEl.querySelectorAll('img, video, audio')];
+            newEl.querySelectorAll('img, video, audio').forEach(n => {
+                const src = n.getAttribute('src') || '';
+                let i = pool.findIndex(o => o.tagName === n.tagName && o.getAttribute('src') === src);
+                if (i < 0 && n.tagName === 'IMG') i = pool.findIndex(o => o.tagName === 'IMG' && (o.getAttribute('src') || '').startsWith('blob:'));
+                if (i < 0) return;
+                const keep = pool.splice(i, 1)[0];
+                if (keep.getAttribute('src') !== src) keep.setAttribute('src', src);
+                n.replaceWith(keep);
+            });
+        }
         // Альбом: несколько фото одним сообщением (сетка как в Telegram)
         function albumHtml(urls) {
             const list = urls.slice(0, 10);
@@ -4288,11 +4339,11 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 for (const el of want) {
                     const old = el._old;
                     if (cur === (old || el)) {
-                        if (old) { messagesList.replaceChild(el, old); cur = el.nextSibling; delete el._old; }
+                        if (old) { keepMedia(old, el); el.classList.add('msg-upd'); messagesList.replaceChild(el, old); cur = el.nextSibling; delete el._old; }
                         else cur = cur.nextSibling;
                         continue;
                     }
-                    if (old) { old.remove(); delete el._old; }
+                    if (old) { keepMedia(old, el); old.remove(); delete el._old; }
                     messagesList.insertBefore(el, cur);
                 }
                 while (cur) { const n = cur.nextSibling; cur.remove(); cur = n; }
@@ -4384,7 +4435,13 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         }
 
         // Расставляет плашки «Сегодня / Вчера / 27 сентября» между сообщениями разных дней
+        let sepSig = '';
         function rebuildDateSeparators() {
+            const sig = [...messagesList.querySelectorAll('.message')].map(el => {
+                const m = messagesCache.get(el.dataset.id); return el.dataset.id + ':' + (m ? messageDate(m).toDateString() : '');
+            }).join('|');
+            if (sig === sepSig && messagesList.querySelector('.date-sep')) return;
+            sepSig = sig;
             messagesList.querySelectorAll('.date-sep').forEach(el => el.remove());
             let prevKey = null;
             Array.from(messagesList.querySelectorAll('.message')).forEach(el => {
@@ -5066,33 +5123,166 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         sideDrawer.querySelector('[data-act="google"]').addEventListener('click', () => { closeSide(); window.open('https://www.google.com', '_blank', 'noopener'); });
         sideDrawer.querySelector('[data-act="translate"]').addEventListener('click', () => { closeSide(); setTimeout(openTranslator, 200); });
 
+        const TR_LANGS = [
+            ['en', 'Английский'], ['ru', 'Русский'], ['de', 'Немецкий'], ['fr', 'Французский'],
+            ['es', 'Испанский'], ['it', 'Итальянский'], ['zh-CN', 'Китайский'], ['ja', 'Японский'],
+            ['ko', 'Корейский'], ['ar', 'Арабский'], ['tr', 'Турецкий'], ['uk', 'Украинский']
+        ];
+        const TR_CSS = `
+            .tr-overlay{position:fixed;inset:0;z-index:3500;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.42);opacity:0;transition:opacity .25s ease}
+            .tr-overlay.open{opacity:1}
+            .tr-sheet{width:100%;max-width:480px;max-height:88vh;overflow:auto;box-sizing:border-box;padding:10px 16px calc(18px + env(safe-area-inset-bottom));
+                border-radius:22px 22px 0 0;background:var(--surface-color,#18181b);color:inherit;box-shadow:0 -10px 40px rgba(0,0,0,.25);
+                transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+            .tr-overlay.open .tr-sheet{transform:none}
+            @media (min-width:700px){.tr-overlay{align-items:center}.tr-sheet{border-radius:22px;transform:scale(.96);opacity:0;transition:transform .25s,opacity .25s}.tr-overlay.open .tr-sheet{transform:none;opacity:1}}
+            .tr-grab{width:40px;height:5px;border-radius:3px;background:rgba(127,127,127,.4);margin:0 auto 8px}
+            .tr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+            .tr-head h3{margin:0;font-size:19px;font-weight:700}
+            .tr-x{width:32px;height:32px;border-radius:50%;border:0;background:rgba(127,127,127,.16);color:inherit;font-size:14px;cursor:pointer}
+            .tr-langs{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+            .tr-langs select{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid rgba(127,127,127,.25);background:var(--surface-hover,rgba(127,127,127,.12));color:inherit;font:inherit;font-size:15px;appearance:auto}
+            .tr-swap{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:0;background:var(--accent,#0a84ff);color:#fff;font-size:18px;cursor:pointer;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+            .tr-swap:active{transform:rotate(180deg) scale(.92)}
+            .tr-box{position:relative;border-radius:16px;border:1px solid rgba(127,127,127,.25);background:var(--surface-hover,rgba(127,127,127,.08));padding:10px 12px 6px;transition:border-color .2s}
+            .tr-box:focus-within{border-color:var(--accent,#0a84ff)}
+            .tr-box textarea{width:100%;box-sizing:border-box;border:0;outline:0;resize:none;background:transparent;color:inherit;font:inherit;font-size:17px;line-height:1.4;min-height:96px}
+            .tr-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;opacity:.6;margin-top:4px}
+            .tr-clear{border:0;background:none;color:var(--accent,#0a84ff);font:inherit;font-size:13px;cursor:pointer;padding:4px 0}
+            .tr-go{width:100%;margin-top:12px;padding:13px;border:0;border-radius:14px;background:var(--accent,#0a84ff);color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s}
+            .tr-go:active{transform:scale(.98)}
+            .tr-go:disabled{opacity:.4;cursor:default}
+            .tr-result{margin-top:14px;padding:14px;border-radius:16px;background:color-mix(in srgb,var(--accent,#0a84ff) 10%,transparent);animation:trIn .3s ease}
+            .tr-res-meta{font-size:12px;opacity:.65;margin-bottom:6px;min-height:14px}
+            .tr-out{font-size:17px;line-height:1.45;white-space:pre-wrap;word-break:break-word;user-select:text;-webkit-user-select:text}
+            .tr-out.loading{opacity:.55}
+            .tr-res-actions{display:flex;justify-content:flex-end;margin-top:10px}
+            .tr-res-actions button{border:0;border-radius:10px;padding:7px 12px;background:rgba(127,127,127,.18);color:inherit;font:inherit;font-size:13px;cursor:pointer}
+            @keyframes trIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+            @media (prefers-reduced-motion:reduce){.tr-overlay,.tr-sheet,.tr-swap,.tr-result{transition:none!important;animation:none!important}}`;
+
         function openTranslator() {
-            const o = cmModal(`<h3>🈯 Переводчик</h3>
-                <textarea id="tr-src" rows="4" placeholder="Текст для перевода" style="width:100%;box-sizing:border-box;border-radius:12px;padding:10px;font:inherit;background:transparent;color:inherit;border:1px solid var(--border-color,#333)"></textarea>
-                <div style="display:flex;gap:8px;margin:10px 0;align-items:center">
-                    <select id="tr-to" style="flex:1;padding:10px;border-radius:10px">
-                        <option value="en">Английский</option><option value="ru">Русский</option><option value="de">Немецкий</option>
-                        <option value="fr">Французский</option><option value="es">Испанский</option><option value="zh-CN">Китайский</option><option value="tr">Турецкий</option>
-                    </select>
-                    <button class="cm-btn" id="tr-go">Перевести</button>
+            if (!document.getElementById('tr-style')) {
+                const st = document.createElement('style'); st.id = 'tr-style'; st.textContent = TR_CSS;
+                document.head.appendChild(st);
+            }
+            const opts = TR_LANGS.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
+            const sheet = document.createElement('div');
+            sheet.className = 'tr-overlay';
+            sheet.innerHTML = `<div class="tr-sheet" role="dialog" aria-label="Переводчик">
+                <div class="tr-grab"></div>
+                <div class="tr-head"><h3>Переводчик</h3><button class="tr-x" data-x aria-label="Закрыть">✕</button></div>
+                <div class="tr-langs">
+                    <select id="tr-from"><option value="auto">Определить язык</option>${opts}</select>
+                    <button class="tr-swap" id="tr-swap" aria-label="Поменять языки">⇄</button>
+                    <select id="tr-to">${opts}</select>
                 </div>
-                <div id="tr-out" style="min-height:44px;white-space:pre-wrap;text-align:left;padding:10px;border-radius:12px;background:rgba(127,127,127,.12)">Результат появится здесь</div>
-                <div class="cm-actions"><button class="cm-btn" data-x="close">Закрыть</button></div>`);
-            o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-x="close"]')) o.remove(); });
-            o.querySelector('#tr-go').addEventListener('click', async () => {
-                const q = o.querySelector('#tr-src').value.trim(); if (!q) return;
-                const out = o.querySelector('#tr-out'); out.textContent = 'Перевожу…';
+                <div class="tr-box">
+                    <textarea id="tr-src" rows="4" maxlength="5000" placeholder="Введите текст"></textarea>
+                    <div class="tr-meta"><span id="tr-count">0 / 5000</span><button class="tr-clear" id="tr-clear" hidden>Очистить</button></div>
+                </div>
+                <button class="tr-go" id="tr-go" disabled>Перевести</button>
+                <div class="tr-result" id="tr-result" hidden>
+                    <div class="tr-res-meta" id="tr-detected"></div>
+                    <div class="tr-out" id="tr-out"></div>
+                    <div class="tr-res-actions"><button id="tr-copy">Копировать</button></div>
+                </div>
+            </div>`;
+            document.body.appendChild(sheet);
+            const $ = s => sheet.querySelector(s);
+            const src = $('#tr-src'), from = $('#tr-from'), to = $('#tr-to'), go = $('#tr-go');
+            const result = $('#tr-result'), out = $('#tr-out'), detected = $('#tr-detected');
+            const count = $('#tr-count'), clear = $('#tr-clear');
+            // Язык назначения по умолчанию: русский для иноязычного текста
+            to.value = 'en';
+            try { const saved = localStorage.getItem('tr-to'); if (saved) to.value = saved; } catch (_) {}
+            let seq = 0;
+            requestAnimationFrame(() => { sheet.classList.add('open'); src.focus(); });
+
+            const onKey = e => { if (e.key === 'Escape') close(); };
+            function close() {
+                document.removeEventListener('keydown', onKey);
+                sheet.classList.remove('open');
+                setTimeout(() => sheet.remove(), 320);
+            }
+            document.addEventListener('keydown', onKey);
+            sheet.addEventListener('click', e => { if (e.target === sheet || e.target.closest('[data-x]')) close(); });
+
+            const refresh = () => {
+                const n = src.value.length;
+                count.textContent = `${n} / 5000`;
+                clear.hidden = n === 0;
+                go.disabled = src.value.trim() === '';
+            };
+            src.addEventListener('input', refresh);
+            clear.addEventListener('click', () => { src.value = ''; refresh(); src.focus(); });
+
+            $('#tr-swap').addEventListener('click', () => {
+                const btn = $('#tr-swap');
+                if (navigator.vibrate) navigator.vibrate(6);
+                if (from.value === 'auto') {
+                    // Определяемый язык нельзя поменять местами: берём язык результата, если он есть
+                    const d = detected.dataset.code;
+                    if (d && TR_LANGS.some(([c]) => c === d)) from.value = d;
+                    else from.value = to.value;
+                    to.value = from.value === 'ru' ? 'en' : 'ru';
+                } else {
+                    const f = from.value; from.value = to.value; to.value = f;
+                }
+                try { localStorage.setItem('tr-to', to.value); } catch (_) {}
+                // Если есть результат, его текст уходит в поле ввода, как в обычных переводчиках
+                if (!result.hidden && out.textContent && !out.classList.contains('loading')) {
+                    src.value = out.textContent; refresh(); translate();
+                }
+                btn.blur();
+            });
+            to.addEventListener('change', () => { try { localStorage.setItem('tr-to', to.value); } catch (_) {} if (src.value.trim()) translate(); });
+            from.addEventListener('change', () => { if (src.value.trim()) translate(); });
+
+            $('#tr-copy').addEventListener('click', async e => {
+                const b = e.currentTarget;
                 try {
-                    const to = o.querySelector('#tr-to').value;
-                    const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(to)}&dt=t&q=${encodeURIComponent(q)}`);
+                    await navigator.clipboard.writeText(out.textContent);
+                    b.textContent = 'Скопировано ✓';
+                } catch (_) {
+                    b.textContent = 'Не удалось';
+                }
+                setTimeout(() => { b.textContent = 'Копировать'; }, 1600);
+            });
+
+            async function translate() {
+                const q = src.value.trim(); if (!q) return;
+                const my = ++seq;
+                const langName = c => (TR_LANGS.find(([k]) => k === c) || [c, c])[1];
+                result.hidden = false;
+                out.classList.add('loading');
+                out.textContent = 'Перевожу…';
+                detected.textContent = '';
+                go.disabled = true; go.textContent = 'Перевожу…';
+                try {
+                    const sl = from.value, tl = to.value;
+                    const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(sl)}&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(q)}`);
                     if (!r.ok) throw new Error('HTTP ' + r.status);
                     const j = await r.json();
+                    if (my !== seq) return; // устаревший ответ
+                    out.classList.remove('loading');
                     out.textContent = j[0].map(x => x[0]).join('');
+                    const dc = j[2] || sl;
+                    detected.dataset.code = dc;
+                    detected.textContent = sl === 'auto' ? `Определён язык: ${langName(dc)}` : `${langName(sl)} → ${langName(tl)}`;
                 } catch (err) {
+                    if (my !== seq) return;
                     console.error('translate', err);
-                    out.textContent = 'Не удалось перевести: нет сети или сервис недоступен.';
+                    out.classList.remove('loading');
+                    out.textContent = 'Не удалось перевести. Проверьте сеть и попробуйте ещё раз.';
+                    detected.textContent = '';
+                } finally {
+                    if (my === seq) { go.textContent = 'Перевести'; refresh(); }
                 }
-            });
+            }
+            go.addEventListener('click', translate);
+            src.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); translate(); } });
+            result.hidden = true;
         }
 
         // Жесты от левого края: вправо на списке — меню, вправо в чате — назад, влево в меню — закрыть
