@@ -5122,7 +5122,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             try {
                 const permission = await Notification.requestPermission();
                 if (permission === 'granted') {
-                    const swRegistration = await navigator.serviceWorker.register('/ARTVAS/firebase-messaging-sw.js');
+                    const swRegistration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
                     const token = await getToken(messaging, {
                         vapidKey: 'BIwFmsxByzTiIH3-sNMnhmp-tZDo99NBN2Z9YWMCDDxi7KWm0v_XmXr6DuerrV5wN6_ro8rIiYNBRAY1kcbil0Q',
                         serviceWorkerRegistration: swRegistration
@@ -5157,10 +5157,10 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 if (!('Notification' in window)) return;
                 log(Notification.permission === 'granted', 'Разрешение: ' + Notification.permission);
                 if (Notification.permission !== 'granted') { log(null, 'Включите переключатель уведомлений выше и разрешите их.'); return; }
-                const sw = await fetch('/ARTVAS/firebase-messaging-sw.js', { cache: 'no-store' });
+                const sw = await fetch('./firebase-messaging-sw.js', { cache: 'no-store' });
                 log(sw.ok, 'Файл firebase-messaging-sw.js на сайте: HTTP ' + sw.status);
                 if (!sw.ok) return;
-                const reg = await navigator.serviceWorker.register('/ARTVAS/firebase-messaging-sw.js');
+                const reg = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
                 const token = await getToken(messaging, { vapidKey: 'BIwFmsxByzTiIH3-sNMnhmp-tZDo99NBN2Z9YWMCDDxi7KWm0v_XmXr6DuerrV5wN6_ro8rIiYNBRAY1kcbil0Q', serviceWorkerRegistration: reg });
                 log(!!token, 'Токен устройства получен');
                 if (!token) return;
@@ -6626,9 +6626,11 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             rtc.peers.set(uid, p); addTile(uid, rtc.docs.get(uid)?.name || 'Участник', false); setTile(uid);
             pc.onicecandidate = e => { if (e.candidate) sendSig(uid, 'ice', e.candidate.toJSON()); };
             pc.ontrack = e => {
-                p.stream.addTrack(e.track);
-                const v = $c('tile-' + uid)?.querySelector('video');
-                if (v) { if (v.srcObject !== p.stream) v.srcObject = p.stream; v.muted = true; v.play().catch(() => {}); }   // картинка; звук идёт через <audio> ниже
+                if (!p.stream.getTracks().includes(e.track)) p.stream.addTrack(e.track);
+                // новый трек в том же MediaStream браузер может не показать: привязываем поток заново
+                rebindTile(uid, p.stream);
+                if (e.track.kind === 'video') e.track.onunmute = () => rebindTile(uid, p.stream);
+                // картинка — в плитке (она без звука, звук идёт через <audio> ниже)
                 if (e.track.kind === 'audio') {
                     // звук собеседника — отдельный элемент: не зависит от плитки, видео и перезагрузки srcObject
                     const a = p.audioEl || (p.audioEl = Object.assign(document.createElement('audio'), { autoplay: true, className: 'call-audio' }));
@@ -6695,6 +6697,19 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         }
 
         // ---------- плитки и кнопки ----------
+        // Перепривязка видео-элемента плитки к свежему MediaStream (браузер не подхватывает треки, добавленные в уже привязанный поток)
+        function rebindTile(uid, stream) {
+            const v = $c('tile-' + uid)?.querySelector('video'); if (!v) return;
+            v.srcObject = new MediaStream(stream.getTracks());
+            v.play().catch(() => {});
+        }
+        // Возврат звука/видео после нажатия (автовоспроизведение может быть заблокировано до первого касания)
+        function resumeCallMedia() {
+            document.querySelectorAll('.call-audio').forEach(a => a.play().catch(() => {}));
+            document.querySelectorAll('#call-grid video').forEach(v => v.play().catch(() => {}));
+        }
+        $c('call-grid')?.addEventListener('click', resumeCallMedia);
+
         function addTile(uid, name, me) {
             const t = document.createElement('div'); t.className = 'tile' + (me ? ' me' : ''); t.id = 'tile-' + uid;
             t.innerHTML = '<video autoplay playsinline></video><div class="av"></div><div class="nm"></div><div class="st"></div>';
@@ -6720,6 +6735,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         }
         function setVideo(t) {
             rtc.tr.video = t; rtc.peers.forEach(p => p.snd.video?.replaceTrack(t).catch(() => {}));
+            rebindTile(rtc.me, rtc.local);
             updateDoc(peerRef(rtc.id, rtc.me), { cam: !!t }).catch(() => {}); setTile(rtc.me); syncCtl();
         }
         function toggleMic() {
