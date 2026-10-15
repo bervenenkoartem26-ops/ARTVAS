@@ -2512,6 +2512,11 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .rail .rail-pill > #nav-contacts-btn{order:1!important}
         .rail .rail-pill > #nav-calls-btn{order:2!important}
         .rail .rail-pill > #nav-rooms-btn{order:3!important}
+
+        /* ===== Optimistic UI: плавный откат неотправленного сообщения ===== */
+        .message.msg-out{animation:msgOut .2s var(--ease-smooth) forwards;pointer-events:none}
+        @keyframes msgOut{to{opacity:0;transform:scale(.96) translateY(4px)}}
+        .message.local .msg-state{transition:opacity .2s var(--ease-smooth)}
     </style>
 </head>
 <body>
@@ -3457,45 +3462,44 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
         }
         function ensureE2EE() { if (!E2E.initPromise) E2E.initPromise = initE2EE(); return E2E.initPromise; }
+        // Ключ устройства создаётся автоматически при первом входе; пароли не нужны.
+        // Каждое устройство имеет свою пару ключей (ECDH P-256); приватный ключ не покидает устройство.
         async function initE2EE() {
             if (!currentUser || !crypto?.subtle) return;
-            const uid = currentUser.uid, uref = doc(db, 'users', uid);
+            const uid = currentUser.uid;
             try {
-                const d = (await getDoc(uref)).data() || {};
-                const local = await idbGet('id:' + uid);
-                if (local && d.e2eePub && local.pub.x === d.e2eePub.x && local.pub.y === d.e2eePub.y) {
-                    Object.assign(E2E, { priv: local.priv, pub: local.pub, ready: true }); return;
+                // старый ключ (до перехода на устройства) оставляем только для чтения старой переписки
+                const legacy = await idbGet('id:' + uid);
+                if (legacy?.priv) E2E.legacyPriv = legacy.priv;
+                let dev = await idbGet('dev:' + uid);
+                if (!dev) {
+                    const kp = await crypto.subtle.generateKey(ECDH, false, ['deriveBits']);
+                    const j = await crypto.subtle.exportKey('jwk', kp.publicKey);
+                    dev = { id: (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)), priv: kp.privateKey, pub: { kty: j.kty, crv: j.crv, x: j.x, y: j.y } };
+                    await idbSet('dev:' + uid, dev);
                 }
-                if (d.e2eeBackup && d.e2eePub) { // новое устройство: восстановление ключа по паролю
-                    for (let i = 0; i < 3; i++) {
-                        const pass = await askText({ title: '🔒 Ключ шифрования', text: 'Введите пароль шифрования, чтобы читать переписку на этом устройстве.', ph: 'Пароль шифрования', ok: 'Открыть', skip: 'Не сейчас' });
-                        if (pass === null) return;
-                        try {
-                            const b = d.e2eeBackup;
-                            const pk8 = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(b.iv) }, await passKey(pass, unb64(b.salt), b.iter), unb64(b.ct));
-                            const priv = await crypto.subtle.importKey('pkcs8', pk8, ECDH, false, ['deriveBits']);
-                            await idbSet('id:' + uid, { priv, pub: d.e2eePub });
-                            Object.assign(E2E, { priv, pub: d.e2eePub, ready: true }); showToast('Ключ восстановлен', false); return;
-                        } catch (_) { showToast('Неверный пароль'); }
-                    }
-                    return;
-                }
-                const kp = await crypto.subtle.generateKey(ECDH, true, ['deriveBits']);
-                const j = await crypto.subtle.exportKey('jwk', kp.publicKey), pub = { kty: j.kty, crv: j.crv, x: j.x, y: j.y };
-                const pk8 = await crypto.subtle.exportKey('pkcs8', kp.privateKey);
-                const pass = await askText({ title: '🔒 Сквозное шифрование', text: 'Придумайте пароль шифрования (от 6 символов): по нему ключ восстанавливается на другом устройстве. Сервер пароль не знает — если забудете, старые сообщения на новом устройстве не прочитать.', ph: 'Пароль шифрования', ok: 'Включить', skip: 'Без резервной копии' });
-                const data = { e2eePub: pub };
-                if (pass && pass.length >= 6) {
-                    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)), iter = 250000;
-                    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await passKey(pass, salt, iter), pk8);
-                    data.e2eeBackup = { salt: b64(salt), iv: b64(iv), ct: b64(ct), iter };
-                } else if (pass) showToast('Пароль короче 6 символов — резервная копия не создана');
-                const priv = await crypto.subtle.importKey('pkcs8', pk8, ECDH, false, ['deriveBits']);
-                await setDoc(uref, data, { merge: true });
-                await idbSet('id:' + uid, { priv, pub });
-                Object.assign(E2E, { priv, pub, ready: true });
+                Object.assign(E2E, { devId: dev.id, priv: dev.priv, pub: dev.pub, ready: true });
+                await setDoc(doc(db, 'users', uid, 'devices', dev.id), { pub: dev.pub, updatedAt: serverTimestamp() }, { merge: true });
             } catch (e) { console.error(e); showToast('Шифрование недоступно: ' + e.message); }
         }
+        // Все ключи устройств пользователя (кэш на 30 секунд)
+        const __devCache = new Map();
+        async function devicePubs(uid) {
+            const hit = __devCache.get(uid);
+            if (hit && Date.now() - hit.t < 30000) return hit.v;
+            let v = [];
+            try {
+                const snap = await getDocs(collection(db, 'users', uid, 'devices'));
+                v = snap.docs.map(d => ({ id: d.id, pub: d.data().pub })).filter(d => d.pub && d.pub.x);
+            } catch (_) { return hit?.v || []; }
+            __devCache.set(uid, { t: Date.now(), v });
+            return v;
+        }
+        async function hkdfWrapKey(bits, info) {
+            const hk = await crypto.subtle.importKey('raw', bits, 'HKDF', false, ['deriveKey']);
+            return crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(32), info: enc8.encode(info) }, hk, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+        }
+
         async function peerPub(uid) {
             let p = profiles.get(uid)?.e2eePub;
             if (!p) { try { p = (await getDoc(doc(db, 'users', uid))).data()?.e2eePub; } catch (_) {} }
@@ -3509,20 +3513,37 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             const p = await peerPub(uid); if (!p) return null;
             const ck = uid + ':' + p.x + p.y; if (E2E.keys.has(ck)) return E2E.keys.get(ck);
             const pub = await crypto.subtle.importKey('jwk', { ...p, ext: true }, ECDH, false, []);
-            const bits = await crypto.subtle.deriveBits({ name: 'ECDH', public: pub }, E2E.priv, 256);
+            const bits = await crypto.subtle.deriveBits({ name: 'ECDH', public: pub }, E2E.legacyPriv || E2E.priv, 256);
             const hk = await crypto.subtle.importKey('raw', bits, 'HKDF', false, ['deriveKey']);
             const key = await crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(32), info: enc8.encode('cm-e2ee-v1') }, hk, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
             E2E.keys.set(ck, key); return key;
         }
         async function encryptFor(uid, obj) {
-            const key = await chatKeyWith(uid); if (!key) return null;
+            await ensureE2EE(); if (!E2E.ready || !uid) return null;
+            const peers = await devicePubs(uid); if (!peers.length) return null;
+            const mine = currentUser ? await devicePubs(currentUser.uid) : [];
+            const targets = new Map();
+            [...peers, ...mine, { id: E2E.devId, pub: E2E.pub }].forEach(d => { if (d.pub && !targets.has(d.id)) targets.set(d.id, d); });
+            const K = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
             const iv = crypto.getRandomValues(new Uint8Array(12));
-            const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc8.encode(JSON.stringify(obj)));
-            return { iv: b64(iv), ct: b64(ct) };
+            const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, K, enc8.encode(JSON.stringify(obj)));
+            const rawK = new Uint8Array(await crypto.subtle.exportKey('raw', K));
+            const eph = await crypto.subtle.generateKey(ECDH, false, ['deriveBits']);
+            const ej = await crypto.subtle.exportKey('jwk', eph.publicKey);
+            const w = {};
+            for (const d of targets.values()) {
+                const pk = await crypto.subtle.importKey('jwk', { ...d.pub, ext: true }, ECDH, false, []);
+                const bits = await crypto.subtle.deriveBits({ name: 'ECDH', public: pk }, eph.privateKey, 256);
+                const wk = await hkdfWrapKey(bits, 'cm-e2ee-v2');
+                const wiv = crypto.getRandomValues(new Uint8Array(12));
+                const wct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: wiv }, wk, rawK);
+                w[d.id] = { iv: b64(wiv), ct: b64(wct) };
+            }
+            return { v: 2, eph: { kty: ej.kty, crv: ej.crv, x: ej.x, y: ej.y }, iv: b64(iv), ct: b64(ct), w };
         }
         async function canEncryptTo(uid) {
             await ensureE2EE(); if (!E2E.ready || !uid) return false;
-            try { return !!(await chatKeyWith(uid)); } catch (_) { return false; }
+            return (await devicePubs(uid)).length > 0;
         }
         // Файл для загрузки: новый случайный ключ AES-GCM на каждый файл; ключ уходит получателю внутри зашифрованного сообщения
         async function encryptBlobForUpload(blob) {
@@ -3585,9 +3606,20 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 const ck = data.e2e.iv + data.e2e.ct;
                 o = __decCache.get(ck);
                 if (!o) {
-                    const other = data.senderId === currentUser.uid ? data.receiverId : data.senderId;
-                    const key = await chatKeyWith(other); if (!key) throw 0;
-                    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.e2e.iv) }, key, unb64(data.e2e.ct));
+                    let pt;
+                    if (data.e2e.v === 2) {
+                        const mine = data.e2e.w?.[E2E.devId]; if (!mine || !E2E.priv) throw 0;
+                        const epk = await crypto.subtle.importKey('jwk', { ...data.e2e.eph, ext: true }, ECDH, false, []);
+                        const bits = await crypto.subtle.deriveBits({ name: 'ECDH', public: epk }, E2E.priv, 256);
+                        const wk = await hkdfWrapKey(bits, 'cm-e2ee-v2');
+                        const rawK = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(mine.iv) }, wk, unb64(mine.ct));
+                        const K = await crypto.subtle.importKey('raw', rawK, 'AES-GCM', false, ['decrypt']);
+                        pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.e2e.iv) }, K, unb64(data.e2e.ct));
+                    } else {
+                        const other = data.senderId === currentUser.uid ? data.receiverId : data.senderId;
+                        const key = await chatKeyWith(other); if (!key) throw 0;
+                        pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.e2e.iv) }, key, unb64(data.e2e.ct));
+                    }
                     o = JSON.parse(dec8.decode(pt));
                     if (__decCache.size > 800) __decCache.delete(__decCache.keys().next().value);
                     __decCache.set(ck, o);
@@ -3608,10 +3640,12 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             return { ...data, text: o.text || '', replyPreview: o.rp || data.replyPreview, ...media, ...(sealedMsg ? { sealed: true } : {}) };
         }
         async function securityInfo(uid) { // код безопасности для сверки с собеседником
-            await ensureE2EE(); const p = await peerPub(uid);
+            await ensureE2EE();
             if (!E2E.ready) return '🔓 Шифрование на этом устройстве не активно';
-            if (!p) return '🔓 Собеседник ещё не включил шифрование — сообщения идут без него';
-            const h = new Uint8Array(await crypto.subtle.digest('SHA-256', enc8.encode([E2E.pub.x + E2E.pub.y, p.x + p.y].sort().join('|'))));
+            const peer = await devicePubs(uid);
+            if (!peer.length) return '🔓 Собеседник ещё не включил шифрование — сообщения идут без него';
+            const all = [...new Set([...peer, ...(await devicePubs(currentUser.uid))].map(d => d.pub.x + d.pub.y))].sort().join('|');
+            const h = new Uint8Array(await crypto.subtle.digest('SHA-256', enc8.encode(all)));
             const hex = [...h].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 30);
             return '🔒 Сквозное шифрование включено. Код безопасности (у вас и собеседника должен совпасть): ' + hex.match(/.{5}/g).join(' ');
         }
@@ -4313,9 +4347,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             if (it.isGroup || !it.otherUid || (!it.text && !it.encMode)) return null;
             await ensureE2EE();
             if (!E2E.ready) return null;
-            let p = profiles.get(it.otherUid)?.e2eePub;
-            if (!p) p = (await getDoc(doc(db, 'users', it.otherUid))).data()?.e2eePub;   // нет сети и нет кэша → ошибка → ждём, а не шлём открытым текстом
-            if (!p) return null;
+            if (!(await devicePubs(it.otherUid)).length) return null;   // нет ключей собеседника (или сети) → ждём, а не шлём открытым текстом
             const m = it.encMode ? [...(it.encFiles || []), ...(it.encDoc ? [it.encDoc] : []), ...(it.encAudio ? [it.encAudio] : [])] : undefined;
             const inner = { text: it.text, rp: it.reply?.text || '', m };
             return encryptFor(it.otherUid, it.env ? { env: await sealEnvelope(it, inner) } : inner);
@@ -4439,7 +4471,10 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         }
         function obDiscard(id) {
             if (!OB.items.delete(id)) return;
-            obDel(id); obFree(id); obRenderLocal();
+            const el = OB.els.get(id);
+            obDel(id); obFree(id);
+            if (el) { el.classList.add('msg-out'); el.addEventListener('animationend', () => el.remove(), { once: true }); }
+            obRenderLocal();
         }
         function obFailedDialog(id) {
             const it = OB.items.get(id); if (!it) return;
@@ -4512,6 +4547,21 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             return u || '';
         }
         const obSig = it => [it.state, it.stage, it.err ? 1 : 0, navigator.onLine ? 1 : 0, it.imageUrl ? 1 : 0].join('|');
+        function obStatusHtml(it) {
+            if (it.state === 'failed') return `<span class="msg-fail">${ic('alert')} Не отправлено · Повторить</span>`;
+            if (!navigator.onLine) return `<span class="msg-state" title="Отправится, когда появится сеть">${ic('timer')} Ждёт сети</span>`;
+            return `<span class="msg-state" title="Отправляется">${ic('timer')}</span>`;
+        }
+        // Содержимое пузыря без статуса: если оно не меняется, при смене статуса трогаем только плашку статуса
+        const obContentSig = it => JSON.stringify([it.text, it.reply?.id || null, it.imageBlobs?.length || 0, it.imageUrls?.length || 0, it.imageUrl ? 1 : 0, it.docName || '', it.docMeta?.fileName || '', !!it.audioBlob, it.audioUrl ? 1 : 0, !!it.sticker]);
+        function obPatchStatus(el, it) {
+            el.classList.toggle('failed', it.state === 'failed');
+            const old = el.querySelector('.msg-meta .msg-state, .msg-meta .msg-fail');
+            if (!old) return;
+            const t = document.createElement('template');
+            t.innerHTML = obStatusHtml(it).trim();
+            old.replaceWith(t.content.firstElementChild);
+        }
         function obElement(it) {
             it.imageBlobs = it.imageBlobs || []; it.imageUrls = it.imageUrls || [];
             const div = document.createElement('div');
@@ -4531,11 +4581,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             else if (dn) h += docCardHtml({ fileUrl: '', fileName: dn, fileSize: it.docMeta?.fileSize || it.docSize });
             const au = obBlobUrl(it.id, 'a', it.audioBlob) || it.audioUrl;
             if (au) h += `<audio controls src="${escapeHtml(au)}"></audio>`;
-            let st;
-            if (it.state === 'failed') st = `<span class="msg-fail">${ic('alert')} Не отправлено · Повторить</span>`;
-            else if (!navigator.onLine) st = `<span class="msg-state" title="Отправится, когда появится сеть">${ic('timer')} Ждёт сети</span>`;
-            else st = `<span class="msg-state" title="Отправляется">${ic('timer')}</span>`;
-            div.innerHTML = h + `<div class="msg-meta">${st}<span class="msg-time">${formatTime(it.created)}</span></div>`;
+            div.innerHTML = h + `<div class="msg-meta">${obStatusHtml(it)}<span class="msg-time">${formatTime(it.created)}</span></div>`;
             return div;
         }
         function obRenderLocal() {
@@ -4544,15 +4590,19 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 ? [...OB.items.values()].filter(i => i.chatId === currentChatId && i.uid === currentUser.uid && !messagesCache.has(i.id)).sort((a, b) => a.created - b.created)
                 : [];
             const ids = new Set(want.map(i => i.id));
-            messagesList.querySelectorAll('.message.local').forEach(el => { if (!ids.has(el.dataset.id)) el.remove(); });
+            messagesList.querySelectorAll('.message.local').forEach(el => { if (!ids.has(el.dataset.id) && !el.classList.contains('msg-out')) el.remove(); });
             OB.els.forEach((el, id) => { if (!ids.has(id)) OB.els.delete(id); });
             let changed = false;
             want.forEach(it => {
                 const sig = obSig(it);
                 let el = OB.els.get(it.id);
+                const csig = obContentSig(it);
+                if (el && el.isConnected && el._sig !== sig && el._csig === csig) {
+                    obPatchStatus(el, it); el._sig = sig; changed = true; return;   // только статус: пузырь не пересоздаём
+                }
                 if (!el || el._sig !== sig) {
                     const fresh = !el, n = obElement(it);
-                    n._sig = sig;
+                    n._sig = sig; n._csig = csig;
                     if (fresh) { n.classList.add('msg-in'); n.addEventListener('animationend', () => n.classList.remove('msg-in'), { once: true }); }
                     if (el && el.isConnected) el.replaceWith(n);
                     el = n; OB.els.set(it.id, el); changed = true;
@@ -7658,7 +7708,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 
         onAuthStateChanged(auth, user => {
             if (!user) { leaveCall(); stopCallsWatch(); obReset(); if (prefsUnsub) prefsUnsub(); myPrefs = {}; }
-            Object.assign(E2E, { priv: null, pub: null, ready: false, initPromise: null }); E2E.keys.clear();
+            Object.assign(E2E, { priv: null, pub: null, devId: null, legacyPriv: null, ready: false, initPromise: null }); E2E.keys.clear(); __devCache.clear();
             currentUser = user;
             teardownWatchers();
             if (user) {
