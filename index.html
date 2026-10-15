@@ -2501,6 +2501,17 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .rail .rail-btn.active{box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)!important}
         .rail .rail-btn.active svg{transform:scale(1.06)}
         .rail .rail-badge{position:absolute;top:2px;right:2px}
+
+        /* ===== Меню: без подписей, порядок как на эскизе ===== */
+        .rail .rail-btn::after,.rail .rail-btn::before{content:none!important;display:none!important}
+        .rail .rail-btn span:not(.rail-badge){display:none!important}
+        .rail{font-size:0}
+        .rail > #nav-settings-btn{order:1!important}
+        .rail > .rail-pill{order:2!important}
+        .rail > #nav-chats-btn{order:3!important}
+        .rail .rail-pill > #nav-contacts-btn{order:1!important}
+        .rail .rail-pill > #nav-calls-btn{order:2!important}
+        .rail .rail-pill > #nav-rooms-btn{order:3!important}
     </style>
 </head>
 <body>
