@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+<script>try{if(localStorage.getItem("reduce-motion")==="1")document.documentElement.classList.add("reduce-motion")}catch(e){}</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>C Messenger</title>
@@ -61,8 +62,8 @@
             --border-color: #27272a;
             --text-primary: #f4f4f5;
             --text-secondary: #a1a1aa;
-            --accent: #363745;
-            --accent-hover: #2a2b36;
+            --accent: #6b7090;
+            --accent-hover: #575b76;
             --danger: #ef4444;
             --bubble-me: #363745;
             --bubble-other: #27272a;
@@ -234,8 +235,8 @@
         .top-bar {
             padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px;
             background: color-mix(in srgb, var(--surface-color) 92%, transparent);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
@@ -469,8 +470,8 @@
         .chat-input-panel {
             padding: 10px 12px calc(10px + var(--safe-bottom));
             background: color-mix(in srgb, var(--surface-color) 92%, transparent);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-top: 1px solid var(--border-color);
             display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;
         }
@@ -705,7 +706,7 @@
         .profile-menu-list .profile-menu-action{display:flex;align-items:center;gap:12px}
         .profile-menu-action-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
         .profile-menu-list .profile-menu-about{padding:8px 10px 6px;font-size:14px}
-        .bottom-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(10px + var(--safe-bottom));background:color-mix(in srgb,var(--surface-color) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border-color);flex-shrink:0}
+        .bottom-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(10px + var(--safe-bottom));background:color-mix(in srgb,var(--surface-color) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border-color);flex-shrink:0}
         .bottom-nav-group{display:flex;align-items:center;gap:6px;background:var(--surface-color);border:1px solid var(--border-color);border-radius:30px;padding:7px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
         .bottom-nav-btn{position:relative;width:60px;height:60px;border-radius:22px;border:none;background:transparent;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,color .15s,transform .1s}
         .bottom-nav-btn:hover{background:var(--surface-hover)}
@@ -750,7 +751,7 @@
         .message { -webkit-touch-callout: none; }
         .message.msg-hidden { visibility: hidden; }
         .msg-overlay { position: fixed; inset: 0; z-index: 1400; }
-        .msg-backdrop { position: absolute; inset: 0; background: rgba(5,6,12,.5); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); animation: mbIn .2s ease; }
+        .msg-backdrop { position: absolute; inset: 0; background: rgba(5,6,12,.5); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); animation: mbIn .2s ease; }
         :root[data-theme="light"] .msg-backdrop { background: rgba(230,234,250,.5); }
         @keyframes mbIn { from { opacity: 0; } to { opacity: 1; } }
         .msg-clone { position: fixed !important; z-index: 1450; margin: 0 !important; max-width: none !important; overflow: hidden; pointer-events: none; transform-origin: center; animation: mcPop .26s cubic-bezier(.34,1.56,.64,1); }
@@ -1076,7 +1077,7 @@
         #banner-colors{margin-top:12px}
         .profile-menu{overflow:hidden;align-items:flex-start;background:transparent!important}
         .profile-menu-bg{position:fixed;inset:-40px;z-index:0;background-color:#0b0b0e;background-size:cover;background-position:center;
-                  filter:blur(28px) saturate(1.2);pointer-events:none}
+                  filter:blur(12px) saturate(1.2);pointer-events:none}
         .profile-menu-bg::after{content:'';position:absolute;inset:0;background:rgba(5,6,12,.58)}
         .profile-menu-card{position:relative;z-index:1;max-height:100%;overflow:auto}
         .profile-menu-close{z-index:2}
@@ -1233,7 +1234,7 @@
             --border-color:rgba(84,84,88,.55);
             --text-primary:#fff; --text-secondary:rgba(235,235,245,.6);
             /* системные цвета */
-            --accent:#363745; --danger:#ff453a; --green:#30d158; --yellow:#ffd60a; --gray:#8e8e93;
+            --accent:#6b7090; --danger:#ff453a; --green:#30d158; --yellow:#ffd60a; --gray:#8e8e93;
             --accent-fill:color-mix(in srgb,var(--accent) 86%,#000);   /* заливка с контрастом ≥4.5:1 под белым текстом */
             --bubble-me:var(--accent-fill); --bubble-other:#26262a; --bubble-me-text:#fff;
             /* материал */
@@ -1384,7 +1385,7 @@
             position:absolute;z-index:30;height:var(--tab-h);border-radius:calc(var(--tab-h) / 2);
             bottom:calc(var(--tab-gap) + var(--safe-bottom));
             background:var(--glass);
-            -webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            -webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);
             box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 .5px var(--border-color),var(--glass-shadow);
         }
         .rail{
@@ -1443,7 +1444,7 @@
             position:absolute;top:0;left:0;right:0;z-index:20;gap:2px;min-height:var(--chat-top-h);box-sizing:border-box;
             padding:calc(env(safe-area-inset-top,0px) + 6px) max(8px,var(--sr)) 6px max(4px,var(--sl));
             background:var(--glass);border-bottom:0;box-shadow:0 .5px 0 var(--border-color);
-            -webkit-backdrop-filter:blur(24px) saturate(180%)!important;backdrop-filter:blur(24px) saturate(180%)!important;
+            -webkit-backdrop-filter:blur(12px) saturate(180%)!important;backdrop-filter:blur(12px) saturate(180%)!important;
         }
         #chat-screen .top-bar .icon-btn{width:44px;height:44px;color:var(--accent)}
         #chat-screen .top-bar .icon-btn svg{width:24px;height:24px}
@@ -1461,7 +1462,7 @@
         #chat-screen .pinned-banner{
             position:absolute;z-index:15;top:calc(var(--chat-top-h) + 8px);left:max(12px,var(--sl));right:max(12px,var(--sr));
             margin:0;padding:8px 8px 8px 12px;gap:10px;border-radius:16px;background:var(--glass);
-            -webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            -webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);
             box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 .5px var(--border-color),0 4px 16px rgba(0,0,0,.18);
         }
         #chat-screen .pinned-title{text-transform:none;font-size:12px;line-height:16px;font-weight:600;letter-spacing:.01em;color:var(--accent)}
@@ -1477,7 +1478,7 @@
 
         .date-sep{background:none;color:var(--text-secondary);border:0;padding:0;margin:16px 0 8px;font-size:12px;line-height:16px;font-weight:600;letter-spacing:.01em}
         #chat-screen.has-wall .date-sep{background:var(--glass);padding:3px 10px;border-radius:10px;color:var(--text-primary);
-            -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+            -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 
         /* Пузыри: радиус 18, хвост — малый радиус у последнего в серии */
         .message{
@@ -1512,7 +1513,7 @@
             background:var(--surface-color);box-shadow:inset 0 0 0 .5px var(--border-color);
         }
         #chat-screen.has-wall .input-row{background:var(--glass);
-            -webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%)}
+            -webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%)}
         .file-btn{width:40px;height:40px;color:var(--text-secondary);background:transparent}
         .file-btn .ic,.file-btn svg{width:24px;height:24px}
         .chat-input-panel input[type=text]#message-input,#message-input{
@@ -1533,7 +1534,7 @@
         /* «Вниз» — стеклянная кнопка */
         .chat-bottom-btn{
             width:40px;height:40px;right:max(16px,var(--sr));background:var(--glass);color:var(--accent);
-            -webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            -webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);
             box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 .5px var(--border-color),0 4px 16px rgba(0,0,0,.2);
         }
         .chat-bottom-btn svg{width:20px;height:20px}
@@ -1819,7 +1820,7 @@
         .profile-menu-card{border:0;border-radius:var(--r-l);box-shadow:0 0 0 .5px var(--border-color),0 18px 50px rgba(0,0,0,.4)}
         .profile-menu-close{
             top:calc(env(safe-area-inset-top,0px) + 8px);right:max(16px,var(--sr));width:var(--ctl);height:var(--ctl);border:0;
-            background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            background:var(--glass);-webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);
             box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 .5px var(--border-color);
         }
         .profile-menu-head{padding:24px 16px 20px}
@@ -1836,7 +1837,7 @@
         .toast{
             min-height:var(--ctl);padding:12px 20px;border:0;border-radius:22px;
             font-size:15px;line-height:20px;letter-spacing:-.006em;
-            background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            background:var(--glass);-webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);
             box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 .5px var(--border-color),var(--glass-shadow);
         }
         .toast.toast-error{box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 1px var(--danger),var(--glass-shadow)}
@@ -1863,7 +1864,7 @@
         /* входящий звонок: капсула высотой 72 (радиус 36), кнопки 48 = 36 − 12 */
         .incoming-call{
             width:min(calc(100vw - 24px),400px);padding:12px 12px 12px 20px;border:0;border-radius:36px;
-            background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            background:var(--glass);-webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);
             box-shadow:inset 0 .5px 0 var(--glass-edge),0 0 0 .5px var(--border-color),var(--glass-shadow);
         }
         .incoming-call .nm{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.012em}
@@ -1881,7 +1882,7 @@
         .call-bar #call-min svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
         .call-overlay .call-bar{position:relative}
         .call-ctl{background:transparent;justify-content:center;align-items:center;gap:14px;padding:14px 16px calc(20px + env(safe-area-inset-bottom,0px))}
-        .call-ctl .call-round.cc{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#fff}
+        .call-ctl .call-round.cc{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff}
         .call-ctl .call-round.cc:active{transform:scale(.92)}
         .call-ctl .call-round.cc.off{background:#fff;color:#111}
         .call-ctl .call-round.cc .ic{width:22px;height:22px}
@@ -1921,7 +1922,7 @@
             bottom:calc(16px + env(safe-area-inset-bottom,0px));
             display:flex;gap:2px;padding:6px;border-radius:28px;
             background:rgba(44,44,46,.72);
-            -webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+            -webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);
             box-shadow:inset 0 .5px 0 rgba(255,255,255,.16),0 0 0 .5px rgba(84,84,88,.55),0 8px 32px rgba(0,0,0,.45);
         }
         .iv-actions button{
@@ -2139,7 +2140,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 </style>
 <style>
 .st-hero{position:relative;display:flex;flex-direction:column;align-items:center;padding:18px 0 22px;transition:padding .3s ease}
-.st-hero-avatar{width:132px;height:132px;border-radius:50%;overflow:hidden;font-size:52px;transition:all .3s ease}
+.st-hero-avatar{width:132px;height:132px;border-radius:50%;overflow:hidden;font-size:52px;transition: transform .3s ease, opacity .3s ease, background-color .3s ease, color .3s ease, box-shadow .3s ease}
 .st-hero-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .st-hero-info{display:flex;flex-direction:column;align-items:center;margin-top:12px;text-align:center}
 .st-hero-name{font-size:24px;font-weight:700}
@@ -2159,7 +2160,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 /* ---------- Нижнее меню: «жидкое стекло» ---------- */
 .rail{
     background:linear-gradient(180deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.05) 55%,rgba(255,255,255,.1) 100%),var(--glass);
-    -webkit-backdrop-filter:blur(28px) saturate(200%) brightness(1.06);backdrop-filter:blur(28px) saturate(200%) brightness(1.06);
+    -webkit-backdrop-filter:blur(12px) saturate(200%) brightness(1.06);backdrop-filter:blur(12px) saturate(200%) brightness(1.06);
     box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 0 rgba(255,255,255,.08),0 0 0 .5px var(--border-color),0 12px 32px rgba(0,0,0,.3);
 }
 /* светлая «кромка» по контуру: ярче сверху-слева, слабее снизу-справа */
@@ -2375,39 +2376,86 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .msg-loader.hidden{display:none!important}
         .msg-spinner{width:28px;height:28px;border-radius:50%;box-sizing:border-box;border:3px solid rgba(255,255,255,.22);border-top-color:#e4e6ec;animation:msgSpin .75s linear infinite}
         @keyframes msgSpin{to{transform:rotate(360deg)}}
-    </style>
 
-    <style id="profile-menu-refresh">
-      /* Профиль: сохраняем исходную палитру и композицию, выравниваем иконки и типографику */
-      #profile-menu{padding:0!important;inset:0;align-items:stretch!important;justify-content:stretch!important;overflow:auto;background:#4d6973!important;color:#111!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-      #profile-menu .profile-menu-bg{display:none!important}
-      #profile-menu .profile-menu-card{position:relative;width:100%;height:100%;max-height:none;min-height:100%;border:0;border-radius:0;background:#4d6973;box-shadow:none;overflow:auto;animation:profileIn .18s ease;display:flex;flex-direction:column;padding-top:0}
-      #profile-menu .profile-menu-close{position:fixed;top:max(16px,env(safe-area-inset-top));right:16px;width:44px;height:44px;background:#363745;border:0;color:#fff;z-index:5;display:grid;place-items:center}
-      #profile-menu .profile-menu-close svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-      #profile-menu .profile-menu-head{flex:0 0 auto;text-align:center;padding:72px 20px 6px;background:none!important;color:#101114;text-shadow:none!important;border-bottom:1px solid rgba(20,30,35,.35)}
-      #profile-menu .profile-menu-head .avatar-xl{width:clamp(112px,34vw,154px);height:clamp(112px,34vw,154px);margin:0 auto 8px;background:#d7d7d7;color:#363745;box-shadow:none;border:0;font-size:42px}
-      #profile-menu .profile-menu-name{font-size:28px;line-height:1.25;font-weight:600;letter-spacing:-.035em;color:#101114;overflow-wrap:anywhere}
-      #profile-menu .profile-menu-status-row{justify-content:center;margin-top:6px;min-height:16px}
-      #profile-menu .profile-menu-status{font-size:12px;color:rgba(16,17,20,.65)}
-      #profile-menu .profile-menu-status-switch{display:none}
-      #profile-menu .profile-menu-body{padding:4px 11% 24px;display:flex;flex-direction:column;gap:24px;flex:1}
-      #profile-menu .profile-menu-call-row{display:flex;gap:18px;width:100%}
-      #profile-menu .profile-menu-call{flex:1;min-width:0;height:78px;border:0;border-radius:28px;background:#363745;color:#f7f8fb;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,background .15s}
-      #profile-menu .profile-menu-call:active{transform:scale(.97)}
-      #profile-menu .profile-menu-call svg{width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-      #profile-menu .profile-menu-list{background:#363745;border-radius:28px;padding:0 12px;gap:0;overflow:hidden}
-      #profile-menu .profile-menu-action{min-height:56px;padding:0 8px;border-radius:0;color:#f5f5f7;font-size:15px;line-height:1.35;font-weight:500;letter-spacing:-.01em;gap:12px}
-      #profile-menu .profile-menu-action+.profile-menu-action{border-top:1px solid rgba(255,255,255,.07)}
-      #profile-menu .profile-menu-action:hover{background:rgba(255,255,255,.06)}
-      #profile-menu .profile-menu-action-icon{width:28px;height:28px;display:grid;place-items:center;color:#f4f5f8}
-      #profile-menu .profile-menu-action-icon svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-      #profile-menu .profile-menu-about-card{min-height:136px;border-radius:28px;background:#363745;padding:14px 18px 18px;color:#f5f5f7}
-      #profile-menu .profile-menu-about-title{font-size:15px;font-weight:600;letter-spacing:-.01em;margin-bottom:10px}
-      #profile-menu .profile-menu-about{font-size:14px;line-height:1.5;color:rgba(245,245,247,.9);white-space:pre-wrap;word-break:break-word}
-      #profile-menu .profile-menu-about.hidden{display:block!important}
-      @media(max-height:650px){#profile-menu .profile-menu-head{padding-top:58px}#profile-menu .profile-menu-head .avatar-xl{width:96px;height:96px}#profile-menu .profile-menu-body{gap:14px}#profile-menu .profile-menu-call{height:62px}#profile-menu .profile-menu-about-card{min-height:100px}}
-    </style>
+        /* ===== Профиль собеседника по эскизу ===== */
+        #profile-menu{background:#4b6670!important}
+        #profile-menu .profile-menu-bg{display:none!important}
+        #profile-menu .profile-menu-card{background:transparent!important;box-shadow:none!important;border:0!important;width:100%;max-width:420px;margin:0 auto;padding:0 16px calc(24px + var(--safe-bottom));overflow-y:auto}
+        #profile-menu .profile-menu-close{top:calc(14px + env(safe-area-inset-top,0px));right:14px;width:46px;height:46px;border-radius:50%;background:#33343f!important;color:#fff;border:0}
+        #profile-menu .profile-menu-close svg{stroke:#fff;width:22px;height:22px}
+        #profile-menu .profile-menu-head{background:transparent!important;border-bottom:1px solid rgba(0,0,0,.35);padding:64px 0 18px!important;display:flex;flex-direction:column;align-items:center;gap:10px;background-image:none!important}
+        #profile-menu .profile-menu-head .avatar-xl{width:150px!important;height:150px!important;font-size:56px}
+        #profile-menu .profile-menu-name{font-size:28px;font-weight:600;color:#fff;text-align:center}
+        #profile-menu .profile-menu-status{color:rgba(255,255,255,.7);font-size:15px}
+        #profile-menu .profile-menu-body{display:flex;flex-direction:column;gap:14px;padding-top:16px}
+        .pm-quick{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+        .pm-quick-btn{height:86px;border:0;border-radius:24px;background:#3c4353;color:#fff;display:grid;place-items:center;cursor:pointer}
+        .pm-group{background:#3c4353;border-radius:24px;padding:6px 0;display:flex;flex-direction:column}
+        .pm-group .profile-menu-action{background:transparent!important;color:#e6e8ee!important;border:0;padding:14px 18px;display:flex;align-items:center;gap:14px;font-size:16px;width:100%;text-align:left}
+        .pm-group .profile-menu-action svg{stroke:#e6e8ee}
+        .pm-about{padding:6px 0 14px;min-height:150px}
+        .pm-about #profile-menu-about{padding:0 18px;color:#e6e8ee;font-size:15px;line-height:1.45}
+        .pm-about #profile-menu-about.hidden{display:none}
+        #profile-menu .profile-menu-about:not(.hidden){padding:0 18px}
+        #profile-menu-status-switch{margin-left:6px}
 
+        /* ===== Пачка улучшений: нажатия 44px, меню «⋯», уменьшение анимации ===== */
+        #chat-screen .top-bar .icon-btn,#chats-screen .dc-pill,#chats-screen .dc-plus{min-width:44px;min-height:44px}
+        #chat-screen .top-bar .icon-btn{width:44px!important;height:44px!important}
+        #chats-screen .dc-pill{height:44px!important}
+        #chats-screen .dc-plus{width:44px!important;height:44px!important}
+        #chat-screen #chat-timer-btn,#chat-screen #chat-wall-btn{display:none!important}
+        #chat-screen #chat-more-menu{top:64px;right:10px;left:auto;min-width:220px}
+        #chat-screen #chat-more-menu.hidden{display:none}
+        html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{
+            animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+        html.reduce-motion .msg-spinner{animation-duration:1s!important;animation-iteration-count:infinite!important}
+
+        /* ===== Плавность и экономия ресурсов ===== */
+        :root{--ease-smooth:cubic-bezier(.2,.8,.2,1);--dur-fast:.18s;--dur-base:.26s}
+        /* слабые устройства: без размытия и тяжёлых теней, короче переходы */
+        html.lite *,html.lite *::before,html.lite *::after{
+            backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
+        html.lite .screen.active{animation-duration:.18s!important}
+        html.lite .msg-loader{background:rgba(0,0,0,.6)}
+        html.lite .rail,html.lite .plus-menu,html.lite .profile-menu-card{box-shadow:none!important}
+        /* вкладка в фоне: бесконечные анимации (точки, индикатор печати, спиннер) не крутятся */
+        html.bg-paused *,html.bg-paused *::before,html.bg-paused *::after{animation-play-state:paused!important}
+        /* переходы и анимации только на GPU-дешёвых свойствах */
+        .msg-spinner,.sp-dots i{will-change:transform,opacity}
+        html.reduce-motion *{will-change:auto!important}
+
+        /* ===== Единый стиль вкладок и настроек (как в чате и на главном экране) ===== */
+        :root{--card:#3c4353;--card-line:rgba(255,255,255,.08);--ease-smooth:cubic-bezier(.2,.8,.2,1)}
+        :root[data-theme="light"]{--card:#ffffff;--card-line:rgba(0,0,0,.08)}
+        /* шапки подэкранов — той же таблеткой, что и в чате */
+        .screen:not(#chats-screen):not(#chat-screen) .top-bar{
+            margin:8px 10px 6px;padding:6px 10px!important;min-height:60px;display:flex;align-items:center;gap:4px;
+            background:var(--chat-bar)!important;border:0!important;border-radius:30px!important;box-shadow:none!important;backdrop-filter:none!important}
+        .screen:not(#chats-screen):not(#chat-screen) .top-bar-title{color:#fff!important;font-size:17px;font-weight:600;flex:1;text-align:left}
+        .screen:not(#chats-screen):not(#chat-screen) .top-bar .icon-btn{width:44px;height:44px;color:#fff;background:transparent;border:0;flex-shrink:0}
+        .screen:not(#chats-screen):not(#chat-screen) .top-bar .icon-btn svg{stroke:#fff}
+        /* карточки-группы */
+        .settings-body{gap:16px;padding:10px 14px calc(96px + var(--safe-bottom))!important}
+        .settings-section,.tg-list,.settings-toggle-row,.profile-card{background:var(--card)!important;border:0!important;border-radius:22px!important;box-shadow:none!important;overflow:hidden}
+        .settings-label{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em;padding:0 18px;margin:0 0 -6px}
+        .tg-row{padding:14px 18px!important;background:transparent!important;border-radius:0!important;transition:background-color .2s var(--ease-smooth),transform .2s var(--ease-smooth)}
+        .tg-row:active{background:var(--card-line)!important;transform:scale(.985)}
+        .tg-list .tg-row+.tg-row,.settings-section .tg-row+.tg-row{border-top:.5px solid var(--card-line)}
+        .tg-ico{width:32px!important;height:32px!important;border-radius:10px!important}
+        .tg-title,.settings-toggle-label{font-size:16px;color:var(--text-primary)}
+        .tg-chev,.settings-toggle-hint{color:var(--text-secondary)}
+        .settings-toggle-row{padding:14px 18px!important}
+        /* кнопки и ползунки в одном цвете акцента */
+        .btn{height:50px;border-radius:22px!important;background:var(--accent)!important;color:#fff;font-weight:600;font-size:16px;
+            transition:transform .2s var(--ease-smooth),opacity .2s var(--ease-smooth),background-color .2s}
+        .btn:active{transform:scale(.98);opacity:.9}
+        .btn-danger{background:#c94a4a!important}
+        input[type=range],input[type=checkbox]{accent-color:var(--accent)}
+        .slider{accent-color:var(--accent)}
+        /* плавное появление экранов без рывка */
+        .screen.active:not(#chat-screen){animation:pushIn .32s var(--ease-smooth) both}
+    </style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -2533,6 +2581,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 <button id="chat-timer-btn" class="icon-btn" title="Исчезающие сообщения" aria-label="Исчезающие сообщения"><svg class="ic"><use href="#i-timer"/></svg></button>
                 <button id="chat-wall-btn" class="icon-btn" title="Обои чата" aria-label="Обои чата"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.8"/><path d="m21 15-4.2-4.2a2 2 0 0 0-2.8 0L5 20"/></svg></button>
                 <button id="call-video-btn" class="icon-btn" title="Видеозвонок"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
+                    <button id="chat-more-btn" class="icon-btn" type="button" title="Ещё" aria-label="Ещё"><svg viewBox="0 0 24 24" width="26" height="26" fill="#fff"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+                    <div id="chat-more-menu" class="plus-menu hidden"><button id="cm-timer" type="button">Таймер сообщений</button><button id="cm-wall" type="button">Обои чата</button><button id="cm-emoji" type="button">Смайлики</button></div>
             </div>
             <div id="pinned-banner" class="pinned-banner hidden">
                 <div class="pinned-icon"><svg viewBox="0 0 24 24"><path d="M16 12V4H17V2H7V4H8V12L6 14V16H11.5V22H12.5V16H18V14L16 12Z"/></svg></div>
@@ -2702,6 +2752,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 </div>
                 <div class="tg-list">
                     <button id="st-notif" class="tg-row"><span class="tg-ico" style="background:#f59e0b"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span><span class="tg-title">Уведомления и звуки</span><span class="tg-chev">›</span></button>
+                    <button id="st-motion" class="tg-row"><span class="tg-ico" style="background:#6b7280"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M12 4v16"/></svg></span><span class="tg-title">Уменьшить анимацию</span><span class="tg-chev" id="st-motion-state">Выкл</span></button>
                     <button id="st-appear" class="tg-row"><span class="tg-ico" style="background:#363745"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M12 3a9 9 0 0 1 0 18"/></svg></span><span class="tg-title">Оформление</span><span class="tg-chev">›</span></button>
                 </div>
                 <button id="settings-logout-btn" class="btn btn-danger btn-block" style="margin-top: 12px;">Выйти из аккаунта</button>
@@ -2790,16 +2841,19 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 <div class="profile-menu-status-row"><span id="profile-menu-status" class="profile-menu-status">Не в сети</span><span id="profile-menu-status-switch" class="status-switch sm offline"></span></div>
             </div>
             <div class="profile-menu-body">
-                <div class="profile-menu-call-row">
-                    <button id="profile-audio-action" class="profile-menu-call" aria-label="Голосовой звонок" title="Голосовой звонок"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-phone"/></svg></button>
-                    <button id="profile-video-action" class="profile-menu-call" aria-label="Видеозвонок" title="Видеозвонок"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-video"/></svg></button>
+                <div class="pm-quick">
+                    <button id="pm-call" class="pm-quick-btn" type="button" aria-label="Позвонить"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></button>
+                    <button id="pm-video" class="pm-quick-btn" type="button" aria-label="Видеозвонок"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
                 </div>
-                <div class="profile-menu-list">
-                    <button id="profile-search-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><span>Поиск в переписке</span></button>
-                    <button id="profile-media-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span><span>Общие медиа</span></button>
-                    <button id="profile-block-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg></span><span id="profile-block-label">Заблокировать</span></button>
+                <div class="pm-group profile-menu-list">
+                    <button id="profile-search-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>Поиск в переписке</button>
+                    <button id="profile-block-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg></span><span id="profile-block-label">Заблокировать</span></button>
+                    <button id="profile-media-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span>Общие медиа</button>
                 </div>
-                <div class="profile-menu-about-card"><div class="profile-menu-about-title">О себе</div><div id="profile-menu-about" class="profile-menu-about">Пока ничего не указано</div></div>
+                <div class="pm-group pm-about">
+                    <button id="profile-about-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>О себе</button>
+                    <div id="profile-menu-about" class="profile-menu-about hidden"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -5157,10 +5211,9 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             document.getElementById('profile-menu-status').textContent = STATUS_LABELS[st] || 'Не в сети';
             document.getElementById('profile-menu-status-switch').className = 'status-switch sm ' + st;
             const aboutEl = document.getElementById('profile-menu-about');
-            aboutEl.textContent = 'Пока ничего не указано'; aboutEl.classList.remove('hidden');
+            aboutEl.textContent = ''; aboutEl.classList.add('hidden');
             const forUid = currentChatOtherUid;
-            const profileAbout = canSee(forUid, 'about') ? (profiles.get(forUid)?.about || '').trim() : 'Скрыто настройками конфиденциальности';
-            aboutEl.textContent = profileAbout || 'Пока ничего не указано'; aboutEl.classList.remove('hidden');
+            securityInfo(forUid).then(t => { if (forUid === currentChatOtherUid) { aboutEl.innerHTML = iconText(t); aboutEl.classList.remove('hidden'); } }).catch(() => {});
             applyAvatar(document.getElementById('profile-menu-avatar'), currentChatOtherUid, name);
             const bcss = canSee(currentChatOtherUid, 'photo') ? bannerCss(profiles.get(currentChatOtherUid)) : '';
             document.getElementById('profile-block-label').textContent = iBlocked(currentChatOtherUid) ? 'Разблокировать' : 'Заблокировать';
@@ -6112,11 +6165,21 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         });
 
         chatAvatarBtn.addEventListener('click', openProfileMenu);
+        document.getElementById('pm-call').addEventListener('click', () => { closeProfileMenu(); document.getElementById('call-audio-btn')?.click(); });
+        document.getElementById('pm-video').addEventListener('click', () => { closeProfileMenu(); document.getElementById('call-video-btn')?.click(); });
         document.getElementById('profile-menu-close').addEventListener('click', closeProfileMenu);
-        document.getElementById('profile-audio-action').addEventListener('click', () => { closeProfileMenu(); document.getElementById('call-audio-btn')?.click(); });
-        document.getElementById('profile-video-action').addEventListener('click', () => { closeProfileMenu(); document.getElementById('call-video-btn')?.click(); });
         profileMenu.addEventListener('click', e => { if (e.target === profileMenu) closeProfileMenu(); });
         document.getElementById('profile-search-action').addEventListener('click', searchInCurrentChat);
+        document.getElementById('profile-about-action').addEventListener('click', () => {
+            const el = document.getElementById('profile-menu-about');
+            if (el.classList.contains('hidden')) {
+                const about = canSee(currentChatOtherUid, 'about') ? profiles.get(currentChatOtherUid)?.about?.trim() : null;
+                el.textContent = !canSee(currentChatOtherUid, 'about') ? 'Скрыто настройками конфиденциальности' : (about || 'О себе не заполнено');
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        });
         document.getElementById('profile-media-action').addEventListener('click', showSharedMedia);
         chatBottomBtn.addEventListener('click', () => goToBottom(true));
 
@@ -6124,6 +6187,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             const theme = e.target.checked ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme-pref', theme);
+            window.__reapplyAccent && window.__reapplyAccent();
         });
 
         document.getElementById('settings-logout-btn').addEventListener('click', async () => {
@@ -6495,14 +6559,24 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         (function () {
             const colors = ['#363745', '#5865f2', '#3390ec', '#6366f1', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6'];
             const shade = c => `color-mix(in srgb, ${c} 82%, black)`;
-            const apply = c => { document.documentElement.style.setProperty('--accent', c); document.documentElement.style.setProperty('--accent-hover', shade(c)); };
-            let cur = '#363745'; try { cur = localStorage.getItem('accent') || cur; } catch (_) {}
-            apply(cur);
+            // #363745 — цвет для светлой темы и фона карточек; в тёмной теме акцент светлее, чтобы кнопки и пузыри были видны
+            const DARK_ACCENT = '#6b7090';
+            const isDark = () => document.documentElement.getAttribute('data-theme') !== 'light';
+            let chosen = '#363745';
+            try { chosen = localStorage.getItem('accent') || chosen; } catch (_) {}
+            const effective = c => (isDark() && c === '#363745') ? DARK_ACCENT : c;
+            const apply = c => {
+                const e = effective(c);
+                document.documentElement.style.setProperty('--accent', e);
+                document.documentElement.style.setProperty('--accent-hover', shade(e));
+            };
+            apply(chosen);
+            window.__reapplyAccent = () => apply(chosen);
             const row = document.getElementById('accent-row');
             colors.forEach(c => {
-                const b = document.createElement('button'); b.className = 'accent-dot' + (c === cur ? ' on' : ''); b.style.background = c; b.title = c;
+                const b = document.createElement('button'); b.className = 'accent-dot' + (c === chosen ? ' on' : ''); b.style.background = c; b.title = c;
                 b.addEventListener('click', () => {
-                    apply(c); try { localStorage.setItem('accent', c); } catch (_) {}
+                    chosen = c; apply(c); try { localStorage.setItem('accent', c); } catch (_) {}
                     row.querySelectorAll('.accent-dot').forEach(x => x.classList.toggle('on', x === b));
                 });
                 row.appendChild(b);
@@ -7555,5 +7629,134 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             if (!user) window.__splashHide?.(); else setTimeout(() => window.__splashHide?.(), 3500);
         });
     </script>
+
+<style>
+    .swipe-under{display:flex!important;position:absolute!important;inset:0!important;z-index:1!important;animation:none!important;will-change:transform}
+</style>
+<script>
+(function () {
+    const chatEl = document.getElementById('chat-screen');
+    const chatsEl = document.getElementById('chats-screen');
+    const backBtn = document.getElementById('back-to-chats');
+    if (!chatEl || !chatsEl || !backBtn) return;
+    const EDGE = 48;            // жест начинается у левого края экрана
+    let sx = 0, sy = 0, dx = 0, W = 1, tracking = false, decided = false, host = null;
+
+    function begin() {
+        host = chatEl.parentElement;
+        if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.dataset.swipePos = '1'; }
+        chatsEl.classList.add('swipe-under');
+        chatEl.style.position = 'absolute';
+        chatEl.style.inset = '0';
+        chatEl.style.zIndex = '2';
+        chatEl.style.boxShadow = '-10px 0 28px rgba(0,0,0,.35)';
+        chatEl.style.transition = 'none';
+        chatsEl.style.transition = 'none';
+    }
+
+    function reset() {
+        chatEl.style.transform = ''; chatEl.style.transition = ''; chatEl.style.position = '';
+        chatEl.style.inset = ''; chatEl.style.zIndex = ''; chatEl.style.boxShadow = '';
+        chatsEl.classList.remove('swipe-under'); chatsEl.style.transform = ''; chatsEl.style.transition = '';
+        if (host && host.dataset.swipePos) { host.style.position = ''; delete host.dataset.swipePos; }
+        host = null;
+    }
+
+    function finish(go) {
+        const ease = 'transform .26s cubic-bezier(.2,.8,.2,1)';
+        chatEl.style.transition = ease; chatsEl.style.transition = ease;
+        chatEl.style.transform = go ? `translateX(${W}px)` : 'translateX(0px)';
+        chatsEl.style.transform = go ? 'translateX(0%)' : 'translateX(-30%)';
+        setTimeout(() => {
+            reset();
+            if (go) backBtn.click();   // штатный возврат к списку чатов
+        }, 270);
+    }
+
+    chatEl.addEventListener('touchstart', e => {
+        if (!chatEl.classList.contains('active') || e.touches.length !== 1) return;
+        const t = e.touches[0];
+        if (t.clientX > EDGE) return;
+        if (document.querySelector('.profile-menu:not(.hidden)')) return;
+        sx = t.clientX; sy = t.clientY; dx = 0; W = chatEl.offsetWidth || window.innerWidth;
+        tracking = true; decided = false;
+    }, { passive: true });
+
+    chatEl.addEventListener('touchmove', e => {
+        if (!tracking) return;
+        const t = e.touches[0];
+        const x = t.clientX - sx, y = t.clientY - sy;
+        if (!decided) {
+            if (Math.abs(y) > 10 && Math.abs(y) > Math.abs(x)) { tracking = false; return; }   // вертикальный скролл
+            if (x > 10) { decided = true; begin(); } else return;
+        }
+        if (e.cancelable) e.preventDefault();
+        dx = Math.max(0, x);
+        const p = Math.min(1, dx / W);
+        chatEl.style.transform = `translateX(${dx}px)`;
+        chatsEl.style.transform = `translateX(${-30 * (1 - p)}%)`;
+    }, { passive: false });
+
+    function end() {
+        if (!tracking) return;
+        const was = decided;
+        tracking = false;
+        if (!was) return;
+        finish(dx > W * 0.5);   // больше половины экрана — назад, меньше — возвращаем
+    }
+    chatEl.addEventListener('touchend', end);
+    chatEl.addEventListener('touchcancel', end);
+})();
+</script>
+
+<script>
+(function () {
+    const more = document.getElementById('chat-more-btn');
+    const menu = document.getElementById('chat-more-menu');
+    if (more && menu) {
+        const close = () => menu.classList.add('hidden');
+        more.addEventListener('click', e => { e.stopPropagation(); menu.classList.toggle('hidden'); });
+        document.addEventListener('click', e => { if (!e.target.closest('#chat-more-menu') && !e.target.closest('#chat-more-btn')) close(); });
+        const go = (id) => { close(); document.getElementById(id)?.click(); };
+        document.getElementById('cm-timer').addEventListener('click', () => go('chat-timer-btn'));
+        document.getElementById('cm-wall').addEventListener('click', () => go('chat-wall-btn'));
+        document.getElementById('cm-emoji').addEventListener('click', () => go('emoji-btn'));
+    }
+
+    // Лёгкая вибрация на нажатия кнопок и отправку (где поддерживается)
+    document.addEventListener('click', e => {
+        if (!navigator.vibrate) return;
+        if (e.target.closest('button')) navigator.vibrate(8);
+    }, true);
+
+    // Переключатель «Уменьшить анимацию»
+    const row = document.getElementById('st-motion');
+    const state = document.getElementById('st-motion-state');
+    const paint = () => { if (state) state.textContent = document.documentElement.classList.contains('reduce-motion') ? 'Вкл' : 'Выкл'; };
+    if (row) {
+        paint();
+        row.addEventListener('click', () => {
+            const on = !document.documentElement.classList.contains('reduce-motion');
+            document.documentElement.classList.toggle('reduce-motion', on);
+            try { localStorage.setItem('reduce-motion', on ? '1' : '0'); } catch (_) {}
+            paint();
+        });
+    }
+})();
+</script>
+
+<script>
+(function () {
+    const root = document.documentElement;
+    // Слабое устройство: мало ядер или памяти — включаем облегчённый режим
+    const cores = navigator.hardwareConcurrency || 8;
+    const mem = navigator.deviceMemory || 8;
+    if (cores <= 4 || mem <= 4) root.classList.add('lite');
+    // Вкладка в фоне — останавливаем бесконечные анимации
+    document.addEventListener('visibilitychange', () => {
+        root.classList.toggle('bg-paused', document.visibilityState === 'hidden');
+    });
+})();
+</script>
 </body>
 </html>
