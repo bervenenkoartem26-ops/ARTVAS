@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>C Messenger</title>
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#2a2a2d">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="C Messenger">
@@ -2307,6 +2307,14 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         #chat-screen .input-row.has-text #mic-btn{display:none!important}
         #chat-screen .input-row:not(.has-text) #send-btn{display:none!important}
         #chat-screen .input-row.has-text #send-btn{display:grid!important;animation:none}
+        /* ===== Правки: шапка ниже, ввод ниже, единый фон без чёрной полосы ===== */
+        :root:not([data-theme="light"]) html,
+        :root:not([data-theme="light"]) body,
+        :root:not([data-theme="light"]) .app-shell,
+        :root:not([data-theme="light"]) #chats-screen{background:#2a2a2d!important;background-color:#2a2a2d!important}
+        #chat-screen .top-bar{margin-top:calc(env(safe-area-inset-top,0px) + 30px)!important}
+        .chat-input-panel{padding-bottom:calc(4px + var(--safe-bottom))!important}
+        .chat-input-panel .input-row{margin-bottom:0}
     </style>
 </head>
 <body>
