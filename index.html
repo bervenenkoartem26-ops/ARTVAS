@@ -2455,6 +2455,31 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .slider{accent-color:var(--accent)}
         /* плавное появление экранов без рывка */
         .screen.active:not(#chat-screen){animation:pushIn .32s var(--ease-smooth) both}
+
+        /* ===== Нижнее меню: по центру, без «стекла», без подписей, крупнее иконки ===== */
+        .rail{
+            left:max(var(--tab-side),var(--sl))!important;
+            right:max(var(--tab-side),var(--sr))!important;
+            margin:0 auto!important;
+            width:min(340px,calc(100vw - 2 * var(--tab-side)))!important;
+            background:var(--rail-solid,#33343f)!important;
+            -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+            box-shadow:0 6px 18px rgba(0,0,0,.28)!important;
+            padding:7px!important;min-height:74px;border-radius:37px!important;
+            transition:background-color .25s var(--ease-smooth),transform .25s var(--ease-smooth)}
+        :root[data-theme="light"] .rail{--rail-solid:#ffffff;box-shadow:0 0 0 .5px var(--border-color),0 6px 18px rgba(0,0,0,.1)!important}
+        .rail::before,.rail::after{display:none!important}
+        .rail .rail-btn{flex:1;height:60px!important;min-width:0;border-radius:30px!important;
+            display:flex;align-items:center;justify-content:center;font-size:0!important;
+            background:transparent!important;box-shadow:none!important;
+            transition:background-color .25s var(--ease-smooth),transform .2s var(--ease-smooth)}
+        .rail .rail-btn span:not(.rail-badge){display:none!important}
+        .rail .rail-btn svg{width:32px!important;height:32px!important;stroke-width:2!important;transition:transform .25s var(--ease-smooth)}
+        .rail .rail-btn:active{transform:scale(.92)}
+        .rail .rail-btn.active{background:rgba(255,255,255,.1)!important;box-shadow:none!important}
+        :root[data-theme="light"] .rail .rail-btn.active{background:rgba(0,0,0,.06)!important}
+        .rail .rail-btn.active svg{stroke:#c9cbd3!important;transform:scale(1.04)}
+        .rail .rail-badge{position:absolute;top:8px;right:14px}
     </style>
 </head>
 <body>
