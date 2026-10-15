@@ -21,29 +21,31 @@
         #splash.out{opacity:0;transform:scale(1.04);pointer-events:none}
         .sp-mark{position:relative;width:132px;height:132px;display:grid;place-items:center}
         .sp-glow{position:absolute;inset:-30px;border-radius:50%;pointer-events:none;
-            background:radial-gradient(closest-side,color-mix(in srgb,var(--accent,#0a84ff) 40%,transparent),transparent);
+            background:radial-gradient(closest-side,color-mix(in srgb,var(--accent,#363745) 40%,transparent),transparent);
             animation:spGlow 2.4s ease-in-out infinite}
-        .sp-icon{position:relative;width:96px;height:96px;border-radius:22px;display:grid;place-items:center;will-change:transform;
-            background:linear-gradient(160deg,color-mix(in srgb,var(--accent,#0a84ff) 78%,#fff),var(--accent,#0a84ff) 55%,color-mix(in srgb,var(--accent,#0a84ff) 68%,#000));
-            box-shadow:inset 0 .5px 0 rgba(255,255,255,.4),0 12px 32px color-mix(in srgb,var(--accent,#0a84ff) 38%,transparent);
+        .sp-icon{position:relative;width:132px;height:124px;display:grid;place-items:center;will-change:transform;
+            
             animation:spIn .8s cubic-bezier(.34,1.45,.64,1) both}
-        .sp-icon b{font-size:56px;line-height:1;font-weight:800;letter-spacing:-.04em;color:#fff;transform:translateY(-1px)}
-        .sp-ring{position:absolute;inset:0;width:100%;height:100%;opacity:0;transform-origin:50% 50%;
-            animation:spFade .6s .45s ease forwards,spSpin 1.1s linear infinite}
-        .sp-ring circle{fill:none;stroke-width:3;stroke-linecap:round}
-        .sp-ring .trk{stroke:var(--accent,#0a84ff);opacity:.16}
-        .sp-ring .arc{stroke:var(--accent,#0a84ff);stroke-dasharray:96 400}
+        .sp-logo{width:100%;height:100%;display:block}
+        .sp-dots{display:flex;align-items:center;gap:10px;height:10px;margin-top:-4px}
+        .sp-dots i{width:8px;height:8px;border-radius:50%;background:var(--accent,#363745);opacity:.22;
+            animation:spDot 1.4s ease-in-out infinite both}
+        .sp-dots i:nth-child(1){animation-delay:0s}
+        .sp-dots i:nth-child(2){animation-delay:.2s}
+        .sp-dots i:nth-child(3){animation-delay:.4s}
+        .sp-dots i:nth-child(4){animation-delay:.6s}
+        .sp-dots i:nth-child(5){animation-delay:.8s}
         .sp-name{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.012em;opacity:0;animation:spUp .6s .3s cubic-bezier(.22,1,.36,1) forwards}
         @keyframes spIn{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:none}}
         @keyframes spUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
         @keyframes spFade{to{opacity:1}}
-        @keyframes spSpin{to{transform:rotate(360deg)}}
+        @keyframes spDot{0%,100%{opacity:.22;transform:scale(.8)}30%{opacity:1;transform:scale(1.15)}60%{opacity:.22;transform:scale(.8)}}
         @keyframes spGlow{0%,100%{opacity:.5;transform:scale(.94)}50%{opacity:1;transform:scale(1.06)}}
         @keyframes spFadeOnly{from{opacity:0}to{opacity:1}}
         @media (prefers-reduced-motion:reduce){
             .sp-icon,.sp-name{animation:spFadeOnly .4s ease both}
             .sp-glow{animation:none;opacity:.6}
-            .sp-ring{animation:spFade .6s .3s ease forwards}
+            .sp-dots i{animation:none;opacity:.5}
             #splash{transition:opacity .3s ease}
             #splash.out{transform:none}
         }
@@ -59,10 +61,10 @@
             --border-color: #27272a;
             --text-primary: #f4f4f5;
             --text-secondary: #a1a1aa;
-            --accent: #6366f1;
-            --accent-hover: #4f46e5;
+            --accent: #363745;
+            --accent-hover: #2a2b36;
             --danger: #ef4444;
-            --bubble-me: #6366f1;
+            --bubble-me: #363745;
             --bubble-other: #27272a;
         }
 
@@ -1231,7 +1233,7 @@
             --border-color:rgba(84,84,88,.55);
             --text-primary:#fff; --text-secondary:rgba(235,235,245,.6);
             /* системные цвета */
-            --accent:#0a84ff; --danger:#ff453a; --green:#30d158; --yellow:#ffd60a; --gray:#8e8e93;
+            --accent:#363745; --danger:#ff453a; --green:#30d158; --yellow:#ffd60a; --gray:#8e8e93;
             --accent-fill:color-mix(in srgb,var(--accent) 86%,#000);   /* заливка с контрастом ≥4.5:1 под белым текстом */
             --bubble-me:var(--accent-fill); --bubble-other:#26262a; --bubble-me-text:#fff;
             /* материал */
@@ -1733,12 +1735,8 @@
         #auth-screen .auth-card{
             margin:auto;max-width:360px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;
         }
-        #auth-screen .logo-c{
-            display:grid;place-items:center;width:96px;height:96px;margin:0 auto 24px;border-radius:22px;
-            font-size:56px;line-height:1;font-weight:800;letter-spacing:-.04em;color:#fff;
-            background:linear-gradient(160deg,color-mix(in srgb,var(--accent) 78%,#fff),var(--accent) 55%,color-mix(in srgb,var(--accent) 68%,#000));
-            box-shadow:inset 0 .5px 0 rgba(255,255,255,.4),0 12px 32px color-mix(in srgb,var(--accent) 38%,transparent);
-        }
+        #auth-screen .logo-c{display:block;width:132px;height:124px;margin:0 auto 24px;background:none;box-shadow:none;border-radius:0}
+        #auth-screen .logo-c .sp-logo{width:100%;height:100%}
         #auth-screen .auth-title{margin:0 0 32px;font-size:28px;line-height:34px;font-weight:700;letter-spacing:-.02em}
         #auth-screen .input-group{margin-bottom:12px}
         #auth-screen .input-group label{
@@ -1753,7 +1751,7 @@
         #auth-screen .switch-auth{display:flex;align-items:center;justify-content:center;gap:4px;min-height:var(--ctl);margin-top:8px;font-size:15px;line-height:20px}
         #auth-screen .error-msg{margin-top:8px;font-size:13px;line-height:18px;text-align:center}
         @media (max-height:640px){
-            #auth-screen .logo-c{width:72px;height:72px;margin-bottom:12px;border-radius:16px;font-size:42px}
+            #auth-screen .logo-c{width:96px;height:90px;margin-bottom:12px}
             #auth-screen .auth-title{margin-bottom:16px}
         }
 
@@ -1889,7 +1887,7 @@
         .call-ctl .call-round.cc .ic{width:22px;height:22px}
         .call-end{width:68px;height:68px;border-radius:50%;border:0;padding:0;background:#ff3b30;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(255,59,48,.45),inset 0 .5px 0 rgba(255,255,255,.35);transition:transform .15s,background .15s}
         .call-end:active{transform:scale(.92);background:#e0281f}
-        .env-send-btn{color:var(--accent,#0a84ff)}
+        .env-send-btn{color:var(--accent,#363745)}
         .input-row:not(.has-text) .env-send-btn{display:none}
         .env-card{display:flex;align-items:center;gap:12px;min-width:200px;padding:10px 12px;border-radius:14px;cursor:pointer;background:rgba(127,127,127,.14);border:1px dashed rgba(127,127,127,.45)}
         .env-ico{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;background:#1f2937;color:#fff}
@@ -2110,7 +2108,7 @@ body.dropping::after{content:'Отпустите, чтобы прикрепит�
 <style>
 .consent-row{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:10px 0;text-align:left;cursor:pointer}
 .consent-row input{margin-top:3px;flex-shrink:0;width:18px;height:18px}
-.consent-row a{color:var(--accent,#6366f1)}
+.consent-row a{color:var(--accent,#363745)}
 </style>
 <style>
 .side-drawer{position:fixed;inset:0;z-index:950}
@@ -2137,7 +2135,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 .legal-body h3{margin:0 0 12px;font-size:18px}
 .legal-body p{margin:0 0 10px}
 .legal-foot{padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);border-top:1px solid rgba(127,127,127,.2)}
-.legal-ok{width:100%;padding:12px;border:0;border-radius:12px;background:var(--accent,#6366f1);color:#fff;font-size:16px;cursor:pointer}
+.legal-ok{width:100%;padding:12px;border:0;border-radius:12px;background:var(--accent,#363745);color:#fff;font-size:16px;cursor:pointer}
 </style>
 <style>
 .st-hero{position:relative;display:flex;flex-direction:column;align-items:center;padding:18px 0 22px;transition:padding .3s ease}
@@ -2238,15 +2236,86 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 @keyframes reactHit{0%{transform:scale(1)}40%{transform:scale(1.025)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion: reduce){.react-fly,.message.react-hit{animation:none}.react-fly{display:none}}
 </style>
+
+    <style id="chat-redesign">
+        /* ===== Экран чата по эскизу ===== */
+        :root{--chat-bar:#3d5f69;--chat-bubble-in:#3d4a63;--chat-bubble-out:#cdd0de}
+        #chat-screen{background:var(--bg-color)}
+        :root:not([data-theme="light"]) #chat-screen{background:#2a2a2d}
+
+        /* Шапка: скруглённая таблетка */
+        #chat-screen .top-bar{
+            position:relative;display:flex;align-items:center;gap:4px;
+            margin:8px 10px 6px;padding:6px 10px!important;min-height:60px;
+            background:var(--chat-bar)!important;border:0!important;border-radius:30px!important;
+            box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+        }
+        #chat-screen .top-bar .icon-btn{width:40px;height:40px;padding:0;background:transparent;color:#fff;border:0;flex-shrink:0}
+        #chat-screen .top-bar .icon-btn svg{width:26px;height:26px;stroke:#fff;stroke-width:2.2}
+        #chat-screen #back-to-chats svg{width:28px;height:28px}
+        #chat-screen #chat-avatar-btn{width:46px!important;height:46px!important;flex-shrink:0;margin-left:2px}
+        #chat-screen #chat-avatar{width:46px;height:46px;border-radius:50%;background:#d9d9dc!important;color:#2a2a2d;font-size:18px}
+        #chat-screen .chat-title-wrap{flex:1;min-width:0;margin-left:6px}
+        #chat-screen .chat-title-row .top-bar-title{font-size:17px;font-weight:600;color:#fff;text-align:left}
+        #chat-screen #chat-status-text{display:none}
+        #chat-screen .chat-status-row{margin:0;position:absolute;left:84px;top:40px;pointer-events:none}
+        #chat-screen #chat-status-dot{width:12px!important;height:12px!important;border:2px solid var(--chat-bar)!important;box-sizing:border-box}
+        #chat-screen #chat-timer-btn,#chat-screen #chat-wall-btn{display:none!important}
+
+        /* Пузыри сообщений */
+        #chat-screen .message{border-radius:24px!important;padding:12px 18px!important;box-shadow:none!important;max-width:72%}
+        #chat-screen .message::after{display:none!important}
+        #chat-screen .message.other{background:var(--chat-bubble-in);color:#fff}
+        #chat-screen .message.me{background:var(--chat-bubble-out);color:#1c1c24}
+        #chat-screen .message.me .msg-meta{color:#4a4a57;opacity:.8}
+        #chat-screen .message.me .reply-quote{border-left-color:#4a4a57;background:rgba(0,0,0,.08)}
+
+        /* Панель ввода: клип слева, таблетка с микрофоном/стрелкой справа */
+        .chat-input-panel{padding:6px 12px calc(8px + var(--safe-bottom))!important}
+        .input-row{
+            position:relative;display:block;min-height:50px;padding:0!important;gap:0!important;
+            background:transparent!important;box-shadow:none!important;border-radius:0!important;
+        }
+        #chat-screen #emoji-btn{display:none!important}
+        /* Отложенная отправка и конверт: появляются слева от стрелки, когда есть текст */
+        #chat-screen #sched-btn,#chat-screen #env-btn{
+            position:absolute;top:0;z-index:2;width:50px;height:50px;padding:0;margin:0;
+            background:transparent!important;color:#fff!important;border:0;border-radius:50%;display:grid;place-items:center
+        }
+        #chat-screen #sched-btn svg,#chat-screen #env-btn svg{width:24px;height:24px;stroke:#fff;stroke-width:2.2;fill:none}
+        #chat-screen #sched-btn{right:52px}
+        #chat-screen #env-btn{right:102px}
+        #chat-screen .input-row:not(.has-text) #sched-btn,#chat-screen .input-row:not(.has-text) #env-btn{display:none!important}
+        #chat-screen .input-row.has-text #sched-btn,#chat-screen .input-row.has-text #env-btn{display:grid!important}
+        #chat-screen .input-row.has-text #message-input{padding-right:160px!important}
+        #chat-screen #file-btn{
+            position:absolute;left:0;top:0;z-index:2;width:50px;height:50px;border-radius:50%;
+            background:var(--chat-bar);color:#fff;padding:0;display:grid;place-items:center
+        }
+        #chat-screen #file-btn svg{width:24px;height:24px;stroke:#fff;stroke-width:2.2}
+        #chat-screen #message-input{
+            display:block;width:100%;height:50px;margin:0;
+            padding:0 60px 0 62px!important;border:0!important;border-radius:25px!important;
+            background:var(--chat-bar)!important;color:#fff!important;font-size:17px;box-shadow:none!important;
+        }
+        #chat-screen #message-input::placeholder{color:rgba(255,255,255,.85)}
+        #chat-screen #mic-btn,#chat-screen #send-btn{
+            position:absolute;right:0;top:0;z-index:2;width:50px;height:50px;padding:0;margin:0;
+            background:transparent!important;color:#fff!important;border:0;border-radius:50%;display:grid;place-items:center
+        }
+        #chat-screen #mic-btn svg,#chat-screen #send-btn svg{width:26px;height:26px;stroke:#fff;stroke-width:2.2}
+        #chat-screen .input-row.has-text #mic-btn{display:none!important}
+        #chat-screen .input-row:not(.has-text) #send-btn{display:none!important}
+        #chat-screen .input-row.has-text #send-btn{display:grid!important;animation:none}
+    </style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
     <div class="sp-mark">
         <div class="sp-glow"></div>
-        <div class="sp-icon"><b>C</b></div>
-        <svg class="sp-ring" viewBox="0 0 132 132" aria-hidden="true"><circle class="trk" cx="66" cy="66" r="62"/><circle class="arc" cx="66" cy="66" r="62"/></svg>
+        <div class="sp-icon"><svg class="sp-logo" viewBox="0 0 185 175" aria-hidden="true"><rect width="185" height="175" rx="42" fill="#2d2a29"/><g fill="#fff"><ellipse cx="92.0" cy="30.0" rx="11" ry="16" transform="rotate(0.0 92.0 30.0)"/><ellipse cx="126.1" cy="41.1" rx="11" ry="16" transform="rotate(36.0 126.1 41.1)"/><ellipse cx="147.2" cy="70.1" rx="11" ry="16" transform="rotate(72.0 147.2 70.1)"/><ellipse cx="147.2" cy="105.9" rx="11" ry="16" transform="rotate(108.0 147.2 105.9)"/><ellipse cx="126.1" cy="134.9" rx="11" ry="16" transform="rotate(144.0 126.1 134.9)"/><ellipse cx="92.0" cy="146.0" rx="11" ry="16" transform="rotate(180.0 92.0 146.0)"/><ellipse cx="57.9" cy="134.9" rx="11" ry="16" transform="rotate(216.0 57.9 134.9)"/><ellipse cx="36.8" cy="105.9" rx="11" ry="16" transform="rotate(252.0 36.8 105.9)"/><ellipse cx="36.8" cy="70.1" rx="11" ry="16" transform="rotate(288.0 36.8 70.1)"/><ellipse cx="57.9" cy="41.1" rx="11" ry="16" transform="rotate(324.0 57.9 41.1)"/></g></svg></div>
     </div>
-    <div class="sp-name">C Messenger</div>
+    <div class="sp-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
 </div>
 <script>
 (function () {
@@ -2286,8 +2355,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         </nav>
         <div id="auth-screen" class="screen screen-center active">
             <div class="auth-card">
-                <div class="logo-c">C</div>
-                <h1 id="auth-title" class="auth-title">Вход в C Messenger</h1>
+                <div class="logo-c auth-logo"><svg class="sp-logo" viewBox="0 0 185 175" aria-hidden="true"><rect width="185" height="175" rx="42" fill="#2d2a29"/><g fill="#fff"><ellipse cx="92.0" cy="30.0" rx="11" ry="16" transform="rotate(0.0 92.0 30.0)"/><ellipse cx="126.1" cy="41.1" rx="11" ry="16" transform="rotate(36.0 126.1 41.1)"/><ellipse cx="147.2" cy="70.1" rx="11" ry="16" transform="rotate(72.0 147.2 70.1)"/><ellipse cx="147.2" cy="105.9" rx="11" ry="16" transform="rotate(108.0 147.2 105.9)"/><ellipse cx="126.1" cy="134.9" rx="11" ry="16" transform="rotate(144.0 126.1 134.9)"/><ellipse cx="92.0" cy="146.0" rx="11" ry="16" transform="rotate(180.0 92.0 146.0)"/><ellipse cx="57.9" cy="134.9" rx="11" ry="16" transform="rotate(216.0 57.9 134.9)"/><ellipse cx="36.8" cy="105.9" rx="11" ry="16" transform="rotate(252.0 36.8 105.9)"/><ellipse cx="36.8" cy="70.1" rx="11" ry="16" transform="rotate(288.0 36.8 70.1)"/><ellipse cx="57.9" cy="41.1" rx="11" ry="16" transform="rotate(324.0 57.9 41.1)"/></g></svg></div>
+                <h1 id="auth-title" class="auth-title">Вход</h1>
                 <div class="input-group">
                     <label for="email-input">Email</label>
                     <input id="email-input" type="email" autocomplete="email" placeholder="you@example.com">
@@ -2525,7 +2594,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 </div>
                 <div class="tg-list">
                     <button id="st-notif" class="tg-row"><span class="tg-ico" style="background:#f59e0b"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span><span class="tg-title">Уведомления и звуки</span><span class="tg-chev">›</span></button>
-                    <button id="st-appear" class="tg-row"><span class="tg-ico" style="background:#6366f1"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M12 3a9 9 0 0 1 0 18"/></svg></span><span class="tg-title">Оформление</span><span class="tg-chev">›</span></button>
+                    <button id="st-appear" class="tg-row"><span class="tg-ico" style="background:#363745"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M12 3a9 9 0 0 1 0 18"/></svg></span><span class="tg-title">Оформление</span><span class="tg-chev">›</span></button>
                 </div>
                 <button id="settings-logout-btn" class="btn btn-danger btn-block" style="margin-top: 12px;">Выйти из аккаунта</button>
             </div>
@@ -5312,17 +5381,17 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             .tr-x{width:32px;height:32px;border-radius:50%;border:0;background:rgba(127,127,127,.16);color:inherit;font-size:14px;cursor:pointer}
             .tr-langs{display:flex;align-items:center;gap:8px;margin-bottom:12px}
             .tr-langs select{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid rgba(127,127,127,.25);background:var(--surface-hover,rgba(127,127,127,.12));color:inherit;font:inherit;font-size:15px;appearance:auto}
-            .tr-swap{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:0;background:var(--accent,#0a84ff);color:#fff;font-size:18px;cursor:pointer;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+            .tr-swap{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:0;background:var(--accent,#363745);color:#fff;font-size:18px;cursor:pointer;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
             .tr-swap:active{transform:rotate(180deg) scale(.92)}
             .tr-box{position:relative;border-radius:16px;border:1px solid rgba(127,127,127,.25);background:var(--surface-hover,rgba(127,127,127,.08));padding:10px 12px 6px;transition:border-color .2s}
-            .tr-box:focus-within{border-color:var(--accent,#0a84ff)}
+            .tr-box:focus-within{border-color:var(--accent,#363745)}
             .tr-box textarea{width:100%;box-sizing:border-box;border:0;outline:0;resize:none;background:transparent;color:inherit;font:inherit;font-size:17px;line-height:1.4;min-height:96px}
             .tr-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;opacity:.6;margin-top:4px}
-            .tr-clear{border:0;background:none;color:var(--accent,#0a84ff);font:inherit;font-size:13px;cursor:pointer;padding:4px 0}
-            .tr-go{width:100%;margin-top:12px;padding:13px;border:0;border-radius:14px;background:var(--accent,#0a84ff);color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s}
+            .tr-clear{border:0;background:none;color:var(--accent,#363745);font:inherit;font-size:13px;cursor:pointer;padding:4px 0}
+            .tr-go{width:100%;margin-top:12px;padding:13px;border:0;border-radius:14px;background:var(--accent,#363745);color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s}
             .tr-go:active{transform:scale(.98)}
             .tr-go:disabled{opacity:.4;cursor:default}
-            .tr-result{margin-top:14px;padding:14px;border-radius:16px;background:color-mix(in srgb,var(--accent,#0a84ff) 10%,transparent);animation:trIn .3s ease}
+            .tr-result{margin-top:14px;padding:14px;border-radius:16px;background:color-mix(in srgb,var(--accent,#363745) 10%,transparent);animation:trIn .3s ease}
             .tr-res-meta{font-size:12px;opacity:.65;margin-bottom:6px;min-height:14px}
             .tr-out{font-size:17px;line-height:1.45;white-space:pre-wrap;word-break:break-word;user-select:text;-webkit-user-select:text}
             .tr-out.loading{opacity:.55}
@@ -5569,7 +5638,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 
         switchAuth.addEventListener('click', () => {
             isSignUp = !isSignUp;
-            authTitle.textContent = isSignUp ? 'Регистрация в C Messenger' : 'Вход в C Messenger';
+            authTitle.textContent = isSignUp ? 'Регистрация' : 'Вход';
             authBtn.textContent = isSignUp ? 'Зарегистрироваться' : 'Войти';
             nicknameGroup.classList.toggle('hidden', !isSignUp);
             document.getElementById('signup-extra').classList.toggle('hidden', !isSignUp);
@@ -6281,10 +6350,10 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 
         // ===== Цвет акцента =====
         (function () {
-            const colors = ['#5865f2', '#3390ec', '#6366f1', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6'];
+            const colors = ['#363745', '#5865f2', '#3390ec', '#6366f1', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6'];
             const shade = c => `color-mix(in srgb, ${c} 82%, black)`;
             const apply = c => { document.documentElement.style.setProperty('--accent', c); document.documentElement.style.setProperty('--accent-hover', shade(c)); };
-            let cur = '#5865f2'; try { cur = localStorage.getItem('accent') || cur; } catch (_) {}
+            let cur = '#363745'; try { cur = localStorage.getItem('accent') || cur; } catch (_) {}
             apply(cur);
             const row = document.getElementById('accent-row');
             colors.forEach(c => {
