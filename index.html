@@ -2555,88 +2555,247 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .rail > #nav-calls-btn,.rail .rail-pill > #nav-calls-btn{order:3!important}
         .rail > #nav-rooms-btn,.rail .rail-pill > #nav-rooms-btn{order:4!important}
         .rail > #nav-chats-btn{order:5!important}
+    </style>
 
-        /* ===== Стиль Google: крупные скругления, пилюли, шрифт Google Sans, плавная M3-кривая ===== */
-        :root{
-            --ease-smooth: cubic-bezier(.2,0,0,1);           /* M3 emphasized */
-            --ease-std: cubic-bezier(.2,0,0,1);
-            --r-xl: 32px; --r-lg: 28px; --r-md: 20px; --r-pill: 999px;
-        }
-        body, button, input, textarea, select {
-            font-family: "Google Sans", "Google Sans Text", "Product Sans", Roboto, "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-            letter-spacing: .005em;
-        }
-        /* блоки: крупные скругления */
-        .settings-section, .tg-list, .settings-toggle-row, .profile-card,
-        .pm-group, .pm-about, .plus-menu, .edit-bar { border-radius: var(--r-lg) !important; }
-        .pm-quick-btn, .eb-btn, .btn, .dc-pill, .dc-plus, .plus-menu button,
-        .nav-search-input, .dc-search-row input, #message-input { border-radius: var(--r-pill) !important; }
-        .pm-quick-btn { border-radius: var(--r-xl) !important; }
-        .profile-menu-close { border-radius: 50% !important; }
-        .message, .message.me, .message.other { border-radius: 26px !important; }
-        #attachment-thumb { border-radius: 18px !important; }
-        .vid, .vid video { border-radius: 22px !important; }
-        .vid-save { border-radius: 50% !important; }
-        /* панель ввода — таблетка */
-        .input-row::before { border-radius: var(--r-pill) !important; }
-        /* кнопки-пилюли с мягким нажатием */
-        .btn { height: 52px; font-weight: 500; letter-spacing: .01em; }
-        .eb-btn { font-weight: 500; }
-        .dc-pill { font-weight: 500; }
-        /* заголовки крупнее и стройнее */
-        .dc-title, .top-bar-title { font-weight: 500; letter-spacing: -.01em; }
-        .settings-label { letter-spacing: .06em; font-weight: 500; }
-        /* строки списков — мягкие округлые области при нажатии */
-        .tg-row { border-radius: 0 !important; }
-        .tg-row:active { transform: scale(.985); }
-        /* нижняя навигация — полоса в стиле M3 */
-        .rail .rail-btn::before { border-radius: var(--r-pill) !important; }
-        .rail .rail-btn.active { border-radius: var(--r-pill); }
-
-        /* ===== Начальный экран без нижнего меню: доступ к настройкам — из шапки, к контактам и звонкам — из меню «+» ===== */
-        body.on-chats #rail { display: none !important; }
-        /* ===== Экран входа и регистрации без нижнего меню ===== */
-        body.on-auth #rail { display: none !important; }
-
-        /* ===== Google / Material 3: второй проход — формы, отступы, иерархия, состояния ===== */
-        :root{
-            --m3-shape-xl: 28px; --m3-shape-l: 24px; --m3-shape-m: 16px; --m3-shape-pill: 999px;
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <style id="material-overrides">
+        /* ===== Material-стиль (как в приложениях Google): тональные поверхности, крупные скругления, мягкие анимации ===== */
+        :root {
             --m3-ease: cubic-bezier(.2,0,0,1);
-            --m3-fast: .2s; --m3-base: .3s;
+            --bg-color: #111318;
+            --surface-color: #1d1f25;
+            --surface-high: #2b2e36;
+            --surface-hover: #2a2d35;
+            --border-color: transparent;
+            --text-primary: #e3e3e8;
+            --text-secondary: #c4c6d0;
+            --accent: #a8c7fa;
+            --accent-hover: #d3e3fd;
+            --bubble-me: #2c4770;
+            --bubble-other: #292b33;
         }
-        /* Главный экран: строки чатов — мягкие карточки с состоянием нажатия */
-        #chats-list .chat-item{
-            margin:4px 10px; padding:12px 14px !important; border-radius: var(--m3-shape-l);
-            transition: background-color var(--m3-fast) var(--m3-ease), transform var(--m3-fast) var(--m3-ease);
+        :root[data-theme="light"] {
+            --bg-color: #f8f9fc;
+            --surface-color: #ffffff;
+            --surface-high: #eceef4;
+            --surface-hover: #eef0f6;
+            --border-color: transparent;
+            --text-primary: #1f1f23;
+            --text-secondary: #5f6368;
+            --accent: #0b57d0;
+            --accent-hover: #0842a0;
+            --bubble-me: #d3e3fd;
+            --bubble-other: #ffffff;
         }
-        #chats-list .chat-item:active{ background: var(--card, #3c4353) !important; transform: scale(.985); }
-        #chats-list .chat-item + .chat-item::before{ display:none; }
-        /* Заголовок главного экрана — крупный, как у Google */
-        #chats-screen .dc-title{ font-size: 32px !important; font-weight: 500 !important; letter-spacing: -.02em; }
-        /* Строка поиска и кнопки — пилюли с заметным состоянием фокуса */
-        #chats-screen .nav-search-input{ height: 52px; border-radius: var(--m3-shape-pill) !important; padding: 0 20px; }
-        #chats-screen .nav-search-input:focus{ outline: 2px solid var(--accent, #6b7090); outline-offset: 2px; }
-        /* Блоки в настройках и профиле: 28 px, разделители внутри с отступом */
-        .settings-section, .tg-list, .profile-card, .pm-group, .pm-about, .settings-toggle-row{
-            border-radius: var(--m3-shape-xl) !important; margin: 0 2px;
+
+        * { font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        body { background-color: var(--bg-color); }
+
+        /* Нижнее меню не показываем на экране входа/регистрации (дополнительно к JS) */
+        body:has(#auth-screen.active) #rail,
+        body:has(#auth-screen.active) .rail,
+        body:has(#auth-screen.active) .user-bar { display: none !important; }
+
+        /* Экран входа / регистрации */
+        .auth-card {
+            background: var(--surface-color);
+            border: none;
+            border-radius: 32px;
+            padding: 40px 32px;
+            box-shadow: none;
+            animation: cardUp .55s var(--m3-ease) both;
         }
-        .tg-list .tg-row + .tg-row, .settings-section .tg-row + .tg-row{ border-top: none; margin-left: 56px; }
-        .tg-row{ padding: 16px 20px !important; min-height: 56px; }
-        .tg-ico{ border-radius: 50% !important; }
-        /* Заголовки секций — капсом не нужен, спокойный регистр */
-        .settings-label{ text-transform: none !important; letter-spacing: .01em !important; font-size: 14px !important; padding: 0 24px !important; }
-        /* Шапки подэкранов — крупный заголовок */
-        .screen:not(#chats-screen):not(#chat-screen) .top-bar-title{ font-size: 20px; font-weight: 500; }
-        /* Диалоги и шиты — верхние скругления 28 px */
-        .plus-menu, #chat-more-menu{ border-radius: var(--m3-shape-xl) !important; padding: 8px !important; }
-        .plus-menu button{ border-radius: var(--m3-shape-pill) !important; }
-        /* Кнопки: пилюли с ощутимым нажатием */
-        .btn, .eb-btn, .pm-quick-btn{ transition: transform var(--m3-fast) var(--m3-ease), opacity var(--m3-fast) var(--m3-ease); }
-        .btn:active, .eb-btn:active, .pm-quick-btn:active{ transform: scale(.97); }
-        /* Сообщения: большие скругления, хвостик убран */
-        .message{ border-radius: 22px !important; }
-        /* Единая кривая и длительности для всех переходов */
-        .rail, .rail .rail-btn, .rail .rail-btn::before, .rail .rail-btn svg{ transition-timing-function: var(--m3-ease) !important; }
+        @keyframes cardUp { from { opacity: 0; transform: translateY(24px) scale(.98); } to { opacity: 1; transform: none; } }
+        .auth-title { font-size: 26px; font-weight: 500; }
+        input:not([type="checkbox"]) {
+            border: none;
+            background: var(--surface-high);
+            border-radius: 20px;
+            padding: 16px 18px;
+            transition: box-shadow .25s var(--m3-ease), background .25s var(--m3-ease);
+        }
+        input:not([type="checkbox"]):focus {
+            border-color: transparent;
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+        .btn {
+            border-radius: 999px !important;
+            padding: 14px 24px;
+            font-weight: 500;
+            letter-spacing: .01em;
+            transition: transform .2s var(--m3-ease), background .2s var(--m3-ease), box-shadow .2s var(--m3-ease);
+        }
+        .btn:hover { box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+        .btn:active { transform: scale(.97); }
+        .switch-auth span { font-weight: 500; }
+
+        /* Верхние панели без линий, поиск — пилюля */
+        .top-bar {
+            background: var(--bg-color) !important;
+            border-bottom: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        .top-bar-title { font-size: 22px; font-weight: 500; }
+        .icon-btn { border-radius: 50%; }
+
+        .semi-circle-nav {
+            background: var(--surface-high) !important;
+            border: none !important;
+            border-radius: 999px !important;
+            box-shadow: none !important;
+            margin: calc(12px + env(safe-area-inset-top, 0px)) 16px 10px !important;
+            padding: 6px 8px 6px 14px !important;
+            transition: box-shadow .3s var(--m3-ease);
+        }
+        .semi-circle-nav:focus-within { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent); }
+        .nav-search-input { background: transparent !important; border: none !important; border-radius: 999px !important; }
+
+        /* Список чатов: карточки-строки с большими скруглениями и появлением по очереди */
+        .chats-list { padding: 4px 10px 96px; }
+        .chat-item {
+            border-radius: 28px;
+            margin: 2px 2px;
+            padding: 12px 14px;
+            transition: background-color .25s var(--m3-ease), transform .2s var(--m3-ease);
+            animation: itemIn .5s var(--m3-ease) both;
+        }
+        .chat-item:nth-child(2) { animation-delay: .04s; }
+        .chat-item:nth-child(3) { animation-delay: .08s; }
+        .chat-item:nth-child(4) { animation-delay: .12s; }
+        .chat-item:nth-child(5) { animation-delay: .16s; }
+        .chat-item:nth-child(6) { animation-delay: .2s; }
+        .chat-item:nth-child(7) { animation-delay: .24s; }
+        .chat-item:nth-child(8) { animation-delay: .28s; }
+        .chat-item:hover { background: var(--surface-hover); }
+        .chat-item:active { transform: scale(.985); background: var(--surface-hover); }
+        .chat-item.selected { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+        @keyframes itemIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+        /* Сообщения: скруглённые пузыри с «хвостиком» к отправителю и пружинящее появление */
+        .message .bubble,
+        .message .msg-bubble { border-radius: 24px !important; transition: transform .2s var(--m3-ease); }
+        .message.me .bubble,
+        .message.me .msg-bubble { border-bottom-right-radius: 8px !important; }
+        .message.other .bubble,
+        .message.other .msg-bubble { border-bottom-left-radius: 8px !important; }
+        .msg-in { animation: msgIn .42s var(--m3-ease) both; }
+        @keyframes msgIn { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
+
+        /* Поле ввода — большая пилюля */
+        .chat-input-panel { background: var(--bg-color) !important; border-top: none !important; }
+        .input-row {
+            background: var(--surface-high);
+            border-radius: 28px;
+            padding: 6px 8px;
+            transition: box-shadow .25s var(--m3-ease);
+        }
+        .input-row:focus-within { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent); }
+        #message-input { background: transparent !important; border: none !important; border-radius: 999px !important; box-shadow: none !important; }
+        .send-btn { border-radius: 50% !important; transition: transform .2s var(--m3-ease); }
+        .send-btn:active { transform: scale(.88); }
+        .file-btn { border-radius: 50%; transition: transform .2s var(--m3-ease), background .2s; }
+        .file-btn:active { transform: scale(.88); }
+
+        /* Экраны плавно выезжают */
+        .screen.active { animation: screenIn .34s var(--m3-ease) both; }
+        @keyframes screenIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+        /* Уважение к настройке «уменьшить анимации» */
+        html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after,
+        html.reduce-motion .screen.active,
+        html.reduce-motion .chat-item,
+        html.reduce-motion .msg-in {
+            animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+        }
+    </style>
+    <style id="motion-extra">
+        /* ===== Анимации в духе Google Messages и Telegram ===== */
+        :root {
+            --tg-ease: cubic-bezier(.33,1,.68,1);           /* плавный выезд, как в Telegram */
+            --gm-spring: cubic-bezier(.34,1.56,.64,1);      /* лёгкий «пружинный» отскок, как в Google Messages */
+        }
+
+        /* Сообщения: входящие выезжают слева, исходящие — справа, с пружинкой */
+        .message.me.msg-in { animation: tgOutIn .42s var(--gm-spring) both; transform-origin: right bottom; }
+        .message.other.msg-in { animation: tgInIn .42s var(--gm-spring) both; transform-origin: left bottom; }
+        @keyframes tgOutIn { from { opacity: 0; transform: translate(24px, 8px) scale(.9); } to { opacity: 1; transform: none; } }
+        @keyframes tgInIn  { from { opacity: 0; transform: translate(-24px, 8px) scale(.9); } to { opacity: 1; transform: none; } }
+
+        /* Смена экранов: сдвиг по горизонтали, как в Telegram (вход справа, уход влево) */
+        .screen.active { animation: screenSlide .38s var(--tg-ease) both; }
+        @keyframes screenSlide { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+        #auth-screen.active { animation: screenFade .4s var(--tg-ease) both; }
+        @keyframes screenFade { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Эффект волны при нажатии (Material ripple) для строк чатов, кнопок и иконок */
+        .chat-item, .icon-btn, .btn, .file-btn, .send-btn, .rail-btn { position: relative; overflow: hidden; }
+        .chat-item::after, .icon-btn::after, .btn::after, .file-btn::after, .send-btn::after, .rail-btn::after {
+            content: '';
+            position: absolute; left: 50%; top: 50%;
+            width: 140%; aspect-ratio: 1; border-radius: 50%;
+            background: currentColor; opacity: 0; transform: translate(-50%, -50%) scale(0);
+            pointer-events: none;
+        }
+        .chat-item::after { color: var(--accent); }
+        .chat-item:active::after, .icon-btn:active::after, .btn:active::after,
+        .file-btn:active::after, .send-btn:active::after, .rail-btn:active::after {
+            animation: ripple .55s var(--tg-ease) forwards;
+        }
+        @keyframes ripple { 0% { opacity: .16; transform: translate(-50%, -50%) scale(0); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+
+        /* Строки чатов: лёгкий сдвиг при нажатии, как в Telegram */
+        .chat-item { transition: background-color .25s var(--tg-ease), transform .25s var(--gm-spring); }
+        .chat-item:active { transform: scale(.975); }
+
+        /* Кнопка отправки: короткий «подпрыг» при отправке */
+        .send-btn { transition: transform .25s var(--gm-spring), background-color .2s; }
+        .send-btn:active { transform: scale(.82); }
+        .send-btn.pulse { animation: sendPulse .4s var(--gm-spring); }
+        @keyframes sendPulse { 0% { transform: scale(.82); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+        /* Нижнее меню: плавный переезд индикатора активной вкладки, как в Google Messages */
+        .rail .rail-btn { transition: background-color .35s var(--tg-ease), transform .3s var(--gm-spring), color .3s; }
+        .rail .rail-btn.active { transform: scale(1.04); }
+
+        /* Плюс-кнопка поворачивается, как в Google Messages */
+        #nav-add-btn svg, .dc-plus svg { transition: transform .35s var(--gm-spring); }
+        #nav-add-btn:active svg, .dc-plus:active svg { transform: rotate(90deg); }
+
+        /* Поиск в списке чатов: раскрывается мягко */
+        .dc-search-row { animation: searchOpen .3s var(--tg-ease) both; }
+        @keyframes searchOpen { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+
+        /* Индикатор набора текста: три точки покачиваются по очереди */
+        .typing-indicator-box span { display: inline-block; animation: typingBounce 1.2s ease-in-out infinite; }
+        .typing-indicator-box span:nth-child(2) { animation-delay: .15s; }
+        .typing-indicator-box span:nth-child(3) { animation-delay: .3s; }
+        @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-4px); opacity: 1; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            .message.me.msg-in, .message.other.msg-in, .screen.active, .chat-item::after,
+            .dc-search-row, .typing-indicator-box span { animation: none !important; }
+        }
+        html.reduce-motion .message.me.msg-in, html.reduce-motion .message.other.msg-in,
+        html.reduce-motion .screen.active, html.reduce-motion .dc-search-row { animation: none !important; }
+    </style>
+    <style id="voice-tr">
+        .msg-tr { margin-top: 6px; padding-top: 6px; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); font-size: 14px; line-height: 19px; animation: msgIn .3s var(--m3-ease, ease) both; }
+        .msg-tr-lbl { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; opacity: .6; margin-bottom: 2px; }
+        .msg-tr-wait { opacity: .6; font-style: italic; }
+        .msg-tr-err { color: var(--danger); }
+        .vp { display: flex; align-items: center; gap: 10px; min-width: 220px; max-width: 280px; padding: 4px 2px; }
+        .vp-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--accent); color: #fff; display: grid; place-items: center; flex-shrink: 0; cursor: pointer; transition: transform .2s cubic-bezier(.34,1.56,.64,1); }
+        .vp-btn:active { transform: scale(.9); }
+        .vp-btn svg { width: 18px; height: 18px; fill: currentColor; }
+        .vp-wave { flex: 1; height: 34px; display: flex; align-items: center; gap: 2px; cursor: pointer; touch-action: none; }
+        .vp-wave i { flex: 1; min-height: 12%; border-radius: 2px; background: currentColor; opacity: .3; transition: opacity .15s ease, height .4s cubic-bezier(.2,0,0,1); }
+        .vp-wave i.on { opacity: 1; }
+        .vp-time { font-size: 12px; opacity: .7; font-variant-numeric: tabular-nums; min-width: 32px; text-align: right; }
+        .vp audio { display: none; }
     </style>
 </head>
 <body>
@@ -2725,7 +2884,6 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                         <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M19 8v6M22 11h-6"></path></svg>
                         <span>Найти друзей</span>
                     </button>
-                    <button id="dc-settings-btn" class="dc-plus" type="button" aria-label="Настройки"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
                     <button id="dc-edit-btn" class="dc-pill" type="button">Изм.</button>
                     <button id="nav-add-btn" class="dc-plus" title="Плюс" aria-label="Создать">
                         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
@@ -2733,8 +2891,6 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                     <div id="plus-menu" class="plus-menu hidden">
                         <button id="pm-contact" type="button">Создать контакт</button>
                         <button id="pm-group" type="button">Создать группу</button>
-                        <button id="pm-nav-contacts" type="button">Контакты</button>
-                        <button id="pm-nav-calls" type="button">Звонки</button>
                     </div>
                 </div>
                 <div class="dc-search-row">
@@ -3402,6 +3558,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         }
 
         const MI = {
+            translate: '<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
             reply:   '<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v3"/>',
             forward: '<path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0-6 6v3"/>',
             copy:    '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
@@ -3440,6 +3597,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 miBtn('reply', 'reply', 'Ответить') +
                 miBtn('forward', 'forward', 'Переслать') +
                 (msg.text ? miBtn('copy', 'copy', msg.imageUrl ? 'Копировать текст' : 'Копировать') : '') +
+                (msg.text ? miBtn('translate', 'translate', msgTr.has(id) ? 'Скрыть перевод' : 'Перевести') : '') +
                 (msg.imageUrl ? miBtn('copyimg', 'copy', 'Копировать фото') + miBtn('saveimg', 'download', 'Сохранить фото') : '') +
                 (msg.fileUrl && isVideoMsg(msg) ? miBtn('savevid', 'download', 'Сохранить видео') : '') +
                 miBtn('pin', isPinned ? 'unpin' : 'pin', isPinned ? 'Открепить' : 'Закрепить') +
@@ -3473,6 +3631,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 else if (it?.dataset.act === 'reply') startReply(id);
                 else if (it?.dataset.act === 'forward') forwardMessage(id);
                 else if (it?.dataset.act === 'copy') copyText(msg.text);
+                else if (it?.dataset.act === 'translate') translateMessageInline(id, msg.text);
                 else if (it?.dataset.act === 'copyimg') copyPhoto(msg.imageUrl);
                 else if (it?.dataset.act === 'saveimg') savePhoto(msg.imageUrl);
                 else if (it?.dataset.act === 'savevid') saveVideo(msg.fileUrl);
@@ -5127,16 +5286,145 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 else if (msg.imageUrl) html += `<img src="${escapeHtml(msg.imageUrl)}" alt="фото" class="message-image${msg.sticker ? ' sticker-img' : ''}" decoding="async">`;
                 if (msg.fileUrl && isVideoMsg(msg)) html += videoHtml(msg.fileUrl);
                 else if (msg.fileUrl) html += docCardHtml(msg);
-                if (msg.audioUrl) html += `<audio controls src="${escapeHtml(msg.audioUrl)}"></audio>`;
+                if (msg.audioUrl) html += vpHtml(msg.audioUrl);
                 const counts = {};
                 Object.values(msg.reactions || {}).forEach(e => { counts[e] = (counts[e] || 0) + 1; });
                 const chips = Object.entries(counts).map(([e, n]) => `<button class="reaction-chip${msg.reactions[currentUser.uid] === e ? ' mine' : ''}" data-emoji="${escapeHtml(e)}">${escapeHtml(e)}${n > 1 ? ' ' + n : ''}</button>`).join('');
                 if (chips) html += `<div class="reactions">${chips}</div>`;
             }
+            html += trHtml(msgTr.get(id));
             html += `<div class="msg-meta">${msg.edited && !msg.deleted ? '<span class="msg-edited">изменено</span>' : ''}${msg.expiresAt && !msg.deleted ? `<span class="msg-ds" title="Исчезающее сообщение">${ic('timer')}</span>` : ''}<span class="msg-time">${formatTime(msg.createdAt || Date.now())}</span>${mine && !msg.deleted && pending ? `<span class="msg-state" title="Отправляется">${ic('timer')}</span>` : mine && !msg.deleted ? `<span class="ticks${(msg.read && myPriv().readReceipts) ? ' read' : ''}" title="${(msg.read && myPriv().readReceipts) ? 'Прочитано' : 'Отправлено'}">${(msg.read && myPriv().readReceipts) ? TICK2 : TICK1}</span>` : ''}</div>`;
             div.innerHTML = html;
             return div;
         }
+
+        /* ===== Перевод сообщения прямо в чате ===== */
+        const msgTr = new Map();   // id сообщения -> { status | text | error, to }
+        async function trRequest(q, sl, tl) {
+            try {
+                const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(sl)}&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(q)}`);
+                if (!r.ok) throw new Error('google HTTP ' + r.status);
+                const j = await r.json();
+                return j[0].map(x => x[0]).join('');
+            } catch (primaryErr) {
+                const pair = `${sl === 'auto' ? 'autodetect' : sl}|${tl}`;
+                const r2 = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${encodeURIComponent(pair)}`);
+                if (!r2.ok) throw new Error('fallback HTTP ' + r2.status);
+                const j2 = await r2.json();
+                if (j2.responseStatus !== 200 || !j2.responseData) throw new Error('fallback');
+                return j2.responseData.translatedText;
+            }
+        }
+        function trHtml(s) {
+            if (!s) return '';
+            if (s.status === 'loading') return `<div class="msg-tr msg-tr-wait">Перевожу…</div>`;
+            if (s.error) return `<div class="msg-tr msg-tr-err">Не удалось перевести</div>`;
+            return `<div class="msg-tr"><span class="msg-tr-lbl">Перевод</span>${escapeHtml(s.text)}</div>`;
+        }
+        function refreshTrDom(id) {
+            const el = messagesList.querySelector(`.message[data-id="${CSS.escape(id)}"]`);
+            if (!el) return;
+            el.querySelectorAll('.msg-tr').forEach(n => n.remove());
+            const s = msgTr.get(id);
+            const meta = el.querySelector('.msg-meta');
+            if (s && meta) meta.insertAdjacentHTML('beforebegin', trHtml(s));
+        }
+        async function translateMessageInline(id, text) {
+            if (msgTr.has(id)) { msgTr.delete(id); refreshTrDom(id); return; }
+            // на русском переводим на английский, на любом другом языке — на русский
+            const to = /[а-яё]/i.test(text) ? 'en' : 'ru';
+            msgTr.set(id, { status: 'loading' });
+            refreshTrDom(id);
+            try {
+                const t = await trRequest(text, 'auto', to);
+                if (msgTr.has(id)) msgTr.set(id, { text: t, to });
+            } catch (err) {
+                console.error('inline translate', err);
+                if (msgTr.has(id)) msgTr.set(id, { error: true });
+            }
+            refreshTrDom(id);
+        }
+
+        /* ===== Голосовое сообщение: плеер с волной и перемоткой ===== */
+        const VP_BARS = 32;
+        const VP_PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>';
+        const VP_PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+        const vpPeaksCache = new Map();
+        function vpFallbackPeaks(seed) {
+            let h = 7; for (const c of String(seed)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+            const out = [];
+            for (let i = 0; i < VP_BARS; i++) { h = (h * 1103515245 + 12345) >>> 0; out.push(0.3 + (h % 1000) / 1000 * 0.7); }
+            return out;
+        }
+        function vpLoadPeaks(url) {
+            if (!vpPeaksCache.has(url)) {
+                const p = (async () => {
+                    const res = await fetch(url);
+                    const buf = await res.arrayBuffer();
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    try {
+                        const ab = await ctx.decodeAudioData(buf);
+                        const data = ab.getChannelData(0), step = Math.floor(data.length / VP_BARS), peaks = [];
+                        for (let i = 0; i < VP_BARS; i++) {
+                            let m = 0;
+                            for (let j = i * step; j < (i + 1) * step; j++) { const v = Math.abs(data[j]); if (v > m) m = v; }
+                            peaks.push(m);
+                        }
+                        const max = Math.max(...peaks) || 1;
+                        return peaks.map(v => Math.max(0.15, v / max));
+                    } finally { if (ctx.close) ctx.close(); }
+                })();
+                p.catch(() => vpPeaksCache.delete(url));
+                vpPeaksCache.set(url, p);
+            }
+            return vpPeaksCache.get(url);
+        }
+        function vpHtml(url) {
+            const bars = vpFallbackPeaks(url).map(h => `<i style="height:${Math.round(h * 100)}%"></i>`).join('');
+            return `<div class="vp" data-url="${escapeHtml(url)}">` +
+                `<button class="vp-btn" type="button" data-vp="play" aria-label="Воспроизвести">${VP_PLAY}</button>` +
+                `<div class="vp-wave" data-vp="seek">${bars}</div>` +
+                `<span class="vp-time">0:00</span>` +
+                `<audio preload="metadata" src="${escapeHtml(url)}"></audio></div>`;
+        }
+        const vpFmt = s => { if (!isFinite(s) || s < 0) s = 0; const m = Math.floor(s / 60), r = Math.floor(s % 60); return m + ':' + String(r).padStart(2, '0'); };
+        function vpUpdate(a) {
+            const root = a.closest('.vp'); if (!root) return;
+            root.querySelector('.vp-btn').innerHTML = a.paused ? VP_PLAY : VP_PAUSE;
+            const dur = a.duration, frac = isFinite(dur) && dur > 0 ? a.currentTime / dur : 0;
+            const bars = root.querySelectorAll('.vp-wave i'), n = bars.length, lit = Math.round(frac * n);
+            bars.forEach((b, i) => b.classList.toggle('on', i < lit));
+            root.querySelector('.vp-time').textContent = vpFmt(a.currentTime || (isFinite(dur) ? dur : 0));
+        }
+        // делегирование: работает для всех голосовых, в том числе появившихся позже
+        document.addEventListener('click', e => {
+            const btn = e.target.closest('[data-vp="play"]');
+            if (!btn) return;
+            const a = btn.closest('.vp').querySelector('audio');
+            document.querySelectorAll('.vp audio').forEach(o => { if (o !== a && !o.paused) o.pause(); });
+            if (a.paused) a.play().catch(() => showToast('Не удалось воспроизвести голосовое')); else a.pause();
+        });
+        document.addEventListener('pointerdown', e => {
+            const wave = e.target.closest('[data-vp="seek"]');
+            if (!wave) return;
+            const a = wave.closest('.vp').querySelector('audio');
+            if (!isFinite(a.duration) || a.duration <= 0) return;
+            const rect = wave.getBoundingClientRect();
+            a.currentTime = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)) * a.duration;
+            vpUpdate(a);
+        });
+        ['play', 'pause', 'ended', 'timeupdate', 'loadedmetadata', 'seeked'].forEach(evt =>
+            document.addEventListener(evt, e => {
+                if (!e.target.matches || !e.target.matches('.vp audio')) return;
+                vpUpdate(e.target);
+                if (evt === 'loadedmetadata') {
+                    const root = e.target.closest('.vp');
+                    vpLoadPeaks(root.dataset.url).then(peaks => {
+                        if (!peaks || !root.isConnected) return;
+                        root.querySelectorAll('.vp-wave i').forEach((b, i) => { b.style.height = Math.round(peaks[i] * 100) + '%'; });
+                    }).catch(() => {});
+                }
+            }, true));
 
         function renderMessage(id, msg) {
             const div = createMessageElement(id, msg);
@@ -5915,20 +6203,37 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 go.disabled = true; go.textContent = 'Перевожу…';
                 try {
                     const sl = from.value, tl = to.value;
-                    const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(sl)}&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(q)}`);
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    const j = await r.json();
+                    let text, dc = sl;
+                    try {
+                        // Основной сервис
+                        const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(sl)}&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(q)}`);
+                        if (!r.ok) throw new Error('google HTTP ' + r.status);
+                        const j = await r.json();
+                        text = j[0].map(x => x[0]).join('');
+                        dc = j[2] || sl;
+                    } catch (primaryErr) {
+                        console.warn('translate primary failed', primaryErr);
+                        // Запасной сервис (открытый API без ключа, работает из браузера)
+                        const pair = `${sl === 'auto' ? 'autodetect' : sl}|${tl}`;
+                        const r2 = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${encodeURIComponent(pair)}`);
+                        if (!r2.ok) throw new Error('fallback HTTP ' + r2.status);
+                        const j2 = await r2.json();
+                        if (j2.responseStatus !== 200 || !j2.responseData) throw new Error('fallback: ' + (j2.responseDetails || j2.responseStatus));
+                        text = j2.responseData.translatedText;
+                    }
                     if (my !== seq) return; // устаревший ответ
                     out.classList.remove('loading');
-                    out.textContent = j[0].map(x => x[0]).join('');
-                    const dc = j[2] || sl;
+                    out.textContent = text;
                     detected.dataset.code = dc;
                     detected.textContent = sl === 'auto' ? `Определён язык: ${langName(dc)}` : `${langName(sl)} → ${langName(tl)}`;
                 } catch (err) {
                     if (my !== seq) return;
                     console.error('translate', err);
                     out.classList.remove('loading');
-                    out.textContent = 'Не удалось перевести. Проверьте сеть и попробуйте ещё раз.';
+                    const reason = !navigator.onLine ? 'нет сети'
+                        : /Failed to fetch|NetworkError|Load failed/i.test(err.message) ? 'сеть или блокировка запроса'
+                        : err.message;
+                    out.textContent = `Не удалось перевести (${reason}). Попробуйте ещё раз.`;
                     detected.textContent = '';
                 } finally {
                     if (my === seq) { go.textContent = 'Перевести'; refresh(); }
@@ -8134,27 +8439,6 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         e.stopPropagation(); e.preventDefault();
         saveVideo(b.dataset.save);
     }, true);
-})();
-</script>
-
-<script>
-(function () {
-    const chats = document.getElementById('chats-screen');
-    const set = () => document.body.classList.toggle('on-chats', !!chats && chats.classList.contains('active'));
-    if (chats) new MutationObserver(set).observe(chats, { attributes: true, attributeFilter: ['class'] });
-    set();
-    const click = id => document.getElementById(id)?.click();
-    document.getElementById('dc-settings-btn')?.addEventListener('click', () => click('nav-settings-btn'));
-    document.getElementById('pm-nav-contacts')?.addEventListener('click', () => { document.getElementById('plus-menu')?.classList.add('hidden'); click('nav-contacts-btn'); });
-    document.getElementById('pm-nav-calls')?.addEventListener('click', () => { document.getElementById('plus-menu')?.classList.add('hidden'); click('nav-calls-btn'); });
-})();
-</script>
-<script>
-(function () {
-    const auth = document.getElementById('auth-screen');
-    const set = () => document.body.classList.toggle('on-auth', !!auth && auth.classList.contains('active'));
-    if (auth) new MutationObserver(set).observe(auth, { attributes: true, attributeFilter: ['class'] });
-    set();
 })();
 </script>
 </body>
