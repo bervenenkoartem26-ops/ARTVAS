@@ -2530,6 +2530,31 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .vid-save{position:absolute;top:8px;right:8px;z-index:3;width:34px;height:34px;border:0;border-radius:50%;
             background:rgba(0,0,0,.45);display:grid;place-items:center;cursor:pointer;opacity:.9;transition:transform .2s var(--ease-smooth),opacity .2s}
         .vid-save:active{transform:scale(.9)}
+
+        /* ===== Нижнее меню: минималистичная полоса в стиле Material (без пилюль и подписей) ===== */
+        :root{--nav-bg:#2a2a2d;--nav-line:rgba(255,255,255,.07);--nav-icon:#9ea1ae;--nav-icon-on:#f2f3f7;--nav-ind:rgba(255,255,255,.12)}
+        :root[data-theme="light"]{--nav-bg:#ffffff;--nav-line:rgba(0,0,0,.08);--nav-icon:#6b6e7a;--nav-icon-on:#1c1c24;--nav-ind:rgba(0,0,0,.07)}
+        .rail{left:0!important;right:0!important;width:auto!important;margin:0!important;
+            background:var(--nav-bg)!important;border-radius:0!important;box-shadow:none!important;
+            border-top:.5px solid var(--nav-line);padding:0 0 calc(4px + var(--safe-bottom))!important;min-height:0!important;
+            display:flex!important;flex-direction:row!important;align-items:stretch!important;justify-content:space-around!important;gap:0!important;overflow:visible!important}
+        .rail .rail-pill{display:contents!important;background:none!important;padding:0!important}
+        .rail > .rail-btn,.rail .rail-pill > .rail-btn{flex:1 1 0!important;width:auto!important;min-width:0!important;height:64px!important;
+            border-radius:0!important;background:transparent!important;box-shadow:none!important;position:relative;
+            display:flex!important;align-items:center!important;justify-content:center!important;transform:none!important}
+        .rail > .rail-btn:first-child,.rail > .rail-btn:last-child{width:auto!important;height:64px!important}
+        .rail > .rail-btn svg{position:relative;z-index:1;width:26px!important;height:26px!important;stroke:var(--nav-icon)!important;stroke-width:1.9!important;fill:none!important}
+        .rail .rail-btn::before{content:''!important;display:block!important;position:absolute!important;left:50%!important;top:12px!important;width:64px!important;height:32px!important;margin-left:-32px!important;border-radius:16px!important;background:transparent!important;transition:background-color .25s var(--ease-smooth),transform .25s var(--ease-smooth);transform:scale(.6);opacity:0}
+        .rail .rail-btn.active::before{background:var(--nav-ind)!important;transform:scale(1);opacity:1}
+        .rail .rail-btn.active svg{stroke:var(--nav-icon-on)!important}
+        .rail .rail-btn:active svg{transform:scale(.9)}
+        .rail .rail-btn svg{transition:transform .25s var(--ease-smooth),stroke .25s var(--ease-smooth)}
+        .rail .rail-badge{position:absolute;top:10px;left:calc(50% + 10px);right:auto}
+        .rail > #nav-settings-btn{order:1!important}
+        .rail > #nav-contacts-btn,.rail .rail-pill > #nav-contacts-btn{order:2!important}
+        .rail > #nav-calls-btn,.rail .rail-pill > #nav-calls-btn{order:3!important}
+        .rail > #nav-rooms-btn,.rail .rail-pill > #nav-rooms-btn{order:4!important}
+        .rail > #nav-chats-btn{order:5!important}
     </style>
 </head>
 <body>
@@ -7949,12 +7974,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             chatEl.classList.add('chat-enter');
             const end = () => chatEl.classList.remove('chat-enter');
             chatEl.addEventListener('animationend', end, { once: true });
-            if (!p || !p.av || !p.nm || !avatarDst || calm()) return;
-            const dAv = avatarDst.getBoundingClientRect(), dNm = titleEl.getBoundingClientRect();
-            avatarDst.animate([{ opacity: 0 }, { opacity: 1 }], { duration: dur(), easing: EASE });
-            titleEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: dur(), easing: EASE });
-            fly(p.av, dAv, avatarClone(p.avHTML, p.avBg));
-            fly(p.nm, dNm, nameClone(p.nmText, p.nmFont, p.nmWeight));
+            // при открытии без перелёта аватарки: экран поднимается целиком, элементы остаются на своих местах
         }, 0);
     });
 
