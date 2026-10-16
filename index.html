@@ -2555,6 +2555,88 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .rail > #nav-calls-btn,.rail .rail-pill > #nav-calls-btn{order:3!important}
         .rail > #nav-rooms-btn,.rail .rail-pill > #nav-rooms-btn{order:4!important}
         .rail > #nav-chats-btn{order:5!important}
+
+        /* ===== Стиль Google: крупные скругления, пилюли, шрифт Google Sans, плавная M3-кривая ===== */
+        :root{
+            --ease-smooth: cubic-bezier(.2,0,0,1);           /* M3 emphasized */
+            --ease-std: cubic-bezier(.2,0,0,1);
+            --r-xl: 32px; --r-lg: 28px; --r-md: 20px; --r-pill: 999px;
+        }
+        body, button, input, textarea, select {
+            font-family: "Google Sans", "Google Sans Text", "Product Sans", Roboto, "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+            letter-spacing: .005em;
+        }
+        /* блоки: крупные скругления */
+        .settings-section, .tg-list, .settings-toggle-row, .profile-card,
+        .pm-group, .pm-about, .plus-menu, .edit-bar { border-radius: var(--r-lg) !important; }
+        .pm-quick-btn, .eb-btn, .btn, .dc-pill, .dc-plus, .plus-menu button,
+        .nav-search-input, .dc-search-row input, #message-input { border-radius: var(--r-pill) !important; }
+        .pm-quick-btn { border-radius: var(--r-xl) !important; }
+        .profile-menu-close { border-radius: 50% !important; }
+        .message, .message.me, .message.other { border-radius: 26px !important; }
+        #attachment-thumb { border-radius: 18px !important; }
+        .vid, .vid video { border-radius: 22px !important; }
+        .vid-save { border-radius: 50% !important; }
+        /* панель ввода — таблетка */
+        .input-row::before { border-radius: var(--r-pill) !important; }
+        /* кнопки-пилюли с мягким нажатием */
+        .btn { height: 52px; font-weight: 500; letter-spacing: .01em; }
+        .eb-btn { font-weight: 500; }
+        .dc-pill { font-weight: 500; }
+        /* заголовки крупнее и стройнее */
+        .dc-title, .top-bar-title { font-weight: 500; letter-spacing: -.01em; }
+        .settings-label { letter-spacing: .06em; font-weight: 500; }
+        /* строки списков — мягкие округлые области при нажатии */
+        .tg-row { border-radius: 0 !important; }
+        .tg-row:active { transform: scale(.985); }
+        /* нижняя навигация — полоса в стиле M3 */
+        .rail .rail-btn::before { border-radius: var(--r-pill) !important; }
+        .rail .rail-btn.active { border-radius: var(--r-pill); }
+
+        /* ===== Начальный экран без нижнего меню: доступ к настройкам — из шапки, к контактам и звонкам — из меню «+» ===== */
+        body.on-chats #rail { display: none !important; }
+        /* ===== Экран входа и регистрации без нижнего меню ===== */
+        body.on-auth #rail { display: none !important; }
+
+        /* ===== Google / Material 3: второй проход — формы, отступы, иерархия, состояния ===== */
+        :root{
+            --m3-shape-xl: 28px; --m3-shape-l: 24px; --m3-shape-m: 16px; --m3-shape-pill: 999px;
+            --m3-ease: cubic-bezier(.2,0,0,1);
+            --m3-fast: .2s; --m3-base: .3s;
+        }
+        /* Главный экран: строки чатов — мягкие карточки с состоянием нажатия */
+        #chats-list .chat-item{
+            margin:4px 10px; padding:12px 14px !important; border-radius: var(--m3-shape-l);
+            transition: background-color var(--m3-fast) var(--m3-ease), transform var(--m3-fast) var(--m3-ease);
+        }
+        #chats-list .chat-item:active{ background: var(--card, #3c4353) !important; transform: scale(.985); }
+        #chats-list .chat-item + .chat-item::before{ display:none; }
+        /* Заголовок главного экрана — крупный, как у Google */
+        #chats-screen .dc-title{ font-size: 32px !important; font-weight: 500 !important; letter-spacing: -.02em; }
+        /* Строка поиска и кнопки — пилюли с заметным состоянием фокуса */
+        #chats-screen .nav-search-input{ height: 52px; border-radius: var(--m3-shape-pill) !important; padding: 0 20px; }
+        #chats-screen .nav-search-input:focus{ outline: 2px solid var(--accent, #6b7090); outline-offset: 2px; }
+        /* Блоки в настройках и профиле: 28 px, разделители внутри с отступом */
+        .settings-section, .tg-list, .profile-card, .pm-group, .pm-about, .settings-toggle-row{
+            border-radius: var(--m3-shape-xl) !important; margin: 0 2px;
+        }
+        .tg-list .tg-row + .tg-row, .settings-section .tg-row + .tg-row{ border-top: none; margin-left: 56px; }
+        .tg-row{ padding: 16px 20px !important; min-height: 56px; }
+        .tg-ico{ border-radius: 50% !important; }
+        /* Заголовки секций — капсом не нужен, спокойный регистр */
+        .settings-label{ text-transform: none !important; letter-spacing: .01em !important; font-size: 14px !important; padding: 0 24px !important; }
+        /* Шапки подэкранов — крупный заголовок */
+        .screen:not(#chats-screen):not(#chat-screen) .top-bar-title{ font-size: 20px; font-weight: 500; }
+        /* Диалоги и шиты — верхние скругления 28 px */
+        .plus-menu, #chat-more-menu{ border-radius: var(--m3-shape-xl) !important; padding: 8px !important; }
+        .plus-menu button{ border-radius: var(--m3-shape-pill) !important; }
+        /* Кнопки: пилюли с ощутимым нажатием */
+        .btn, .eb-btn, .pm-quick-btn{ transition: transform var(--m3-fast) var(--m3-ease), opacity var(--m3-fast) var(--m3-ease); }
+        .btn:active, .eb-btn:active, .pm-quick-btn:active{ transform: scale(.97); }
+        /* Сообщения: большие скругления, хвостик убран */
+        .message{ border-radius: 22px !important; }
+        /* Единая кривая и длительности для всех переходов */
+        .rail, .rail .rail-btn, .rail .rail-btn::before, .rail .rail-btn svg{ transition-timing-function: var(--m3-ease) !important; }
     </style>
 </head>
 <body>
@@ -2643,6 +2725,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                         <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M19 8v6M22 11h-6"></path></svg>
                         <span>Найти друзей</span>
                     </button>
+                    <button id="dc-settings-btn" class="dc-plus" type="button" aria-label="Настройки"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
                     <button id="dc-edit-btn" class="dc-pill" type="button">Изм.</button>
                     <button id="nav-add-btn" class="dc-plus" title="Плюс" aria-label="Создать">
                         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
@@ -2650,6 +2733,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                     <div id="plus-menu" class="plus-menu hidden">
                         <button id="pm-contact" type="button">Создать контакт</button>
                         <button id="pm-group" type="button">Создать группу</button>
+                        <button id="pm-nav-contacts" type="button">Контакты</button>
+                        <button id="pm-nav-calls" type="button">Звонки</button>
                     </div>
                 </div>
                 <div class="dc-search-row">
@@ -8049,6 +8134,27 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         e.stopPropagation(); e.preventDefault();
         saveVideo(b.dataset.save);
     }, true);
+})();
+</script>
+
+<script>
+(function () {
+    const chats = document.getElementById('chats-screen');
+    const set = () => document.body.classList.toggle('on-chats', !!chats && chats.classList.contains('active'));
+    if (chats) new MutationObserver(set).observe(chats, { attributes: true, attributeFilter: ['class'] });
+    set();
+    const click = id => document.getElementById(id)?.click();
+    document.getElementById('dc-settings-btn')?.addEventListener('click', () => click('nav-settings-btn'));
+    document.getElementById('pm-nav-contacts')?.addEventListener('click', () => { document.getElementById('plus-menu')?.classList.add('hidden'); click('nav-contacts-btn'); });
+    document.getElementById('pm-nav-calls')?.addEventListener('click', () => { document.getElementById('plus-menu')?.classList.add('hidden'); click('nav-calls-btn'); });
+})();
+</script>
+<script>
+(function () {
+    const auth = document.getElementById('auth-screen');
+    const set = () => document.body.classList.toggle('on-auth', !!auth && auth.classList.contains('active'));
+    if (auth) new MutationObserver(set).observe(auth, { attributes: true, attributeFilter: ['class'] });
+    set();
 })();
 </script>
 </body>
