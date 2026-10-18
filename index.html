@@ -2797,6 +2797,67 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .vp-time { font-size: 12px; opacity: .7; font-variant-numeric: tabular-nums; min-width: 32px; text-align: right; }
         .vp audio { display: none; }
     </style>
+    <style id="nav-final">
+        /* ===== Финальная раскладка нижнего меню по эскизу ===== */
+        :root { --nav-pill: #8a8d9c; --nav-dot: #5d5f6e; --nav-icon: #ffffff; --nav-icon-on: #ffffff; }
+        :root[data-theme="light"] { --nav-pill: #e2e4ec; --nav-dot: #ffffff; --nav-icon: #3b3e4c; --nav-icon-on: #1c1c24; }
+
+        /* 1. В чате (и на входе) меню полностью скрыто. Перебиваем display:flex!important из старых правил */
+        #rail.nav-hidden, #user-bar.nav-hidden, #user-bar { display: none !important; }
+
+        /* 2. Плавающая пилюля, как на эскизе */
+        #rail {
+            position: absolute !important; left: 14px !important; right: 14px !important; top: auto !important;
+            bottom: calc(12px + var(--safe-bottom)) !important;
+            width: auto !important; height: 66px !important; min-height: 0 !important; margin: 0 !important;
+            padding: 0 8px !important; border: none !important; border-radius: 33px !important;
+            background: var(--nav-pill) !important; box-shadow: 0 8px 24px rgba(0,0,0,.22) !important;
+            display: flex !important; flex-direction: row !important; align-items: center !important;
+            justify-content: space-between !important; gap: 0 !important; overflow: visible !important; z-index: 30 !important;
+        }
+        #rail::before, #rail::after { display: none !important; }
+        #rail .rail-pill { display: contents !important; background: none !important; padding: 0 !important; }
+
+        /* 3. Все иконки одинакового размера, без подписей */
+        #rail .rail-btn {
+            position: relative !important; z-index: 1 !important;
+            width: 52px !important; height: 52px !important; min-width: 0 !important; flex: 0 0 52px !important;
+            margin: 0 !important; padding: 0 !important; border: none !important; border-radius: 50% !important;
+            background: transparent !important; box-shadow: none !important; transform: none !important;
+            display: grid !important; place-items: center !important; font-size: 0 !important; color: var(--nav-icon) !important;
+        }
+        #rail .rail-btn::before, #rail .rail-btn::after { content: none !important; display: none !important; }
+        #rail .rail-btn span:not(.rail-badge) { display: none !important; }
+        #rail .rail-btn svg {
+            width: 26px !important; height: 26px !important; stroke: var(--nav-icon) !important; fill: none !important;
+            stroke-width: 1.8 !important; transform: none !important; transition: stroke .25s ease, transform .3s cubic-bezier(.34,1.4,.64,1) !important;
+        }
+        #rail .rail-btn.active svg { stroke: var(--nav-icon-on) !important; fill: none !important; transform: none !important; }
+        #rail .rail-btn:active svg { transform: scale(.86) !important; }
+        #rail .rail-btn.active { background: transparent !important; }
+        #rail .rail-badge { position: absolute !important; top: 6px !important; right: 6px !important; left: auto !important; }
+
+        /* Порядок как на эскизе: контакты, звонки, комнаты, чаты, настройки */
+        #rail > #nav-contacts-btn, #rail .rail-pill > #nav-contacts-btn { order: 1 !important; }
+        #rail > #nav-calls-btn,    #rail .rail-pill > #nav-calls-btn    { order: 2 !important; }
+        #rail > #nav-rooms-btn,    #rail .rail-pill > #nav-rooms-btn    { order: 3 !important; }
+        #rail > #nav-chats-btn                                          { order: 4 !important; }
+        #rail > #nav-settings-btn                                       { order: 5 !important; }
+
+        /* Кружок под активной иконкой; двигается при переключении вкладки */
+        #rail .nav-dot {
+            position: absolute !important; top: 50% !important; left: 0 !important; z-index: 0 !important;
+            width: 52px !important; height: 52px !important; margin-top: -26px !important; border-radius: 50% !important;
+            background: var(--nav-dot) !important; pointer-events: none !important;
+            transition: transform .45s cubic-bezier(.34,1.25,.64,1), opacity .25s ease, background-color .3s ease !important;
+        }
+
+        /* 4. Шапка чатов на всю ширину телефона, большие скругления снизу */
+        #chats-screen .semi-circle-nav {
+            margin: 0 !important; width: 100% !important; border: none !important; border-radius: 0 0 40px 40px !important;
+            box-shadow: none !important; background: #33343f !important;
+        }
+    </style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -8441,5 +8502,30 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
     }, true);
 })();
 </script>
+    <script>
+    /* Кружок нижнего меню: ставится под активную кнопку и плавно переезжает */
+    (function () {
+        var rail = document.getElementById('rail');
+        if (!rail) return;
+        var dot = document.createElement('span');
+        dot.className = 'nav-dot';
+        dot.setAttribute('aria-hidden', 'true');
+        rail.insertBefore(dot, rail.firstChild);
+
+        function moveDot() {
+            var a = rail.querySelector('.rail-btn.active');
+            if (!a || rail.classList.contains('nav-hidden')) { dot.style.opacity = '0'; return; }
+            dot.style.opacity = '1';
+            dot.style.transform = 'translateX(' + a.offsetLeft + 'px)';
+        }
+        // при смене класса active у любой кнопки двигаем кружок
+        new MutationObserver(moveDot).observe(rail, { attributes: true, attributeFilter: ['class'], subtree: true });
+        window.addEventListener('resize', moveDot);
+        // первый расчёт без анимации, чтобы кружок не ехал от левого края при загрузке
+        dot.style.transition = 'none';
+        moveDot();
+        requestAnimationFrame(function () { requestAnimationFrame(function () { dot.style.transition = ''; }); });
+    })();
+    </script>
 </body>
 </html>
