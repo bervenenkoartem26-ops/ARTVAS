@@ -2858,6 +2858,47 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             box-shadow: none !important; background: #33343f !important;
         }
     </style>
+    <style id="v4-fixes">
+        /* Свайп назад: список уходит под экран чата и затемняется (как в Telegram) */
+        .swipe-dim::after { content: ''; position: absolute; inset: 0; background: #000; opacity: var(--dim, 0); pointer-events: none; z-index: 5; }
+        .swipe-settle::after { transition: opacity .32s ease; }
+
+        /* Цвета: под полем ввода и «печатает» — тот же цвет, что и фон чата; фон страницы в чате тоже */
+        :root { --chat-tone: #2a2a2d; --list-tone: var(--bg-color); }
+        :root[data-theme="light"] { --chat-tone: #eef0f4; }
+        #chat-screen .chat-input-panel,
+        #chat-screen .typing-indicator-box { background: var(--chat-tone) !important; }
+        body:has(#chat-screen.active), html:has(#chat-screen.active) { background-color: var(--chat-tone) !important; }
+
+        /* Настройки и контакты: фон как в списке чатов, без размытой панели сверху */
+        #settings-screen, #contacts-screen, #privacy-screen, #notif-screen, #appear-screen,
+        #settings-screen .settings-body, #contacts-screen .settings-body { background: var(--list-tone) !important; }
+        #settings-screen { --bg-color: var(--list-tone); }
+        #contacts-screen { --bg-color: var(--list-tone); }
+        #settings-screen:not(#chats-screen):not(#chat-screen) .top-bar,
+        #contacts-screen:not(#chats-screen):not(#chat-screen) .top-bar,
+        #privacy-screen:not(#chats-screen):not(#chat-screen) .top-bar,
+        #notif-screen:not(#chats-screen):not(#chat-screen) .top-bar,
+        #appear-screen:not(#chats-screen):not(#chat-screen) .top-bar {
+            background: transparent !important; border: 0 !important; box-shadow: none !important;
+            backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+            border-radius: 0 !important; margin: 0 !important;
+        }
+    </style>
+    <style id="v5-stability">
+        /* Не перезапускать анимации при каждом обновлении списка и переходе между экранами */
+        .chat-item, .chat-item:nth-child(n) { animation: none !important; }
+        .screen.active, .screen.active:not(#chat-screen), #auth-screen.active { animation: none !important; }
+        .message.msg-upd, .message.react-hit { animation: none !important; }
+
+        /* Открытие чата: только сдвиг и прозрачность, без размытия (размытие давало серый блок и подёргивание) */
+        #chat-screen.active.chat-enter { animation: chatSlideIn .3s cubic-bezier(.2,.8,.2,1) both !important; filter: none !important; }
+        @keyframes chatSlideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+
+        /* Размытия фона дают лаги на телефоне: заменяем на обычный полупрозрачный фон */
+        *, *::before, *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+        .msg-backdrop { background: rgba(5,6,12,.6) !important; }
+    </style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -3394,6 +3435,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             t = String(t == null ? '' : t); const m = t.match(ICON_LEAD);
             return m ? ic(ICON_FULL[m[1]]) + ' ' + escapeHtml(t.slice(m[0].length)) : escapeHtml(t);
         }
+        window.showToast = showToast;
         function showToast(message, isError = true) {
             let toast = document.getElementById('toast');
             if (!toast) {
@@ -8242,35 +8284,55 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
     const EDGE = 48;            // жест начинается у левого края экрана
     let sx = 0, sy = 0, dx = 0, W = 1, tracking = false, decided = false, host = null;
 
+    const railEl = document.getElementById('rail');
+    let showedRail = false;
+    const DIM = 0.4;
+
     function begin() {
         host = chatEl.parentElement;
         if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.dataset.swipePos = '1'; }
-        chatsEl.classList.add('swipe-under');
+        chatsEl.classList.add('swipe-under', 'swipe-dim');
         chatEl.style.position = 'absolute';
         chatEl.style.inset = '0';
         chatEl.style.zIndex = '2';
-        chatEl.style.boxShadow = '-10px 0 28px rgba(0,0,0,.35)';
+        chatEl.style.borderRadius = '18px';
+        chatEl.style.overflow = 'hidden';
+        chatEl.style.boxShadow = '-12px 0 32px rgba(0,0,0,.4)';
         chatEl.style.transition = 'none';
         chatsEl.style.transition = 'none';
+        // нижнее меню показываем под экраном и двигаем вместе со списком
+        if (railEl && railEl.classList.contains('nav-hidden')) { railEl.classList.remove('nav-hidden'); showedRail = true; }
+        if (railEl) railEl.style.transition = 'none';
     }
 
     function reset() {
         chatEl.style.transform = ''; chatEl.style.transition = ''; chatEl.style.position = '';
         chatEl.style.inset = ''; chatEl.style.zIndex = ''; chatEl.style.boxShadow = '';
-        chatsEl.classList.remove('swipe-under'); chatsEl.style.transform = ''; chatsEl.style.transition = '';
+        chatEl.style.borderRadius = ''; chatEl.style.overflow = '';
+        chatsEl.classList.remove('swipe-under', 'swipe-dim', 'swipe-settle');
+        chatsEl.style.transform = ''; chatsEl.style.transition = ''; chatsEl.style.removeProperty('--dim');
+        if (railEl) {
+            railEl.style.transform = ''; railEl.style.transition = '';
+            if (showedRail) railEl.classList.add('nav-hidden');
+        }
+        showedRail = false;
         if (host && host.dataset.swipePos) { host.style.position = ''; delete host.dataset.swipePos; }
         host = null;
     }
 
     function finish(go) {
-        const ease = 'transform .26s cubic-bezier(.2,.8,.2,1)';
+        const ease = 'transform .32s cubic-bezier(.2,.8,.2,1)';
+        chatsEl.classList.add('swipe-settle');
         chatEl.style.transition = ease; chatsEl.style.transition = ease;
+        if (railEl) railEl.style.transition = ease;
         chatEl.style.transform = go ? `translateX(${W}px)` : 'translateX(0px)';
         chatsEl.style.transform = go ? 'translateX(0%)' : 'translateX(-30%)';
+        if (railEl) railEl.style.transform = go ? 'translateX(0%)' : 'translateX(-30%)';
+        chatsEl.style.setProperty('--dim', go ? '0' : String(DIM));
         setTimeout(() => {
             reset();
             if (go) backBtn.click();   // штатный возврат к списку чатов
-        }, 270);
+        }, 330);
     }
 
     chatEl.addEventListener('touchstart', e => {
@@ -8292,9 +8354,11 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         }
         if (e.cancelable) e.preventDefault();
         dx = Math.max(0, x);
-        const p = Math.min(1, dx / W);
+        const k = 1 - Math.min(1, dx / W);
         chatEl.style.transform = `translateX(${dx}px)`;
-        chatsEl.style.transform = `translateX(${-30 * (1 - p)}%)`;
+        chatsEl.style.transform = `translateX(${-30 * k}%)`;
+        chatsEl.style.setProperty('--dim', (DIM * k).toFixed(3));
+        if (railEl) railEl.style.transform = `translateX(${-30 * k}%)`;
     }, { passive: false });
 
     function end() {
@@ -8429,22 +8493,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         }, 0);
     });
 
-    // ===== Выход из чата: аватар и имя возвращаются на место в списке =====
-    backBtn && backBtn.addEventListener('click', () => {
-        if (calm()) return;
-        const av = avatarDst?.getBoundingClientRect(), nm = titleEl?.getBoundingClientRect();
-        const name = titleEl?.textContent || '', html = avatarDst?.innerHTML || '', bg = avatarDst?.style.background || '';
-        const font = titleEl ? getComputedStyle(titleEl).fontSize : '17px', weight = titleEl ? getComputedStyle(titleEl).fontWeight : '600';
-        setTimeout(() => {
-            if (!list) return;
-            const item = [...list.querySelectorAll('.chat-item')].find(it => it.querySelector('.chat-item-name')?.textContent === name);
-            const target = item?.querySelector('.avatar')?.getBoundingClientRect();
-            const tName = item?.querySelector('.chat-item-name')?.getBoundingClientRect();
-            if (!target || !tName || !av || !nm) return;
-            fly(av, target, avatarClone(html, bg));
-            fly(nm, tName, nameClone(name, font, weight));
-        }, 0);
-    }, true);
+    // Анимация аватарки при выходе из чата отключена (чтобы не мигало)
 
     // ===== Меню скрывается при скролле вниз и появляется при скролле вверх =====
     const setRail = on => rail && rail.classList.toggle('rail-hidden', on);
