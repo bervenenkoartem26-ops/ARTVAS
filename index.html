@@ -2907,29 +2907,6 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
     <style id="img-dims">
         /* Место под картинку резервируется по её размерам, пока она грузится */
         img.message-image[style*="aspect-ratio"] { width: 100%; height: auto; background: var(--bubble-other); }
-        /* Фото и альбомы не выходят за пузырь: ширина по содержимому пузыря, края обрезаются по скруглению */
-        .message { overflow: hidden; }
-        .message img.message-image { display: block; max-width: 100% !important; height: auto; }
-        .message .album { width: 100% !important; max-width: 100% !important; }
-        .message .album img { min-width: 0; }
-    </style>
-    <style id="photo-picker">
-        .pp-overlay{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s ease}
-        .pp-overlay.open{opacity:1}
-        .pp-sheet{width:100%;max-width:520px;max-height:86vh;background:var(--surface-color);border-radius:28px 28px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;transform:translateY(40px);transition:transform .3s cubic-bezier(.2,.8,.2,1);box-sizing:border-box}
-        .pp-overlay.open .pp-sheet{transform:none}
-        .pp-head{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--text-primary)}
-        .pp-head button{background:none;border:0;color:var(--accent);font-size:16px;padding:8px 6px;cursor:pointer}
-        .pp-count{font-size:16px;font-weight:600}
-        .pp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;overflow:auto;min-height:0}
-        .pp-cell{position:relative;border:0;padding:0;border-radius:16px;overflow:hidden;aspect-ratio:1;background:var(--surface-high)}
-        .pp-cell img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .2s ease}
-        .pp-cell.on img{opacity:.75}
-        .pp-check{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.25);box-sizing:border-box;transition:background .2s ease}
-        .pp-cell.on .pp-check{background:var(--accent);border-color:var(--accent)}
-        .pp-cell.on .pp-check::after{content:'';position:absolute;left:7px;top:2px;width:6px;height:11px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
-        .pp-save{border:0;border-radius:999px;padding:14px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer}
-        .pp-save:disabled{opacity:.4}
     </style>
 </head>
 <body>
@@ -3734,7 +3711,6 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 (msg.text ? miBtn('copy', 'copy', msg.imageUrl ? 'Копировать текст' : 'Копировать') : '') +
                 (msg.text ? miBtn('translate', 'translate', msgTr.has(id) ? 'Скрыть перевод' : 'Перевести') : '') +
                 (msg.imageUrl ? miBtn('copyimg', 'copy', 'Копировать фото') + miBtn('saveimg', 'download', 'Сохранить фото') : '') +
-                (msg.imageUrls?.length > 1 ? miBtn('pickphotos', 'download', 'Сохранить фото…') : '') +
                 (msg.fileUrl && isVideoMsg(msg) ? miBtn('savevid', 'download', 'Сохранить видео') : '') +
                 miBtn('pin', isPinned ? 'unpin' : 'pin', isPinned ? 'Открепить' : 'Закрепить') +
                 (mine ? `${msg.text ? miBtn('edit', 'edit', 'Редактировать') : ''}${miBtn('delete', 'trash', 'Удалить', ' danger')}` : '');
@@ -3770,7 +3746,6 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 else if (it?.dataset.act === 'translate') translateMessageInline(id, msg.text);
                 else if (it?.dataset.act === 'copyimg') copyPhoto(msg.imageUrl);
                 else if (it?.dataset.act === 'saveimg') savePhoto(msg.imageUrl);
-                else if (it?.dataset.act === 'pickphotos') openPhotoPicker(msg.imageUrls);
                 else if (it?.dataset.act === 'savevid') saveVideo(msg.fileUrl);
                 else if (it?.dataset.act === 'pin') togglePinMessage(id, !isPinned);
                 else if (it?.dataset.act === 'edit') startEdit(id);
@@ -4240,67 +4215,6 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             }
             showToast('Не удалось скопировать фото');
         }
-        // Выбор нескольких фото из альбома и сохранение выбранных одним действием
-        function openPhotoPicker(urls) {
-            const list = (urls || []).slice(0, 10);
-            if (!list.length) return;
-            const sel = new Set(list.map((_, i) => i));
-            const ov = document.createElement('div');
-            ov.className = 'pp-overlay';
-            ov.innerHTML = `<div class="pp-sheet" role="dialog" aria-label="Выбор фото">
-                <div class="pp-head"><button type="button" data-cancel>Отмена</button><b class="pp-count"></b><button type="button" class="pp-all"></button></div>
-                <div class="pp-grid">${list.map((u, i) => `<button type="button" class="pp-cell" data-i="${i}"><img src="${escapeHtml(u)}" alt=""><span class="pp-check"></span></button>`).join('')}</div>
-                <button type="button" class="pp-save"></button></div>`;
-            document.body.appendChild(ov);
-            const count = ov.querySelector('.pp-count'), save = ov.querySelector('.pp-save'), all = ov.querySelector('.pp-all');
-            const refresh = () => {
-                ov.querySelectorAll('.pp-cell').forEach(c => c.classList.toggle('on', sel.has(+c.dataset.i)));
-                count.textContent = `Выбрано ${sel.size}`;
-                save.textContent = sel.size ? `Сохранить (${sel.size})` : 'Выберите фото';
-                save.disabled = !sel.size;
-                all.textContent = sel.size === list.length ? 'Снять' : 'Все';
-            };
-            const close = () => { ov.classList.remove('open'); setTimeout(() => ov.remove(), 260); };
-            ov.addEventListener('click', e => {
-                if (e.target === ov || e.target.closest('[data-cancel]')) return close();
-                if (e.target.closest('.pp-all')) { if (sel.size === list.length) sel.clear(); else list.forEach((_, i) => sel.add(i)); return refresh(); }
-                const c = e.target.closest('.pp-cell');
-                if (c) { const i = +c.dataset.i; sel.has(i) ? sel.delete(i) : sel.add(i); return refresh(); }
-                if (e.target.closest('.pp-save') && sel.size) {
-                    const chosen = [...sel].sort((a, b) => a - b).map(i => list[i]);
-                    close(); savePhotos(chosen);
-                }
-            });
-            requestAnimationFrame(() => ov.classList.add('open'));
-            refresh();
-        }
-        async function savePhotos(urls) {
-            try {
-                const blobs = await Promise.all(urls.map(u => fetchImageBlob(u)));
-                const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-                const files = blobs.map((b, i) => {
-                    const mime = /^image\//.test(b.type) ? b.type : 'image/jpeg';
-                    const ext = (mime.split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace(/\+.*$/, '');
-                    return new File([b], `photo-${stamp}-${i + 1}.${ext}`, { type: mime });
-                });
-                // на телефоне — одно системное «Поделиться» со всеми выбранными фото
-                if (matchMedia('(pointer:coarse)').matches && navigator.canShare && navigator.canShare({ files })) {
-                    try { await navigator.share({ files }); return; }
-                    catch (e) { if (e && e.name === 'AbortError') return; }
-                }
-                for (const f of files) {
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(f); a.download = f.name;
-                    document.body.appendChild(a); a.click(); a.remove();
-                    setTimeout(() => URL.revokeObjectURL(a.href), 30000);
-                    await new Promise(r => setTimeout(r, 250));   // браузер не любит много загрузок сразу
-                }
-                showToast(`Сохранено фото: ${files.length}`, false);
-            } catch (_) {
-                showToast('Не удалось сохранить фото');
-            }
-        }
-
         async function savePhoto(url) {
             if (!url) return;
             try {
