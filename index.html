@@ -4809,8 +4809,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 batch.set(doc(db, 'messages', it.id), payload);
                 batch.set(doc(db, 'chats', it.chatId), chatSummaryPatch(it.chatId, summary, it.otherUid), { merge: true });
                 it.stage = 'handed'; it.state = 'sending';
+                const commit = batch.commit();   // уходит сразу, не ждём сохранения в локальной очереди
                 await obPut(it);
-                const commit = batch.commit();   // без сети запись ждёт в кэше Firestore и уйдёт сама
                 obRenderLocal();
                 commit.then(() => obDone(it, true), e => {
                     if (e?.code === 'unavailable' || e?.code === 'deadline-exceeded') return;
@@ -5625,6 +5625,14 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             openChat(chatId, otherUid, otherName || 'Пользователь');
         }
 
+        // Заранее подгружаем ключи собеседника и свои, чтобы первое сообщение отправлялось и расшифровывалось без задержки
+        function warmChatKeys(uid) {
+            if (!uid) return;
+            (async () => {
+                try { await devicePubs(uid); await chatKeyWith(uid); if (currentUser) await devicePubs(currentUser.uid); } catch (_) {}
+            })();
+        }
+
         async function openChat(chatId, otherUid, otherName) {
             currentChatId = chatId;
             applyChatWall(chatId);
@@ -5645,6 +5653,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             }
             updateCallBanner();
             ensureE2EE();
+            if (!allChatsCache.find(c => c.id === chatId)?.isGroup) warmChatKeys(otherUid);
             subscribeMessages(chatId);
             subscribeTyping(chatId);
             document.fonts?.ready?.then(() => {
