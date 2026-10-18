@@ -5137,6 +5137,15 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         window.addEventListener('resize', stickIfNeeded);
 
         function setMsgLoader(on) { const el = document.getElementById('msg-loader'); if (el) el.classList.toggle('hidden', !on); }
+        // Расшифровка с таймаутом: зависшее сообщение не должно блокировать появление новых
+        function decWithTimeout(data) {
+            return new Promise(resolve => {
+                const t = setTimeout(() => resolve({ ...data, text: 'Расшифровка…', decryptPending: true }), 4000);
+                decryptMsg(data).then(r => { clearTimeout(t); resolve(r); },
+                    () => { clearTimeout(t); resolve({ ...data, text: 'Не удалось расшифровать', locked: true }); });
+            });
+        }
+
         function subscribeMessages(chatId) {
             if (messagesUnsub) messagesUnsub();
             if (chatDetailsUnsub) chatDetailsUnsub();
@@ -5185,7 +5194,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             );
 
             let msgSeq = 0;
-            messagesUnsub = onSnapshot(q, async snapshot => {
+            const runSnap = async snapshot => {
+            try {
                 if (snapshot.docs.length > 0) {
                     lastVisibleMessageDoc = snapshot.docs[snapshot.docs.length - 1];
                     if (snapshot.docs.length < PAGE_SIZE) {
@@ -5206,7 +5216,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 });
 
                 const seq = ++msgSeq;
-                const plainList = await Promise.all(snapshot.docs.map(d => decryptMsg(d.data({ serverTimestamps: 'estimate' }))));
+                const plainList = await Promise.all(snapshot.docs.map(d => decWithTimeout(d.data({ serverTimestamps: 'estimate' }))));
                 if (seq !== msgSeq || chatId !== currentChatId) return;
                 const plain = new Map(snapshot.docs.map((d, i) => [d.id, plainList[i]]));
                 dsNewestId = snapshot.docs[0]?.id || null;
@@ -5250,8 +5260,13 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 rebuildDateSeparators();
 
                 obRenderLocal();
-                if (first || nearBottom || ownAdded) {
+                if (first || ownAdded) {
                     snapToBottomRobust();
+                } else if (nearBottom) {
+                    // входящее при чтении внизу: плавно доезжаем до нового сообщения
+                    stickBottom = true;
+                    ignoreScrollUntil = performance.now() + 250;
+                    messagesList.scrollTo({ top: messagesList.scrollHeight, behavior: 'smooth' });
                 } else {
                     messagesList.scrollTop = prevTop;
                     stickBottom = false;
@@ -5263,7 +5278,11 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 first = false;
                 setMsgLoader(false);
                 markIncomingRead();
-            }, error => {
+            } catch (e) {
+                console.error('messages render failed', e);
+            }
+            };
+            messagesUnsub = onSnapshot(q, runSnap, error => {
                 setMsgLoader(false);
                 console.error('Messages listener error:', error);
                 showToast('Не удалось загрузить сообщения: ' + error.message);
