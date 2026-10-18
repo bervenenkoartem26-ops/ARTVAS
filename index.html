@@ -2931,42 +2931,6 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .pp-save{border:0;border-radius:999px;padding:14px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer}
         .pp-save:disabled{opacity:.4}
     </style>
-    <style id="profile-v2">
-        /* ===== Профиль собеседника: полноэкранная страница с большим фото (как в Telegram) ===== */
-        @keyframes pmIn { from { opacity: 0; transform: translateX(28%); } to { opacity: 1; transform: none; } }
-        @keyframes pmOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(28%); } }
-        @keyframes pmHeroIn { from { transform: scale(1.14); opacity: .35; } to { transform: none; opacity: 1; } }
-        #profile-menu { background: #111318 !important; padding: 0 !important; display: flex !important; align-items: stretch !important; overflow-y: auto !important; overscroll-behavior: contain; }
-        #profile-menu:not(.hidden) { animation: pmIn .36s cubic-bezier(.2,0,0,1) both; }
-        #profile-menu.closing { animation: pmOut .22s cubic-bezier(.4,0,1,1) both; }
-        #profile-menu .profile-menu-card { width: 100% !important; max-width: 520px !important; margin: 0 auto !important; padding: 0 0 calc(24px + env(safe-area-inset-bottom, 0px)) !important; background: transparent !important; box-shadow: none !important; border: 0 !important; overflow: visible !important; max-height: none !important; }
-        #profile-menu .profile-menu-close { position: fixed !important; top: calc(10px + env(safe-area-inset-top, 0px)) !important; left: 10px !important; right: auto !important; width: 44px !important; height: 44px !important; border-radius: 50% !important; background: rgba(20,22,28,.55) !important; border: 0 !important; color: #fff !important; z-index: 5; display: grid; place-items: center; cursor: pointer; }
-        #profile-menu .profile-menu-close svg { stroke: #fff; }
-        #profile-menu .profile-menu-head { position: relative !important; display: flex !important; flex-direction: column !important; justify-content: flex-end !important; align-items: flex-start !important; gap: 4px !important; height: min(60vh, 540px) !important; min-height: 340px !important; padding: 0 16px 96px !important; margin: 0 !important; border: 0 !important; border-radius: 0 !important; background-color: #1c1e26 !important; background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; overflow: hidden !important; }
-        #profile-menu .profile-menu-head:not(.hidden) { animation: pmHeroIn .5s cubic-bezier(.2,0,0,1) both; }
-        #profile-menu .profile-menu-head::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.42) 0, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 40%, rgba(17,19,24,.88) 80%, #111318 100%); }
-        #profile-menu .profile-menu-head > * { position: relative; z-index: 1; }
-        #profile-menu #profile-menu-avatar { display: none !important; }
-        #profile-menu .profile-menu-name { font-size: 30px !important; line-height: 36px; font-weight: 500 !important; color: #fff !important; text-align: left !important; text-shadow: 0 1px 8px rgba(0,0,0,.45); margin: 0 !important; }
-        #profile-menu .profile-menu-status-row { justify-content: flex-start !important; margin: 0 !important; }
-        #profile-menu .profile-menu-status { color: rgba(255,255,255,.8) !important; font-size: 15px !important; }
-        #profile-menu-status-switch { margin-left: 6px; }
-        #profile-menu .profile-menu-body { display: flex !important; flex-direction: column !important; gap: 12px !important; padding: 0 14px !important; margin-top: -58px; position: relative; z-index: 2; }
-        #profile-menu .pm-quick { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; margin: 0 !important; }
-        #profile-menu .pm-quick-btn { height: auto !important; padding: 12px 0 10px !important; border: 0 !important; border-radius: 20px !important; background: #1c1e26 !important; color: #fff !important; display: flex !important; flex-direction: column !important; align-items: center !important; gap: 6px !important; font-size: 12px !important; cursor: pointer; }
-        #profile-menu .pm-quick-btn:active { transform: scale(.96); }
-        #profile-menu .pm-group { background: #1c1e26 !important; border-radius: 22px !important; padding: 4px 0 !important; }
-        #profile-menu .pm-group .profile-menu-action { padding: 14px 18px !important; font-size: 16px !important; }
-        #profile-menu .pm-about { padding: 6px 0 12px !important; min-height: 0 !important; }
-        #profile-menu .pm-about #profile-menu-about { padding: 0 18px !important; color: #e6e8ee !important; font-size: 15px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
-        #profile-menu .pm-media { margin-top: 10px; padding: 0 14px 12px !important; }
-        .pm-tabs { display: inline-flex; gap: 4px; background: #1c1e26; border-radius: 999px; padding: 4px; margin: 6px 0 12px; }
-        .pm-tabs button { border: 0; background: transparent; color: #c4c6d0; padding: 8px 16px; border-radius: 999px; font-size: 14px; cursor: pointer; }
-        .pm-tabs button.on { background: #33343f; color: #fff; }
-        .pm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
-        .pm-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; display: block; background: #1c1e26; cursor: pointer; }
-        .pm-empty { grid-column: 1 / -1; color: #9aa0ae; font-size: 14px; padding: 28px 0; text-align: center; }
-    </style>
 </head>
 <body>
 <div id="splash" role="status" aria-label="Загрузка">
@@ -3345,7 +3309,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 
     <div id="profile-menu" class="profile-menu hidden" role="dialog" aria-modal="true">
         <div id="profile-menu-bg" class="profile-menu-bg"></div>
-        <button id="profile-menu-close" class="profile-menu-close" title="Назад" type="button"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button id="profile-menu-close" class="profile-menu-close" title="Закрыть"><svg class="ic"><use href="#i-x"/></svg></button>
         <div class="profile-menu-card">
             <div id="profile-menu-head" class="profile-menu-head">
                 <div id="profile-menu-avatar" class="avatar avatar-xl">C</div>
@@ -3354,22 +3318,18 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             </div>
             <div class="profile-menu-body">
                 <div class="pm-quick">
-                    <button id="pm-call" class="pm-quick-btn" type="button"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span>Звонок</span></button>
-                    <button id="pm-video" class="pm-quick-btn" type="button"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg><span>Видео</span></button>
-                    <button id="pm-search" class="pm-quick-btn" type="button"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span>Поиск</span></button>
-                    <button id="pm-media" class="pm-quick-btn" type="button"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg><span>Медиа</span></button>
+                    <button id="pm-call" class="pm-quick-btn" type="button" aria-label="Позвонить"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></button>
+                    <button id="pm-video" class="pm-quick-btn" type="button" aria-label="Видеозвонок"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
                 </div>
                 <div class="pm-group profile-menu-list">
+                    <button id="profile-search-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>Поиск в переписке</button>
                     <button id="profile-block-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg></span><span id="profile-block-label">Заблокировать</span></button>
+                    <button id="profile-media-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span>Общие медиа</button>
                 </div>
                 <div class="pm-group pm-about">
                     <button id="profile-about-action" class="profile-menu-action"><span class="profile-menu-action-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>О себе</button>
                     <div id="profile-menu-about" class="profile-menu-about hidden"></div>
                 </div>
-            </div>
-            <div class="pm-media">
-                <div class="pm-tabs"><button type="button" class="on" data-pmtab="media">Медиа</button><button type="button" data-pmtab="voice">Голосовые</button></div>
-                <div id="pm-grid" class="pm-grid"></div>
             </div>
         </div>
     </div>
@@ -6053,44 +6013,12 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             document.getElementById('profile-block-label').textContent = iBlocked(currentChatOtherUid) ? 'Разблокировать' : 'Заблокировать';
             const headEl = document.getElementById('profile-menu-head');
             headEl.classList.toggle('has-banner', !!bcss);
-            const pInfo = profiles.get(currentChatOtherUid) || {};
-            const photoUrl = (typeof pInfo.avatar === 'string' && pInfo.avatar.startsWith('data:image/') && canSee(currentChatOtherUid, 'photo')) ? pInfo.avatar : '';
-            headEl.style.setProperty('background-image', (photoUrl ? `url("${photoUrl}")` : (bcss || gradientCss(pInfo.avatarGradient) || 'none')), 'important');
+            headEl.style.backgroundImage = bcss ? `linear-gradient(to top, rgba(0,0,0,.5), rgba(0,0,0,0) 65%), ${bcss}` : '';
             document.getElementById('profile-menu-bg').style.backgroundImage = bcss;
-            clearTimeout(pmCloseTimer); profileMenu.classList.remove('closing');
             profileMenu.classList.remove('hidden');
-            profileMenu.scrollTop = 0;
-            renderProfileMedia();
         }
 
-        let pmCloseTimer = 0;
-        function closeProfileMenu() {
-            if (profileMenu.classList.contains('hidden') || profileMenu.classList.contains('closing')) return;
-            profileMenu.classList.add('closing');
-            clearTimeout(pmCloseTimer);
-            pmCloseTimer = setTimeout(() => { profileMenu.classList.add('hidden'); profileMenu.classList.remove('closing'); }, 220);
-        }
-        let pmTab = 'media';
-        function renderProfileMedia() {
-            const grid = document.getElementById('pm-grid');
-            grid.textContent = '';
-            if (pmTab === 'media') {
-                const imgs = Array.from(messagesList.querySelectorAll('img.message-image')).filter(i => i.src);
-                if (!imgs.length) { grid.innerHTML = '<div class="pm-empty">Фото в загруженной части переписки нет</div>'; return; }
-                imgs.slice(0, 90).forEach((img, idx) => {
-                    const t = document.createElement('img');
-                    t.src = img.src; t.alt = ''; t.loading = 'lazy';
-                    t.addEventListener('click', () => {
-                        closeProfileMenu();
-                        setTimeout(() => { img.closest('.message')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 240);
-                    });
-                    grid.appendChild(t);
-                });
-            } else {
-                const n = messagesList.querySelectorAll('.message audio').length;
-                grid.innerHTML = `<div class="pm-empty">${n ? 'Голосовых в загруженной части: ' + n : 'Голосовых сообщений нет'}</div>`;
-            }
-        }
+        function closeProfileMenu() { profileMenu.classList.add('hidden'); }
 
         function goToBottom(smooth = true) {
             stickBottom = true;
@@ -7052,7 +6980,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         document.getElementById('pm-video').addEventListener('click', () => { closeProfileMenu(); document.getElementById('call-video-btn')?.click(); });
         document.getElementById('profile-menu-close').addEventListener('click', closeProfileMenu);
         profileMenu.addEventListener('click', e => { if (e.target === profileMenu) closeProfileMenu(); });
-        document.getElementById('pm-search').addEventListener('click', searchInCurrentChat);
+        document.getElementById('profile-search-action').addEventListener('click', searchInCurrentChat);
         document.getElementById('profile-about-action').addEventListener('click', () => {
             const el = document.getElementById('profile-menu-about');
             if (el.classList.contains('hidden')) {
@@ -7063,12 +6991,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 el.classList.add('hidden');
             }
         });
-        document.getElementById('pm-media').addEventListener('click', () => document.querySelector('.pm-media')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-        document.querySelectorAll('[data-pmtab]').forEach(btn => btn.addEventListener('click', () => {
-            pmTab = btn.dataset.pmtab;
-            document.querySelectorAll('[data-pmtab]').forEach(b => b.classList.toggle('on', b === btn));
-            renderProfileMedia();
-        }));
+        document.getElementById('profile-media-action').addEventListener('click', showSharedMedia);
         chatBottomBtn.addEventListener('click', () => goToBottom(true));
 
         document.getElementById('theme-toggle').addEventListener('change', e => {
