@@ -3020,6 +3020,23 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 </div>
             <div id="recent-strip" class="recent-strip hidden"></div>
             </div>
+            <div id="home-cards" class="home-cards">
+                <button type="button" class="home-card" data-act="contact">
+                    <span class="home-card-ico"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span>
+                    <span class="home-card-title">Новый контакт</span>
+                    <span class="home-card-arrow"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+                </button>
+                <button type="button" class="home-card" data-act="group">
+                    <span class="home-card-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                    <span class="home-card-title">Создать группу</span>
+                    <span class="home-card-arrow"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+                </button>
+                <button type="button" class="home-card" data-act="rooms">
+                    <span class="home-card-ico"><svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8"/></svg></span>
+                    <span class="home-card-title">Голосовые комнаты</span>
+                    <span class="home-card-arrow"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+                </button>
+            </div>
             <div id="edit-bar" class="edit-bar hidden"><button id="eb-notify" class="eb-btn" type="button">Уведомления</button><button id="eb-delete" class="eb-btn danger" type="button">Удалить</button></div>
             <div id="chats-list" class="chats-list"></div>
             <div id="calls-list" class="chats-list hidden"></div>
@@ -8406,7 +8423,67 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 
 <style>
     .swipe-under{display:flex!important;position:absolute!important;inset:0!important;z-index:1!important;animation:none!important;will-change:transform}
-</style>
+
+        /* ===== Главный экран: шапка с серым градиентом (сверху светло-серый → снизу серый), карточки-действия ===== */
+        #chats-screen .semi-circle-nav {
+            position: relative !important;
+            background: linear-gradient(180deg, #f5f6f8 0%, #dcdee3 24%, #a3a6b0 58%, #33343f 100%) !important;
+            border-radius: 0 0 36px 36px !important;
+            padding-bottom: 18px !important;
+        }
+        /* мягкое световое пятно сверху справа, как на эскизе (без цветов) */
+        #chats-screen .semi-circle-nav::before {
+            content: ''; position: absolute; width: 340px; height: 340px; right: -150px; top: -190px;
+            border-radius: 50%; pointer-events: none; z-index: 0;
+            background: radial-gradient(closest-side, rgba(255,255,255,.9), rgba(255,255,255,0));
+        }
+        #chats-screen .semi-circle-nav > * { position: relative; z-index: 1; }
+        #chats-screen .dc-title { color: #14151a !important; }
+        #chats-screen .dc-pill, #chats-screen .dc-plus { background: #4a4c5c !important; color: #fff !important; }
+        #chats-screen .dc-plus svg { stroke: #fff !important; }
+
+        /* поиск: тёмная полупрозрачная пилюля, читается на любом участке градиента */
+        #chats-screen #chats-search-input,
+        #chats-screen .nav-search-input {
+            background-color: rgba(51,52,63,.55) !important;
+            border: 1px solid rgba(255,255,255,.18) !important;
+            color: #fff !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffffcc' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") !important;
+            -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+        }
+        #chats-screen #chats-search-input::placeholder,
+        #chats-screen .nav-search-input::placeholder { color: rgba(255,255,255,.72) !important; }
+        #chats-screen .recent-strip * { color: #f4f4f6 !important; }
+
+        /* карточки-действия под шапкой */
+        .home-cards {
+            flex-shrink: 0;
+            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
+            padding: 16px max(16px, calc(16px + env(safe-area-inset-right, 0px))) 6px max(16px, calc(16px + env(safe-area-inset-left, 0px)));
+            background: var(--bg-color);
+        }
+        .home-cards.is-off, .semi-circle-nav.searching + .home-cards { display: none; }
+        .home-card {
+            position: relative; display: flex; flex-direction: column; justify-content: space-between;
+            min-height: 120px; padding: 14px 12px 12px; text-align: left;
+            background: var(--surface-color); color: var(--text-primary);
+            border: 1px solid var(--border-color); border-radius: 22px; cursor: pointer;
+            font: inherit; -webkit-tap-highlight-color: transparent;
+            transition: transform .12s ease, background-color .15s;
+        }
+        .home-card:active { transform: scale(.96); }
+        .home-card-ico {
+            width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+            background: color-mix(in srgb, var(--text-primary) 9%, transparent); color: var(--text-primary);
+        }
+        .home-card-ico svg, .home-card-arrow svg {
+            width: 18px; height: 18px; stroke: currentColor; fill: none;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .home-card-title { font-size: 14px; line-height: 1.22; font-weight: 600; letter-spacing: -.01em; padding-right: 22px; }
+        .home-card-arrow { position: absolute; right: 12px; bottom: 12px; color: var(--text-secondary); display: grid; }
+        @media (max-width: 360px) { .home-card-title { font-size: 13px; } .home-card { min-height: 112px; padding: 12px 10px 10px; } }
+    </style>
 <script>
 (function () {
     const chatEl = document.getElementById('chat-screen');
@@ -8708,5 +8785,24 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         requestAnimationFrame(function () { requestAnimationFrame(function () { dot.style.transition = ''; }); });
     })();
     </script>
+<script>
+(function () {
+    var cards = document.getElementById('home-cards');
+    if (!cards) return;
+    // карточки запускают уже существующие функции (ничего не дублируем)
+    var map = { contact: 'pm-contact', group: 'pm-group', rooms: 'nav-rooms-btn' };
+    cards.addEventListener('click', function (e) {
+        var b = e.target.closest('.home-card'); if (!b) return;
+        var t = document.getElementById(map[b.dataset.act]); if (t) t.click();
+    });
+    // карточки скрываем, когда открыт список звонков
+    var calls = document.getElementById('calls-list');
+    if (calls) {
+        var sync = function () { cards.classList.toggle('is-off', !calls.classList.contains('hidden')); };
+        new MutationObserver(sync).observe(calls, { attributes: true, attributeFilter: ['class'] });
+        sync();
+    }
+})();
+</script>
 </body>
 </html>
