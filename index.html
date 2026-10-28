@@ -1,6 +1,27 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+<script>
+/* ОТЛАДКА: открой страницу с ?dbg=1 — внизу появится панель: ошибки JS и элемент под пальцем при каждом касании */
+(function(){
+  if(!/[?&]dbg=1/.test(location.search)) return;
+  var box=document.createElement('div');
+  box.style.cssText='position:fixed;left:0;right:0;top:0;max-height:34vh;overflow:auto;z-index:2147483647;background:rgba(0,0,0,.88);color:#7CFC8A;font:11px/1.3 monospace;padding:4px 6px;pointer-events:none;white-space:pre-wrap';
+  function log(t){box.textContent=(t+'\n'+box.textContent).slice(0,1800);}
+  function add(){(document.body||document.documentElement).appendChild(box);}
+  if(document.body)add();else document.addEventListener('DOMContentLoaded',add);
+  window.addEventListener('error',function(e){log('ERR '+e.message+' @'+(e.lineno||''));});
+  window.addEventListener('unhandledrejection',function(e){log('REJ '+(e.reason&&e.reason.message||e.reason));});
+  function d(e){var el=e.target;return (el.id?'#'+el.id:'')+'.'+(typeof el.className==='string'?el.className.split(' ')[0]:el.tagName);}
+  ['touchstart','touchend','click'].forEach(function(n){
+    document.addEventListener(n,function(e){
+      var t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0])||e;
+      var top=document.elementFromPoint(t.clientX,t.clientY);
+      log(n+' x'+Math.round(t.clientX)+' y'+Math.round(t.clientY)+' tgt='+d(e)+' top='+(top?(top.id?'#'+top.id:'')+'.'+(typeof top.className==='string'?top.className.split(' ')[0]:top.tagName):'-')+' H='+innerHeight);
+    },true);
+  });
+})();
+</script>
 <script>try{if(localStorage.getItem("reduce-motion")==="1")document.documentElement.classList.add("reduce-motion")}catch(e){}</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -3420,6 +3441,17 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 // поэтому фото могли выглядеть «не отправляется», хотя текст уходил нормально
                 // (текст Supabase вообще не использует). Короткий таймаут даёт быстрый и понятный
                 // сбой → обработчик в outbox увидит сетевую ошибку и повторит попытку сам.
+                // Основной путь — прямой REST-запрос к Storage: не зависит от CDN esm.sh (его часто блокируют).
+                try {
+                    const encPath = path.split('/').map(encodeURIComponent).join('/');
+                    const resp = await fetch(`${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${encPath}`, {
+                        method: 'POST',
+                        headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': fileOrBlob.type || 'application/octet-stream', 'cache-control': 'max-age=3600', 'x-upsert': 'false' },
+                        body: fileOrBlob
+                    });
+                    if (resp.ok) return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${encPath}`;
+                    console.warn('Supabase REST upload failed:', resp.status, await resp.text().catch(() => ''));
+                } catch (restErr) { console.warn('Supabase REST upload error:', restErr); }
                 const supabase = await Promise.race([
                     getSupabaseClient(),
                     new Promise((_, no) => setTimeout(() => no(new Error('timeout: не удалось загрузить модуль Supabase (сеть/блокировщик)')), 12000))
