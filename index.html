@@ -24,7 +24,7 @@
 </script>
 <script>try{if(localStorage.getItem("reduce-motion")==="1")document.documentElement.classList.add("reduce-motion")}catch(e){}</script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
     <title>C Messenger</title>
     <meta name="theme-color" content="#2a2a2d">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -3383,7 +3383,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
     </div>
 
     <script>
-        function __showGlobalError(msg) {
+        var __isDbg = /[?&]dbg=1/.test(location.search);
+        function __showGlobalError(friendlyMsg, techDetail) {
             let el = document.getElementById('global-error-banner');
             if (!el) {
                 el = document.createElement('div');
@@ -3391,16 +3392,17 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 el.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#b91c1c;color:#fff;font-size:12px;line-height:1.4;padding:10px 14px;text-align:center;z-index:9999;';
                 document.body.prepend(el);
             }
-            el.textContent = msg;
+            // Обычным пользователям — нейтральный текст; технические детали видны только в режиме ?dbg=1
+            el.textContent = __isDbg && techDetail ? friendlyMsg + ' (' + techDetail + ')' : friendlyMsg;
         }
         window.addEventListener('error', function (e) {
             console.error('Глобальная ошибка:', e.error || e.message);
-            __showGlobalError('Ошибка загрузки страницы: ' + (e.message || 'см. консоль браузера (F12)'));
+            __showGlobalError('Что-то пошло не так. Попробуйте обновить страницу.', e.message);
         });
         window.addEventListener('unhandledrejection', function (e) {
             console.error('Необработанная ошибка промиса:', e.reason);
             const text = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
-            __showGlobalError('Ошибка: ' + text);
+            __showGlobalError('Что-то пошло не так. Попробуйте обновить страницу.', text);
         });
     </script>
 
@@ -8496,6 +8498,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
     if (!chatEl || !chatsEl || !backBtn) return;
     const EDGE = 48;            // жест начинается у левого края экрана
     let sx = 0, sy = 0, dx = 0, W = 1, tracking = false, decided = false, host = null;
+    let lastX = 0, lastT = 0, vx = 0;   // скорость пальца, px/мс — нужна для флика и проекции (см. apple-design)
 
     const railEl = document.getElementById('rail');
     let showedRail = false;
@@ -8532,16 +8535,21 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         host = null;
     }
 
-    function finish(go) {
-        const ease = 'transform .32s cubic-bezier(.2,.8,.2,1)';
+    function finish(go, velocity) {
+        // Чем быстрее был флик, тем короче доигрывающая анимация — иначе быстрый жест
+        // выглядит так, будто интерфейс «тормозит» и не поспевает за пальцем.
+        const speed = Math.min(2.2, Math.max(1, Math.abs(velocity || 0) * 2.5));
+        const dur = Math.max(0.16, 0.32 / speed);
+        const durStr = dur.toFixed(3) + 's';
         chatsEl.classList.add('swipe-settle');
-        chatEl.style.transition = ease; chatsEl.style.transition = 'opacity .32s ease';
+        chatEl.style.transition = `transform ${durStr} cubic-bezier(.2,.8,.2,1)`;
+        chatsEl.style.transition = `opacity ${durStr} ease`;
         chatEl.style.transform = go ? `translateX(${W}px)` : 'translateX(0px)';
         chatsEl.style.setProperty('--dim', go ? '0' : String(DIM));
         setTimeout(() => {
             reset();
             if (go) backBtn.click();   // штатный возврат к списку чатов
-        }, 330);
+        }, dur * 1000 + 20);
     }
 
     chatEl.addEventListener('touchstart', e => {
@@ -8550,6 +8558,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         if (t.clientX > EDGE) return;
         if (document.querySelector('.profile-menu:not(.hidden)')) return;
         sx = t.clientX; sy = t.clientY; dx = 0; W = chatEl.offsetWidth || window.innerWidth;
+        lastX = t.clientX; lastT = performance.now(); vx = 0;
         tracking = true; decided = false;
     }, { passive: true });
 
@@ -8569,6 +8578,9 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         // до -30%, из-за чего справа почти на весь жест был виден пустой чёрный край экрана.
         // Эффект приближения оставляем только через затемнение (--dim), без сдвига по X.
         chatsEl.style.setProperty('--dim', (DIM * k).toFixed(3));
+        // Скорость — сглаженная (EMA), чтобы дрожание пальца между кадрами её не портило
+        const now = performance.now(), dt = now - lastT;
+        if (dt > 4) { const inst = (t.clientX - lastX) / dt; vx = vx * 0.7 + inst * 0.3; lastX = t.clientX; lastT = now; }
     }, { passive: false });
 
     function end() {
@@ -8576,7 +8588,14 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         const was = decided;
         tracking = false;
         if (!was) return;
-        finish(dx > W * 0.5);   // больше половины экрана — назад, меньше — возвращаем
+        // Решаем «закрыть/вернуть» по проекции движения (позиция + скорость), а не только по позиции:
+        // быстрый флик закрывает чат, даже не дойдя до середины экрана, и наоборот.
+        const FLICK = 0.5;                       // px/мс — порог уверенного флика
+        const projected = dx + vx * 120;         // куда докатится жест по инерции за ~120мс
+        const go = vx > FLICK ? true
+            : vx < -FLICK ? false
+                : projected > W * 0.5;
+        finish(go, vx);
     }
     chatEl.addEventListener('touchend', end);
     chatEl.addEventListener('touchcancel', end);
