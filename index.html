@@ -87,7 +87,7 @@
         }
 
         /* Полный отступ под «домашний» индикатор / жестовую зону телефона */
-        :root { --safe-bottom: env(safe-area-inset-bottom, 0px); }
+        :root { --safe-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 18px)); }
         html {
             height: 100%;
             height: -webkit-fill-available;
@@ -911,7 +911,7 @@
         html,body{background:var(--rail)}
         .app-shell{flex-direction:row;max-width:900px;border:none;background:var(--rail)}
         .screen{min-width:0}
-        body.has-nav .toast{bottom:calc(96px + var(--safe-bottom))}
+        body.has-nav .toast{bottom:calc(64px + var(--safe-bottom) + 16px)}
         body.kb-open .user-bar{display:none}
 
         /* --- левое меню --- */
@@ -939,7 +939,7 @@
                   border-top-left-radius:28px;overflow:hidden}
         #chat-screen{background:var(--panel)}
         .chats-list,.settings-body{background:transparent}
-        body.has-nav .chats-list{padding:6px 8px calc(96px + var(--safe-bottom))}
+        body.has-nav .chats-list{padding:6px 8px calc(64px + var(--safe-bottom) + 16px)}
 
         /* --- шапка «Сообщения» --- */
         .semi-circle-nav{display:flex;flex-direction:column;align-items:stretch;gap:14px;margin:0;border:none;border-radius:0;
@@ -1028,7 +1028,7 @@
         /* --- профиль и настройки --- */
         #profile-screen .top-bar,#settings-screen .top-bar{background:transparent;border:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:20px 16px 6px}
         #profile-screen .top-bar-title,#settings-screen .top-bar-title{font-size:22px;font-weight:800}
-        .settings-body{display:flex;flex-direction:column;gap:12px;padding:8px 16px calc(96px + var(--safe-bottom))}
+        .settings-body{display:flex;flex-direction:column;gap:12px;padding:8px 16px calc(64px + var(--safe-bottom) + 16px)}
         .settings-section{margin:0;background:var(--surface-color);border-radius:18px;padding:14px 16px}
         .settings-toggle-row{background:transparent;border:none;padding:0}
         .settings-section.settings-toggle-row{padding:14px 16px;background:var(--surface-color)}
@@ -1340,10 +1340,10 @@
 
         /* Список чатов */
         .chats-list{
-            padding:6px 0 calc(var(--tab-h) + var(--tab-gap) + var(--safe-bottom) + 24px);
+            padding:6px 0 calc(64px + var(--safe-bottom) + 16px);
             -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px);mask-image:linear-gradient(to bottom,transparent 0,#000 14px);
         }
-        body.has-nav .chats-list{padding:6px 0 calc(var(--tab-h) + var(--tab-gap) + var(--safe-bottom) + 24px)}
+        body.has-nav .chats-list{padding:6px 0 calc(64px + var(--safe-bottom) + 16px)}
         .chat-item{
             position:relative;margin:0;border-radius:0;gap:12px;align-items:center;
             padding:12px max(var(--px),var(--sr)) 12px max(var(--px),var(--sl));
@@ -1429,13 +1429,13 @@
             .rail .rail-btn::after{display:none}
             .rail .rail-btn{gap:0}
         }
-        .toast{bottom:calc(var(--tab-h) + var(--tab-gap) + var(--safe-bottom) + 12px)}
-        body.has-nav .toast{bottom:calc(var(--tab-h) + var(--tab-gap) + var(--safe-bottom) + 12px)}
+        .toast{bottom:calc(64px + var(--safe-bottom) + 12px)}
+        body.has-nav .toast{bottom:calc(64px + var(--safe-bottom) + 12px)}
 
         /* Заголовки соседних экранов — в том же ритме */
         #profile-screen .top-bar-title,#settings-screen .top-bar-title{font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.02em}
         .settings-section,.tg-list{border-radius:20px}
-        .settings-body,body.has-nav .settings-body{padding-bottom:calc(var(--tab-h) + var(--tab-gap) + var(--safe-bottom) + 24px)}
+        .settings-body,body.has-nav .settings-body{padding-bottom:calc(64px + var(--safe-bottom) + 16px)}
 
         /* =====================================================================
            ЧАТ
@@ -1628,7 +1628,7 @@
            ===================================================================== */
         #profile-screen .settings-body,#settings-screen .settings-body{
             gap:0;
-            padding:8px max(var(--px),var(--sr)) calc(var(--tab-h) + var(--tab-gap) + var(--safe-bottom) + 24px) max(var(--px),var(--sl));
+            padding:8px max(var(--px),var(--sr)) calc(64px + var(--safe-bottom) + 16px) max(var(--px),var(--sl));
         }
         #settings-screen .tg-list{margin-bottom:var(--group-gap)}
         .settings-section{margin-bottom:var(--group-gap)}
@@ -1860,7 +1860,7 @@
         .call-banner{min-height:var(--ctl);padding:6px max(16px,var(--sr)) 6px max(16px,var(--sl));font-size:15px;line-height:20px}
         .call-banner button{min-height:32px;padding:0 14px;border-radius:var(--r-pill);font-size:15px;line-height:20px}
         .call-overlay.mini{
-            inset:auto max(12px,var(--sr)) calc(var(--tab-h) + var(--tab-gap) + var(--safe-bottom) + 12px) auto;
+            inset:auto max(12px,var(--sr)) calc(64px + var(--safe-bottom) + 12px) auto;
             width:240px;height:180px;border-radius:var(--r-m);
         }
         /* входящий звонок: капсула высотой 72 (радиус 36), кнопки 48 = 36 − 12 */
@@ -2446,7 +2446,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .screen:not(#chats-screen):not(#chat-screen) .top-bar .icon-btn{width:44px;height:44px;color:#fff;background:transparent;border:0;flex-shrink:0}
         .screen:not(#chats-screen):not(#chat-screen) .top-bar .icon-btn svg{stroke:#fff}
         /* карточки-группы */
-        .settings-body{gap:16px;padding:10px 14px calc(96px + var(--safe-bottom))!important}
+        .settings-body{gap:16px;padding:10px 14px calc(64px + var(--safe-bottom) + 16px)!important}
         .settings-section,.tg-list,.settings-toggle-row,.profile-card{background:var(--card)!important;border:0!important;border-radius:22px!important;box-shadow:none!important;overflow:hidden}
         .settings-label{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em;padding:0 18px;margin:0 0 -6px}
         .tg-row{padding:14px 18px!important;background:transparent!important;border-radius:0!important;transition:background-color .2s var(--ease-smooth),transform .2s var(--ease-smooth)}
@@ -2546,7 +2546,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         :root[data-theme="light"]{--nav-bg:#ffffff;--nav-line:rgba(0,0,0,.08);--nav-icon:#6b6e7a;--nav-icon-on:#1c1c24;--nav-ind:rgba(0,0,0,.07)}
         .rail{left:0!important;right:0!important;width:auto!important;margin:0!important;
             background:var(--nav-bg)!important;border-radius:0!important;box-shadow:none!important;
-            border-top:.5px solid var(--nav-line);padding:0 0 calc(4px + var(--safe-bottom))!important;min-height:0!important;
+            border-top:.5px solid var(--nav-line);padding:0 0 var(--safe-bottom)!important;min-height:0!important;height:auto!important;
             display:flex!important;flex-direction:row!important;align-items:stretch!important;justify-content:space-around!important;gap:0!important;overflow:visible!important;
             backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
         .rail .rail-pill{display:contents!important;background:none!important;padding:0!important}
@@ -3420,6 +3420,17 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 // поэтому фото могли выглядеть «не отправляется», хотя текст уходил нормально
                 // (текст Supabase вообще не использует). Короткий таймаут даёт быстрый и понятный
                 // сбой → обработчик в outbox увидит сетевую ошибку и повторит попытку сам.
+                // Основной путь — прямой REST-запрос к Storage: не зависит от CDN esm.sh (его часто блокируют).
+                try {
+                    const encPath = path.split('/').map(encodeURIComponent).join('/');
+                    const resp = await fetch(`${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${encPath}`, {
+                        method: 'POST',
+                        headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': fileOrBlob.type || 'application/octet-stream', 'cache-control': 'max-age=3600', 'x-upsert': 'false' },
+                        body: fileOrBlob
+                    });
+                    if (resp.ok) return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${encPath}`;
+                    console.warn('Supabase REST upload failed:', resp.status, await resp.text().catch(() => ''));
+                } catch (restErr) { console.warn('Supabase REST upload error:', restErr); }
                 const supabase = await Promise.race([
                     getSupabaseClient(),
                     new Promise((_, no) => setTimeout(() => no(new Error('timeout: не удалось загрузить модуль Supabase (сеть/блокировщик)')), 12000))
@@ -8421,7 +8432,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
     </script>
 
 <style>
-    .swipe-under{display:flex!important;position:absolute!important;inset:0!important;z-index:1!important;animation:none!important;will-change:transform}
+    .swipe-under{display:flex!important;position:absolute!important;inset:0!important;width:100%!important;margin:0!important;z-index:1!important;animation:none!important;transform:none!important;border-radius:0!important}
 
         /* ===== Главный экран: шапка плавно переходит из светло-серого в цвет страницы (без блока и скругления) ===== */
         :root { --home-end: #2a2a2d; }
@@ -8454,7 +8465,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         /* Нижний функциональный бар — вплотную к нижнему краю экрана, без зазора/подложки под ним.
            Отступ для иконок от «чёлки»/индикатора свайпа даёт padding-bottom бара (safe-area),
            а сам бар своим фоном доходит до самого низа. */
-        .rail { bottom: 0 !important; }
+        .rail { bottom: 0 !important; height: auto !important; padding-bottom: var(--safe-bottom) !important; }
     </style>
 <script>
 (function () {
