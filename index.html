@@ -1102,8 +1102,10 @@
         .btn,.cm-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px}
         .btn{width:100%}
 
-        /* ===== Нижний край: никакой чёрной полосы ===== */
-        :root{--safe-bottom:max(0px,calc(env(safe-area-inset-bottom,0px) - 14px))}
+        /* ===== Нижний край: единая переменная --safe-bottom задана один раз (см. строку ~90),
+           здесь раньше было второе переопределение «-14px», которое давало недосчёт отступа
+           сразу во всех местах, где используется var(--safe-bottom) (рейл, chat-input-panel,
+           toast, settings-body и т.д.) — убрано как источник рассинхронизации. ===== */
         html,body{background:var(--bg-color);overscroll-behavior:none}
         body{height:100vh;height:100dvh}
         body.kb-open{height:var(--app-h)}
@@ -3413,7 +3415,15 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             const path = `${safeFolder}/${currentUser.uid}/${Date.now()}_${uniqueId}_${safeName}`;
 
             try {
-                const supabase = await getSupabaseClient();
+                // Загрузка библиотеки Supabase идёт с внешнего CDN (esm.sh). На мобильной сети/с
+                // блокировщиками реклам она иногда зависает без ошибки на много секунд — именно
+                // поэтому фото могли выглядеть «не отправляется», хотя текст уходил нормально
+                // (текст Supabase вообще не использует). Короткий таймаут даёт быстрый и понятный
+                // сбой → обработчик в outbox увидит сетевую ошибку и повторит попытку сам.
+                const supabase = await Promise.race([
+                    getSupabaseClient(),
+                    new Promise((_, no) => setTimeout(() => no(new Error('timeout: не удалось загрузить модуль Supabase (сеть/блокировщик)')), 12000))
+                ]);
                 const { error } = await supabase.storage
                     .from(SUPABASE_BUCKET)
                     .upload(path, fileOrBlob, {
@@ -8471,9 +8481,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         chatEl.style.boxShadow = '-12px 0 32px rgba(0,0,0,.4)';
         chatEl.style.transition = 'none';
         chatsEl.style.transition = 'none';
-        // нижнее меню показываем под экраном и двигаем вместе со списком
+        // нижнее меню списка чатов показываем под экраном (неподвижно, без сдвига по X)
         if (railEl && railEl.classList.contains('nav-hidden')) { railEl.classList.remove('nav-hidden'); showedRail = true; }
-        if (railEl) railEl.style.transition = 'none';
     }
 
     function reset() {
@@ -8494,11 +8503,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
     function finish(go) {
         const ease = 'transform .32s cubic-bezier(.2,.8,.2,1)';
         chatsEl.classList.add('swipe-settle');
-        chatEl.style.transition = ease; chatsEl.style.transition = ease;
-        if (railEl) railEl.style.transition = ease;
+        chatEl.style.transition = ease; chatsEl.style.transition = 'opacity .32s ease';
         chatEl.style.transform = go ? `translateX(${W}px)` : 'translateX(0px)';
-        chatsEl.style.transform = go ? 'translateX(0%)' : 'translateX(-30%)';
-        if (railEl) railEl.style.transform = go ? 'translateX(0%)' : 'translateX(-30%)';
         chatsEl.style.setProperty('--dim', go ? '0' : String(DIM));
         setTimeout(() => {
             reset();
@@ -8527,9 +8533,10 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         dx = Math.max(0, x);
         const k = 1 - Math.min(1, dx / W);
         chatEl.style.transform = `translateX(${dx}px)`;
-        chatsEl.style.transform = `translateX(${-30 * k}%)`;
+        // Список чатов под свайпом остаётся на месте (без translateX) — раньше он сдвигался
+        // до -30%, из-за чего справа почти на весь жест был виден пустой чёрный край экрана.
+        // Эффект приближения оставляем только через затемнение (--dim), без сдвига по X.
         chatsEl.style.setProperty('--dim', (DIM * k).toFixed(3));
-        if (railEl) railEl.style.transform = `translateX(${-30 * k}%)`;
     }, { passive: false });
 
     function end() {
