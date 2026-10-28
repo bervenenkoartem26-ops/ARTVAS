@@ -26,7 +26,7 @@
             animation:spGlow 2.4s ease-in-out infinite}
         .sp-icon{position:relative;width:132px;height:124px;display:grid;place-items:center;will-change:transform;
             
-            animation:spIn .8s cubic-bezier(.22,1,.36,1) both}
+            animation:spIn .8s cubic-bezier(.34,1.45,.64,1) both}
         .sp-logo{width:100%;height:100%;display:block}
         .sp-dots{display:flex;align-items:center;gap:10px;height:10px;margin-top:-4px}
         .sp-dots i{width:8px;height:8px;border-radius:50%;background:var(--accent,#363745);opacity:.22;
@@ -356,7 +356,7 @@
             justify-content: center;
             padding: 0 6px;
             flex-shrink: 0;
-            animation: badgePop .25s cubic-bezier(.22,1,.36,1);
+            animation: badgePop .25s cubic-bezier(.34,1.56,.64,1);
         }
         @keyframes badgePop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .chat-item.has-unread .unread-badge {
@@ -514,7 +514,7 @@
         .send-btn:disabled { opacity: 0.5; }
 
         .mic-btn.recording { background: var(--danger); border-color: var(--danger); color: #fff; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         #file-input { display: none; }
 
@@ -664,7 +664,7 @@
         .profile-card{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
         .profile-menu{position:fixed;inset:0;z-index:1800;background:rgba(0,0,0,.58);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;padding:70px 16px 24px;overflow:auto}
         .profile-menu-card{width:min(440px,100%);background:var(--surface-color);border:1px solid var(--border-color);border-radius:24px;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden;animation:profileIn .18s ease}
-        @keyframes profileIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+        @keyframes profileIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
         .profile-menu-head{padding:26px 20px 22px;text-align:center;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 18%,var(--surface-color)),var(--surface-color))}
         .profile-menu-head .avatar-xl{margin:0 auto 12px}
         .profile-menu-name{font-size:23px;font-weight:750}
@@ -679,7 +679,7 @@
         .profile-menu-action:active{transform:scale(.98)}
         .profile-menu-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border:1px solid var(--border-color);border-radius:50%;background:var(--surface-color);color:var(--text-primary);font-size:20px;cursor:pointer}
         .about-hint{font-size:11px;color:var(--text-secondary);margin-top:5px}
-        .chat-bottom-btn{position:absolute;right:18px;bottom:96px;width:46px;height:46px;border-radius:50%;border:none;background:var(--accent);color:#fff;box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 55%,transparent);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:12;opacity:0;transform:translateY(8px) scale(.9);pointer-events:none;transition:.25s cubic-bezier(.22,1,.36,1)}
+        .chat-bottom-btn{position:absolute;right:18px;bottom:96px;width:46px;height:46px;border-radius:50%;border:none;background:var(--accent);color:#fff;box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 55%,transparent);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:12;opacity:0;transform:translateY(8px) scale(.9);pointer-events:none;transition:.25s cubic-bezier(.34,1.56,.64,1)}
         .chat-bottom-btn.show{opacity:1;transform:none;pointer-events:auto}
         .chat-bottom-btn:active{transform:scale(.9)}
         .chat-bottom-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -754,10 +754,10 @@
         .msg-backdrop { position: absolute; inset: 0; background: rgba(5,6,12,.5); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); animation: mbIn .2s ease; }
         :root[data-theme="light"] .msg-backdrop { background: rgba(230,234,250,.5); }
         @keyframes mbIn { from { opacity: 0; } to { opacity: 1; } }
-        .msg-clone { position: fixed !important; z-index: 1450; margin: 0 !important; max-width: none !important; overflow: hidden; pointer-events: none; transform-origin: center; animation: mcPop .26s cubic-bezier(.22,1,.36,1); }
+        .msg-clone { position: fixed !important; z-index: 1450; margin: 0 !important; max-width: none !important; overflow: hidden; pointer-events: none; transform-origin: center; animation: mcPop .26s cubic-bezier(.34,1.56,.64,1); }
         .msg-clone * { pointer-events: none !important; }
         @keyframes mcPop { from { transform: scale(.96); } to { transform: scale(1); } }
-        .msg-overlay .msg-menu { z-index: 1500; min-width: 240px; padding: 8px; transform-origin: top center; animation: mmPop .22s cubic-bezier(.22,1,.36,1); }
+        .msg-overlay .msg-menu { z-index: 1500; min-width: 240px; padding: 8px; transform-origin: top center; animation: mmPop .22s cubic-bezier(.34,1.3,.64,1); }
         @keyframes mmPop { from { opacity: 0; transform: scale(.9) translateY(-6px); } to { opacity: 1; transform: none; } }
         .msg-overlay .msg-menu-reactions { padding: 2px 2px 8px; margin-bottom: 4px; border-bottom: 1px solid var(--border-color); }
         .msg-overlay .react-btn { width: 40px; height: 40px; font-size: 23px; }
@@ -1130,20 +1130,20 @@
         .message.msg-in{animation:msgIn .26s cubic-bezier(.2,.8,.2,1) both}
         .message.me.msg-in{transform-origin:100% 100%}
         .message.other.msg-in{transform-origin:0 100%}
-        @keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+        @keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
         .cm-overlay{animation:viewerFade .18s ease-out}
-        .cm-card{animation:cmCardIn .24s cubic-bezier(.22,1,.36,1)}
-        @keyframes cmCardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+        .cm-card{animation:cmCardIn .24s cubic-bezier(.2,.9,.3,1.15)}
+        @keyframes cmCardIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
         .chat-item{transition:background-color .15s,transform .12s}
         .chat-item:active{transform:scale(.985)}
         .btn,.cm-btn,.icon-btn,.file-btn,.send-btn,.call-round,.react-btn,.reaction-chip,.recent-card{transition:transform .14s ease,background-color .15s,color .15s,opacity .15s}
-        .btn:active,.cm-btn:active,.icon-btn:active,.call-round:active,.react-btn:active,.reaction-chip:active,.recent-card:active{opacity:.8}
-        .reaction-chip{animation:chipIn .22s cubic-bezier(.22,1,.36,1)}
+        .btn:active,.cm-btn:active,.icon-btn:active,.call-round:active,.react-btn:active,.reaction-chip:active,.recent-card:active{transform:scale(.94)}
+        .reaction-chip{animation:chipIn .22s cubic-bezier(.2,.9,.3,1.3)}
         @keyframes chipIn{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
-        .bottom-nav-btn svg{transition:transform .22s cubic-bezier(.22,1,.36,1)}
+        .bottom-nav-btn svg{transition:transform .22s cubic-bezier(.2,.9,.3,1.3)}
         .bottom-nav-btn.active svg{transform:translateY(-1px) scale(1.08)}
-        .toast{transition:opacity .2s ease,transform .25s cubic-bezier(.22,1,.36,1)}
-        .heart-pop{}
+        .toast{transition:opacity .2s ease,transform .25s cubic-bezier(.2,.9,.3,1.1)}
+        .heart-pop{will-change:transform,opacity}
         @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
         /* ===== фикс строк «Юзернейм / Имя»: кнопка не должна занимать всю ширину ===== */
@@ -1250,7 +1250,7 @@
             --chat-top-h:calc(56px + env(safe-area-inset-top,0px));
             /* кривые: «спокойная» (critically damped) и «с импульсом» (лёгкий overshoot) */
             --ease-settle:cubic-bezier(.22,1,.36,1);
-            --ease-flick:cubic-bezier(.22,1,.36,1);
+            --ease-flick:cubic-bezier(.34,1.45,.64,1);
         }
         :root[data-theme="light"]{
             --rail:#fff; --bg-color:#fff; --panel:#fff; --wall:#fff;
@@ -1499,7 +1499,7 @@
         .message.other .reply-quote{border-left-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
         .message-image{border-radius:12px}
         .message.msg-in{animation:msgIn .42s var(--ease-flick) both}
-        @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+        @keyframes msgIn{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}
 
         .typing-indicator-box{font-style:normal;padding:0 max(20px,var(--sl)) 4px;font-size:12px;letter-spacing:.01em}
 
@@ -1983,7 +1983,7 @@
     <style id="isl-style">
         #isl{--isl-top:11px;--isl-w:126px;--isl-h:37px;--isl-r:18px;position:fixed;left:50%;top:var(--isl-top);width:var(--isl-w);height:var(--isl-h);
             transform:translateX(-50%);z-index:9500;background:#000;color:#fff;border-radius:var(--isl-r);overflow:hidden;opacity:0;pointer-events:none;
-            transition:width .5s cubic-bezier(.22,1,.36,1),height .5s cubic-bezier(.22,1,.36,1),border-radius .5s cubic-bezier(.22,1,.36,1),opacity .18s,top .25s;
+            transition:width .5s cubic-bezier(.34,1.38,.5,1),height .5s cubic-bezier(.34,1.38,.5,1),border-radius .5s cubic-bezier(.34,1.38,.5,1),opacity .18s,top .25s;
             -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:none;
             font:500 14px/1.25 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;will-change:width,height}
         #isl.on{opacity:1;pointer-events:auto}
@@ -2215,7 +2215,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 @keyframes tabLabel { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 .rail .rail-btn svg { transition: fill-opacity .25s ease; transform-origin: 50% 60%; }
 .rail .rail-btn.active svg { fill: currentColor; fill-opacity: .16; }
-.rail .rail-btn.tab-pop svg { animation: tabPop .42s cubic-bezier(.22,1,.36,1); }
+.rail .rail-btn.tab-pop svg { animation: tabPop .42s cubic-bezier(.34,1.56,.64,1); }
 .rail .rail-btn.tab-pop::after { animation: tabLabel .3s ease both; }
 @media (prefers-reduced-motion: reduce) { .rail .rail-btn.tab-pop svg, .rail .rail-btn.tab-pop::after { animation: none; } }
 </style>
@@ -2233,7 +2233,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
   15%{opacity:1;transform:translate(-50%,-14px) scale(1.25)}
   100%{opacity:0;transform:translate(calc(-50% + var(--dx)),-130px) scale(.9)}
 }
-.message.react-hit{animation:reactHit .42s cubic-bezier(.22,1,.36,1)}
+.message.react-hit{animation:reactHit .42s cubic-bezier(.3,1.4,.5,1)}
 @keyframes reactHit{0%{transform:scale(1)}40%{transform:scale(1.025)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion: reduce){.react-fly,.message.react-hit{animation:none}.react-fly{display:none}}
 </style>
@@ -2527,8 +2527,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .message.local .msg-state{transition:opacity .2s var(--ease-smooth)}
 
         /* ===== Переходы: вход в чат (подъём, масштаб, размытие), скрытие меню при скролле ===== */
-        #chat-screen.active.chat-enter{animation:chatRise .42s var(--ease-smooth) both;will-change:transform,opacity}
-        @keyframes chatRise{from{opacity:0;transform:translateY(28px);filter:blur(10px)}to{opacity:1;transform:none;filter:blur(0)}}
+        #chat-screen.active.chat-enter{animation:chatRise .32s var(--ease-smooth) both;will-change:transform,opacity}
+        @keyframes chatRise{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
         .rail{transition:transform .3s var(--ease-smooth),opacity .3s var(--ease-smooth)}
         .rail.rail-hidden{transform:translateY(calc(100% + 32px));opacity:0;pointer-events:none}
         .flight{position:fixed;left:0;top:0;z-index:500;pointer-events:none;transform-origin:0 0;will-change:transform}
@@ -2545,7 +2545,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .rail{left:0!important;right:0!important;width:auto!important;margin:0!important;
             background:var(--nav-bg)!important;border-radius:0!important;box-shadow:none!important;
             border-top:.5px solid var(--nav-line);padding:0 0 calc(4px + var(--safe-bottom))!important;min-height:0!important;
-            display:flex!important;flex-direction:row!important;align-items:stretch!important;justify-content:space-around!important;gap:0!important;overflow:visible!important}
+            display:flex!important;flex-direction:row!important;align-items:stretch!important;justify-content:space-around!important;gap:0!important;overflow:visible!important;
+            backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
         .rail .rail-pill{display:contents!important;background:none!important;padding:0!important}
         .rail > .rail-btn,.rail .rail-pill > .rail-btn{flex:1 1 0!important;width:auto!important;min-width:0!important;height:64px!important;
             border-radius:0!important;background:transparent!important;box-shadow:none!important;position:relative;
@@ -2725,14 +2726,14 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         /* ===== Анимации в духе Google Messages и Telegram ===== */
         :root {
             --tg-ease: cubic-bezier(.33,1,.68,1);           /* плавный выезд, как в Telegram */
-            --gm-spring: cubic-bezier(.22,1,.36,1);      /* лёгкий «пружинный» отскок, как в Google Messages */
+            --gm-spring: cubic-bezier(.34,1.56,.64,1);      /* лёгкий «пружинный» отскок, как в Google Messages */
         }
 
         /* Сообщения: входящие выезжают слева, исходящие — справа, с пружинкой */
         .message.me.msg-in { animation: tgOutIn .42s var(--gm-spring) both; transform-origin: right bottom; }
         .message.other.msg-in { animation: tgInIn .42s var(--gm-spring) both; transform-origin: left bottom; }
-        @keyframes tgOutIn { from { opacity: 0; transform: translate(12px, 0); } to { opacity: 1; transform: none; } }
-        @keyframes tgInIn  { from { opacity: 0; transform: translate(-12px, 0); } to { opacity: 1; transform: none; } }
+        @keyframes tgOutIn { from { opacity: 0; transform: translate(24px, 8px) scale(.9); } to { opacity: 1; transform: none; } }
+        @keyframes tgInIn  { from { opacity: 0; transform: translate(-24px, 8px) scale(.9); } to { opacity: 1; transform: none; } }
 
         /* Смена экранов: сдвиг по горизонтали, как в Telegram (вход справа, уход влево) */
         .screen.active { animation: screenSlide .38s var(--tg-ease) both; }
@@ -2797,7 +2798,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .msg-tr-wait { opacity: .6; font-style: italic; }
         .msg-tr-err { color: var(--danger); }
         .vp { display: flex; align-items: center; gap: 10px; min-width: 220px; max-width: 280px; padding: 4px 2px; }
-        .vp-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--accent); color: #fff; display: grid; place-items: center; flex-shrink: 0; cursor: pointer; transition: transform .2s cubic-bezier(.22,1,.36,1); }
+        .vp-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--accent); color: #fff; display: grid; place-items: center; flex-shrink: 0; cursor: pointer; transition: transform .2s cubic-bezier(.34,1.56,.64,1); }
         .vp-btn:active { transform: scale(.9); }
         .vp-btn svg { width: 18px; height: 18px; fill: currentColor; }
         .vp-wave { flex: 1; height: 34px; display: flex; align-items: center; gap: 2px; cursor: pointer; touch-action: none; }
@@ -2807,32 +2808,22 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         .vp audio { display: none; }
     
         /* --- nav-final --- */
-        /* ===== Нижний бар: прижат к самому краю телефона, без подкладки ===== */
-        :root { --nav-pill: #2a2a2d; --nav-dot: #5d5f6e; --nav-icon: #ffffff; --nav-icon-on: #ffffff; --nav-line: rgba(255,255,255,.07); --nav-ind: rgba(255,255,255,.12); }
-        :root[data-theme="light"] { --nav-pill: #ffffff; --nav-dot: #ffffff; --nav-icon: #3b3e4c; --nav-icon-on: #1c1c24; --nav-line: rgba(0,0,0,.08); --nav-ind: rgba(0,0,0,.07); }
+        /* ===== Финальная раскладка нижнего меню по эскизу ===== */
+        :root { --nav-pill: #8a8d9c; --nav-dot: #5d5f6e; --nav-icon: #ffffff; --nav-icon-on: #ffffff; }
+        :root[data-theme="light"] { --nav-pill: #e2e4ec; --nav-dot: #ffffff; --nav-icon: #3b3e4c; --nav-icon-on: #1c1c24; }
 
-        /* 1. В чате (и на входе) меню полностью скрыто. */
+        /* 1. В чате (и на входе) меню полностью скрыто. Перебиваем display:flex!important из старых правил */
         #rail.nav-hidden, #user-bar.nav-hidden, #user-bar { display: none !important; }
 
-        /* 2. Нижний бар: лежит на самом краю телефона, без отступа снизу (без "подкладки").
-              Фон бара доходит до физического края экрана.
-              iOS safe-area-inset-bottom — это минимальный padding под home-индикатор (не подкладка). */
+        /* 2. Плавающая пилюля, как на эскизе */
         #rail {
-            position: fixed !important;
-            left: 0 !important; right: 0 !important; top: auto !important;
-            bottom: 0 !important;                          /* прижат к самому краю */
-            width: 100% !important;
-            height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
-            min-height: 0 !important; margin: 0 !important;
-            padding: 0 0 env(safe-area-inset-bottom, 0px) !important;
-            border: none !important;
-            border-top: .5px solid var(--nav-line) !important;
-            border-radius: 0 !important;                  /* без скруглений — лежит на краю */
-            background: var(--nav-pill) !important;
-            box-shadow: 0 -1px 0 var(--nav-line), 0 -4px 12px rgba(0,0,0,.08) !important;
+            position: absolute !important; left: 14px !important; right: 14px !important; top: auto !important;
+            bottom: calc(12px + var(--safe-bottom)) !important;
+            width: auto !important; height: 66px !important; min-height: 0 !important; margin: 0 !important;
+            padding: 0 8px !important; border: none !important; border-radius: 33px !important;
+            background: var(--nav-pill) !important; box-shadow: 0 8px 24px rgba(0,0,0,.22) !important;
             display: flex !important; flex-direction: row !important; align-items: center !important;
-            justify-content: space-around !important; gap: 0 !important;
-            overflow: visible !important; z-index: 30 !important;
+            justify-content: space-between !important; gap: 0 !important; overflow: visible !important; z-index: 30 !important;
         }
         #rail::before, #rail::after { display: none !important; }
         #rail .rail-pill { display: contents !important; background: none !important; padding: 0 !important; }
@@ -2840,50 +2831,44 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         /* 3. Все иконки одинакового размера, без подписей */
         #rail .rail-btn {
             position: relative !important; z-index: 1 !important;
-            flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; height: 64px !important;
-            margin: 0 !important; padding: 0 !important; border: none !important; border-radius: 0 !important;
+            width: 52px !important; height: 52px !important; min-width: 0 !important; flex: 0 0 52px !important;
+            margin: 0 !important; padding: 0 !important; border: none !important; border-radius: 50% !important;
             background: transparent !important; box-shadow: none !important; transform: none !important;
-            display: flex !important; align-items: center !important; justify-content: center !important;
-            font-size: 0 !important; color: var(--nav-icon) !important;
+            display: grid !important; place-items: center !important; font-size: 0 !important; color: var(--nav-icon) !important;
         }
         #rail .rail-btn::before, #rail .rail-btn::after { content: none !important; display: none !important; }
         #rail .rail-btn span:not(.rail-badge) { display: none !important; }
         #rail .rail-btn svg {
-            width: 26px !important; height: 26px !important;
-            stroke: var(--nav-icon) !important; fill: none !important;
-            stroke-width: 1.8 !important; transform: none !important;
-            transition: stroke .2s ease !important;
+            width: 26px !important; height: 26px !important; stroke: var(--nav-icon) !important; fill: none !important;
+            stroke-width: 1.8 !important; transform: none !important; transition: stroke .25s ease, transform .3s cubic-bezier(.34,1.4,.64,1) !important;
         }
         #rail .rail-btn.active svg { stroke: var(--nav-icon-on) !important; fill: none !important; transform: none !important; }
+        #rail .rail-btn:active svg { transform: scale(.86) !important; }
         #rail .rail-btn.active { background: transparent !important; }
-        #rail .rail-badge { position: absolute !important; top: 10px !important; left: calc(50% + 8px) !important; right: auto !important; }
+        #rail .rail-badge { position: absolute !important; top: 6px !important; right: 6px !important; left: auto !important; }
 
-        /* Порядок: контакты, звонки, комнаты, чаты, настройки */
+        /* Порядок как на эскизе: контакты, звонки, комнаты, чаты, настройки */
         #rail > #nav-contacts-btn, #rail .rail-pill > #nav-contacts-btn { order: 1 !important; }
         #rail > #nav-calls-btn,    #rail .rail-pill > #nav-calls-btn    { order: 2 !important; }
         #rail > #nav-rooms-btn,    #rail .rail-pill > #nav-rooms-btn    { order: 3 !important; }
         #rail > #nav-chats-btn                                          { order: 4 !important; }
         #rail > #nav-settings-btn                                       { order: 5 !important; }
 
-        /* Кружок-индикатор под активной кнопкой */
+        /* Кружок под активной иконкой; двигается при переключении вкладки */
         #rail .nav-dot {
             position: absolute !important; top: 50% !important; left: 0 !important; z-index: 0 !important;
-            width: 48px !important; height: 32px !important; margin-top: -16px !important; border-radius: 16px !important;
-            background: var(--nav-ind) !important; pointer-events: none !important;
-            transition: transform .3s cubic-bezier(.22,1,.36,1), opacity .2s ease, background-color .3s ease !important;
+            width: 52px !important; height: 52px !important; margin-top: -26px !important; border-radius: 50% !important;
+            background: var(--nav-dot) !important; pointer-events: none !important;
+            transition: transform .45s cubic-bezier(.34,1.25,.64,1), opacity .25s ease, background-color .3s ease !important;
         }
 
-        /* 4. Шапка чатов на всю ширину телефона */
+        /* 4. Шапка чатов на всю ширину телефона, большие скругления снизу */
         #chats-screen .semi-circle-nav {
-            margin: 0 !important; width: 100% !important; border: none !important; border-radius: 0 0 24px 24px !important;
+            margin: 0 !important; width: 100% !important; border: none !important; border-radius: 0 0 40px 40px !important;
             box-shadow: none !important; background: #33343f !important;
         }
-        /* Списки чатов/настроек: внизу место ровно под бар (64px + safe-area + запас 8px) */
-        .chats-list { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 8px) !important; }
-        .settings-body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 24px) !important; }
-        body.has-nav .toast { bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 12px) !important; }
-
-                /* --- v4-fixes --- */
+    
+        /* --- v4-fixes --- */
         /* Свайп назад: список уходит под экран чата и затемняется (как в Telegram) */
         .swipe-dim::after { content: ''; position: absolute; inset: 0; background: #000; opacity: var(--dim, 0); pointer-events: none; z-index: 5; }
         .swipe-settle::after { transition: opacity .32s ease; }
@@ -2931,72 +2916,6 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
     <style id="img-dims">
         /* Место под картинку резервируется по её размерам, пока она грузится */
         img.message-image[style*="aspect-ratio"] { width: 100%; height: auto; background: var(--bubble-other); }
-    </style>
-    <style id="perf-final">
-        /* ===== Финальная оптимизация производительности =====
-           Все переходы — только на transform/opacity (GPU-friendly).
-           Никаких layout-свойств (width/height/top/left) в transition.
-           Длительности микро-анимаций уменьшены — без визуального ущерба, но без фризов. */
-
-        /* 1. Кнопки и строки списков: убираем transform: scale() при :active
-              (он вызывает reflow), заменяем на opacity-эффект.
-              Этот блок перебивает все предыдущие правила благодаря специфичности. */
-        .btn:active, .cm-btn:active, .icon-btn:active, .file-btn:active, .send-btn:active,
-        .rail-btn:active, .recent-card:active, .chat-item:active, .react-btn:active,
-        .reaction-chip:active, .dc-circle:active, .dc-plus:active, .dc-wide:active,
-        .dc-pill:active, .vp-btn:active, .call-back:active, .pm-quick-btn:active,
-        .ct-call:active, .eb-btn:active, .plus-menu button:active {
-            transform: none !important;
-            opacity: .85;
-            transition-duration: .08s !important;
-        }
-        /* send-btn: эффект лёгкого нажатия — opacity, без scale */
-        .send-btn:active { opacity: .7; }
-
-        /* 2. Сообщения: только opacity + translateY, без scale */
-        @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-        @keyframes msgUpd { from { opacity: .6; } to { opacity: 1; } }
-
-        /* 3. Убираем will-change со всех элементов, кроме тех, где он реально нужен */
-        * { will-change: auto !important; }
-        .msg-spinner, .sp-dots i, .typing-dots span { will-change: transform !important; }
-
-        /* 4. Сокращаем длительности часто повторяющихся анимаций */
-        .chat-item { transition: background-color .15s ease !important; }
-        .rail .rail-btn svg { transition: stroke .2s ease !important; }
-        .rail .rail-btn.active::before { transition: background-color .2s ease, transform .2s ease !important; }
-        .nav-dot { transition: transform .3s cubic-bezier(.22,1,.36,1), opacity .2s ease !important; }
-
-        /* 5. Убираем filter:blur из всех анимаций (тяжёлый для GPU мобильных) */
-        @keyframes chatSlideIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: none; } }
-        #chat-screen.active.chat-enter { animation: chatSlideIn .28s cubic-bezier(.22,1,.36,1) both !important; filter: none !important; }
-
-        /* 6. Сообщения: contain — layout + style + paint, чтобы изменения в одном сообщении
-              не вызывали пересчёт всей ленты. */
-        .message { contain: layout style paint; }
-        .chat-item { contain: layout style; }
-
-        /* 7. Убираем бесконечные анимации на :hover (на тач-устройствах hover всё равно не работает) */
-        @media (hover: none) {
-            .chat-item:hover { background: transparent !important; }
-            .icon-btn:hover { background: transparent !important; }
-        }
-
-        /* 8. Свайп-скролл: momentum на iOS */
-        .messages-list, .chats-list, .settings-body, .cm-list, .emoji-panel {
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-        }
-
-        /* 9. prefers-reduced-motion: все анимации < 0.01s (финальный перебив) */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: .01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: .01ms !important;
-                scroll-behavior: auto !important;
-            }
-        }
     </style>
 </head>
 <body>
@@ -3949,32 +3868,21 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         }
 
         // ===== Сквозное шифрование (ECDH P-256 + AES-GCM), ключи только на устройстве =====
-        // Стабильная версия: localStorage-фолбэк, таймаут инициализации, graceful degradation.
-        const E2E = { priv: null, pub: null, devId: null, legacyPriv: null, ready: false, initPromise: null, initResolve: null, keys: new Map() };
-        let __e2eeWarnedFallback = false;   // один тост за сессию, если шифрование недоступно
+        const E2E = { priv: null, pub: null, ready: false, initPromise: null, keys: new Map() };
         const ECDH = { name: 'ECDH', namedCurve: 'P-256' };
         const enc8 = new TextEncoder(), dec8 = new TextDecoder();
         const b64 = buf => { let t = ''; new Uint8Array(buf).forEach(c => t += String.fromCharCode(c)); return btoa(t); };
-        const unb64 = t => { try { return Uint8Array.from(atob(t), c => c.charCodeAt(0)); } catch (_) { return new Uint8Array(0); } };
-        const idbOpen = () => new Promise((ok, no) => { try { const r = indexedDB.open('cm-e2ee', 1); r.onupgradeneeded = () => r.result.createObjectStore('k'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); } catch (e) { no(e); } });
-        async function idbGet(k) { try { const d = await idbOpen(); return await new Promise((ok, no) => { const q = d.transaction('k').objectStore('k').get(k); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); } catch (_) { return null; } }
-        async function idbSet(k, v) { try { const d = await idbOpen(); await new Promise((ok, no) => { const t = d.transaction('k', 'readwrite'); t.objectStore('k').put(v, k); t.oncomplete = ok; t.onerror = () => no(t.error); }); } catch (_) {} }
-        // localStorage-фолбэк: приватный ключ хранится в виде JWK, чтобы пережить сбой IndexedDB (private mode, storage pressure).
-        function lsGetDev(uid) { try { const s = localStorage.getItem('cm-dev:' + uid); return s ? JSON.parse(s) : null; } catch (_) { return null; } }
-        function lsSetDev(uid, dev) { try { localStorage.setItem('cm-dev:' + uid, JSON.stringify(dev)); } catch (_) {} }
-        // Преобразование ключа: CryptoKey <-> сериализованный JWK (для localStorage)
-        async function serializePriv(priv) { try { const j = await crypto.subtle.exportKey('jwk', priv); return j; } catch (_) { return null; } }
-        async function deserializePriv(j) { try { return await crypto.subtle.importKey('jwk', j, ECDH, false, ['deriveBits']); } catch (_) { return null; } }
+        const unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
+        const idbOpen = () => new Promise((ok, no) => { const r = indexedDB.open('cm-e2ee', 1); r.onupgradeneeded = () => r.result.createObjectStore('k'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+        async function idbGet(k) { const d = await idbOpen(); return new Promise((ok, no) => { const q = d.transaction('k').objectStore('k').get(k); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); }
+        async function idbSet(k, v) { const d = await idbOpen(); return new Promise((ok, no) => { const t = d.transaction('k', 'readwrite'); t.objectStore('k').put(v, k); t.oncomplete = ok; t.onerror = () => no(t.error); }); }
         async function passKey(pass, salt, iter) {
             const base = await crypto.subtle.importKey('raw', enc8.encode(pass), 'PBKDF2', false, ['deriveKey']);
             return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
         }
-        // Таймаут на инициализацию: если за 4с не получилось — продолжаем без шифрования, не блокируя UI.
-        function withTimeout(p, ms, fb) { return Promise.race([p, new Promise(r => setTimeout(() => r(fb), ms))]); }
         function ensureE2EE() { if (!E2E.initPromise) E2E.initPromise = initE2EE(); return E2E.initPromise; }
         // Ключ устройства создаётся автоматически при первом входе; пароли не нужны.
         // Каждое устройство имеет свою пару ключей (ECDH P-256); приватный ключ не покидает устройство.
-        // Хранение: IndexedDB (основное) + localStorage (фолбэк, если IDB недоступен).
         async function initE2EE() {
             if (!currentUser || !crypto?.subtle) return;
             const uid = currentUser.uid;
@@ -3983,53 +3891,26 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 const legacy = await idbGet('id:' + uid);
                 if (legacy?.priv) E2E.legacyPriv = legacy.priv;
                 let dev = await idbGet('dev:' + uid);
-                // Фолбэк: если IndexedDB работает, но записи нет — пробуем localStorage (private mode, смена браузера и т.п.)
                 if (!dev) {
-                    const ls = lsGetDev(uid);
-                    if (ls && ls.privJwk && ls.pub) {
-                        const priv = await deserializePriv(ls.privJwk);
-                        if (priv) dev = { id: ls.id, priv, pub: ls.pub };
-                    }
-                }
-                if (!dev) {
-                    // extractable=true — чтобы можно было сохранить приватный ключ в localStorage (фолбэк для IDB)
-                    const kp = await crypto.subtle.generateKey(ECDH, true, ['deriveBits']);
+                    const kp = await crypto.subtle.generateKey(ECDH, false, ['deriveBits']);
                     const j = await crypto.subtle.exportKey('jwk', kp.publicKey);
-                    const devId = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
-                    dev = { id: devId, priv: kp.privateKey, pub: { kty: j.kty, crv: j.crv, x: j.x, y: j.y } };
+                    dev = { id: (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)), priv: kp.privateKey, pub: { kty: j.kty, crv: j.crv, x: j.x, y: j.y } };
                     await idbSet('dev:' + uid, dev);
-                    // Дублируем в localStorage — там хранится JWK приватного ключа (extractable, но не покидает устройство)
-                    const privJwk = await serializePriv(dev.priv);
-                    lsSetDev(uid, { id: devId, privJwk, pub: dev.pub });
                 }
                 Object.assign(E2E, { devId: dev.id, priv: dev.priv, pub: dev.pub, ready: true });
-                // Публикуем публичный ключ устройства в Firestore (best-effort, не блокируем)
-                setDoc(doc(db, 'users', uid, 'devices', dev.id), { pub: dev.pub, updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
-            } catch (e) {
-                console.warn('E2EE init failed, working without encryption:', e);
-                // Не показываем тост — это лишь предупреждение, приложение продолжает работать.
-            } finally {
-                if (E2E.initResolve) E2E.initResolve();
-            }
+                await setDoc(doc(db, 'users', uid, 'devices', dev.id), { pub: dev.pub, updatedAt: serverTimestamp() }, { merge: true });
+            } catch (e) { console.error(e); showToast('Шифрование недоступно: ' + e.message); }
         }
-        // Все ключи устройств пользователя (кэш на 60 секунд — стабильнее, меньше сетевых запросов)
+        // Все ключи устройств пользователя (кэш на 30 секунд)
         const __devCache = new Map();
         async function devicePubs(uid) {
-            if (!uid) return [];
             const hit = __devCache.get(uid);
-            if (hit && Date.now() - hit.t < 60000) return hit.v;
+            if (hit && Date.now() - hit.t < 30000) return hit.v;
             let v = [];
             try {
                 const snap = await getDocs(collection(db, 'users', uid, 'devices'));
                 v = snap.docs.map(d => ({ id: d.id, pub: d.data().pub })).filter(d => d.pub && d.pub.x);
             } catch (_) { return hit?.v || []; }
-            // Фолбэк: если устройств нет, пробуем старый одиночный ключ e2eePub на профиле пользователя
-            if (!v.length) {
-                try {
-                    const p = profiles.get(uid)?.e2eePub || (await getDoc(doc(db, 'users', uid))).data()?.e2eePub;
-                    if (p && p.x) v = [{ id: 'legacy', pub: p }];
-                } catch (_) {}
-            }
             __devCache.set(uid, { t: Date.now(), v });
             return v;
         }
@@ -4145,26 +4026,14 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 o = __decCache.get(ck);
                 if (!o) {
                     let pt;
-                    // Сначала пробуем v2 (per-device wrap), потом v1 (legacy static ECDH).
-                    // Если E2E ещё не готово — ждём инициализации с таймаутом 4с, иначе расшифровка невозможна.
                     if (data.e2e.v === 2) {
-                        await withTimeout(ensureE2EE(), 4000, null);
-                        if (!E2E.ready || !E2E.priv) throw new Error('e2e not ready');
-                        const mine = data.e2e.w?.[E2E.devId];
-                        if (!mine) {
-                            // Не найдено wrap-а для нашего устройства — пробуем legacy-ключ (старая переписка до multi-device)
-                            const other = data.senderId === currentUser.uid ? data.receiverId : data.senderId;
-                            const key = await chatKeyWith(other);
-                            if (key) pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.e2e.iv) }, key, unb64(data.e2e.ct));
-                            else throw new Error('no wrap for device');
-                        } else {
-                            const epk = await crypto.subtle.importKey('jwk', { ...data.e2e.eph, ext: true }, ECDH, false, []);
-                            const bits = await crypto.subtle.deriveBits({ name: 'ECDH', public: epk }, E2E.priv, 256);
-                            const wk = await hkdfWrapKey(bits, 'cm-e2ee-v2');
-                            const rawK = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(mine.iv) }, wk, unb64(mine.ct));
-                            const K = await crypto.subtle.importKey('raw', rawK, 'AES-GCM', false, ['decrypt']);
-                            pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.e2e.iv) }, K, unb64(data.e2e.ct));
-                        }
+                        const mine = data.e2e.w?.[E2E.devId]; if (!mine || !E2E.priv) throw 0;
+                        const epk = await crypto.subtle.importKey('jwk', { ...data.e2e.eph, ext: true }, ECDH, false, []);
+                        const bits = await crypto.subtle.deriveBits({ name: 'ECDH', public: epk }, E2E.priv, 256);
+                        const wk = await hkdfWrapKey(bits, 'cm-e2ee-v2');
+                        const rawK = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(mine.iv) }, wk, unb64(mine.ct));
+                        const K = await crypto.subtle.importKey('raw', rawK, 'AES-GCM', false, ['decrypt']);
+                        pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.e2e.iv) }, K, unb64(data.e2e.ct));
                     } else {
                         const other = data.senderId === currentUser.uid ? data.receiverId : data.senderId;
                         const key = await chatKeyWith(other); if (!key) throw 0;
@@ -4174,10 +4043,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                     if (__decCache.size > 800) __decCache.delete(__decCache.keys().next().value);
                     __decCache.set(ck, o);
                 }
-            } catch (err) {
-                console.warn('decrypt failed:', err?.message || err);
-                return { ...data, text: '🔒 Не удалось расшифровать (ключ устройства сменился или шифрование не готово)', locked: true };
-            }
+            } catch (_) { return { ...data, text: 'Не удалось расшифровать', locked: true }; }
             const ck = data.e2e.iv + data.e2e.ct;
             const sealedMsg = !!o.env;
             if (o.env) {
@@ -4910,11 +4776,9 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
 
         async function obEncrypt(it) {
             if (it.isGroup || !it.otherUid || (!it.text && !it.encMode)) return null;
-            // Таймаут 4с на инициализацию E2EE: если не успела — отправляем открытым текстом
-            await withTimeout(ensureE2EE(), 4000, null);
+            await ensureE2EE();
             if (!E2E.ready) return null;
-            const peers = await withTimeout(devicePubs(it.otherUid), 4000, []);
-            if (!peers.length) return null;   // нет ключей собеседника — вызывающий код решит, что делать
+            if (!(await devicePubs(it.otherUid)).length) return null;   // нет ключей собеседника (или сети) → ждём, а не шлём открытым текстом
             const m = it.encMode ? [...(it.encFiles || []), ...(it.encDoc ? [it.encDoc] : []), ...(it.encAudio ? [it.encAudio] : [])] : undefined;
             const inner = { text: it.text, rp: it.reply?.text || '', m };
             return encryptFor(it.otherUid, it.env ? { env: await sealEnvelope(it, inner) } : inner);
@@ -4938,13 +4802,8 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
             try {
                 if (it.stage === 'media') {
                     await ensureImgDims(it);
-                    // Проверяем доступность шифрования с таймаутом 4с — не блокируем отправку надолго.
-                    const secure = !it.isGroup && !!it.otherUid && await withTimeout(canEncryptTo(it.otherUid), 4000, false);
-                    // Если уже начали шифровать (encMode), а ключей нет — фолбэк на открытую загрузку с предупреждением (один раз за сессию).
-                    if (it.encMode && !secure) {
-                        if (!__e2eeWarnedFallback) { __e2eeWarnedFallback = true; showToast('Шифрование недоступно — сообщение уйдёт открытым текстом'); }
-                        it.encMode = false; it.encFiles = []; it.encDoc = null; it.encAudio = null;
-                    }
+                    const secure = !it.isGroup && !!it.otherUid && await canEncryptTo(it.otherUid);
+                    if (it.encMode && !secure) { it.state = 'queued'; obRenderLocal(); return 'wait'; }   // начали шифровать — без шифрования не досылаем
                     if (secure) {
                         // Файлы шифруются на устройстве (AES-GCM, свой ключ на каждый файл), в Supabase уходит только шифротекст
                         it.encMode = true; it.encFiles = it.encFiles || [];
@@ -4989,8 +4848,7 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 else {
                     const e = await obEncrypt(it);
                     if (e) { payload.e2e = e; payload.text = ''; delete payload.replyPreview; encrypted = true; }
-                    // Если шифрование не удалось (нет ключей собеседника, нет E2E) — отправляем открытым текстом, не блокируем.
-                    // Ранее здесь было `else if (it.encMode) return 'wait'` — это зависало навсегда.
+                    else if (it.encMode) { it.state = 'queued'; obRenderLocal(); return 'wait'; }
                 }
                 if (it.ttl > 0) payload.expiresAt = it.created + it.ttl * 1000;
                 const summary = it.ttl > 0 ? 'Исчезающее сообщение' : (encrypted ? '🔒 Сообщение' : plain);
@@ -5003,7 +4861,12 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 await obPut(it);
                 obRenderLocal();
                 commit.then(() => obDone(it, true), e => {
-                    if (e?.code === 'unavailable' || e?.code === 'deadline-exceeded') return;
+                    // Сеть мобильного телефона рвётся/скачет гораздо чаще, чем код ошибки
+                    // 'unavailable'/'deadline-exceeded' — Firestore может отклонить запись с другим
+                    // кодом (или вовсе без кода) при потере связи. obNetErr() ловит это шире, так же
+                    // как уже используется в catch ниже — иначе такие сообщения ошибочно помечались
+                    // «не отправлено», хотя на деле просто ждали сеть.
+                    if (obNetErr(e)) { it.stage = 'write'; it.state = 'queued'; obPut(it); obRenderLocal(); obSchedule(); return; }
                     it.stage = 'write'; it.state = 'failed'; it.err = obErrText(e);
                     obPut(it); obRenderLocal();
                 });
@@ -8527,7 +8390,6 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
                 startCallsWatch();
                 obInit();
                 startPrefsWatch();
-                ensureE2EE();   // запускаем инициализацию шифрования сразу при входе — не ждём первой отправки
                 showScreen(chatsScreen);
                 syncSettingsUI();
                 handleDeepLink();
@@ -8579,8 +8441,10 @@ body input, body textarea, body [contenteditable="true"] { -webkit-user-select: 
         #chats-screen .nav-search-input::placeholder { color: rgba(255,255,255,.72) !important; }
         #chats-screen .recent-strip * { color: #f4f4f6 !important; }
     
-        /* Нижний функциональный бар опущен ниже (ближе к краю экрана) */
-        .rail { bottom: calc(var(--safe-bottom, 0px) - 6px) !important; }
+        /* Нижний функциональный бар — вплотную к нижнему краю экрана, без зазора/подложки под ним.
+           Отступ для иконок от «чёлки»/индикатора свайпа даёт padding-bottom бара (safe-area),
+           а сам бар своим фоном доходит до самого низа. */
+        .rail { bottom: 0 !important; }
     </style>
 <script>
 (function () {
